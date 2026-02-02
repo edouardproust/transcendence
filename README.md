@@ -1,6 +1,6 @@
 # Transcendence
 
-This project has been created as part of the 42 curriculum by **ahetru**, **eproust**, **matde-la**, **sluterea**
+This project has been created as part of the 42 curriculum by **ahetru**, **eproust**, **matde-la**, **sluterea**. ([View subject](/subject/en.subject.pdf))
 
 ## Description
 
@@ -29,7 +29,7 @@ docker-compose ...
 ## Team Information
 
 | Team member | Role | Responsabilities |
-|---|---|---|
+|-|-|-|
 | // TODO | PO, PM, Tech Lead, Developers, etc. | Brief description of responsabilities |
 | ahetru | | |
 | eproust | | |
