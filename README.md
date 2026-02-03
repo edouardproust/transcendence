@@ -132,36 +132,28 @@ Legend:
 | Web | Use an ORM for the database | Minor | +1 |  | Prisma ORM | ahetru, eproust |
 | Gaming and UX | Complete web-based game where users can play against each other | Major | +2 |  | Real-time multiplayer game, live matches, game with clear rules and win/loss conditions |  |
 | Gaming and UX | Remote players in real-time | Major | +2 |  | Handle network latency and disconnections gracefully, provide a smooth UX for remote gameplay, reconnection logic |  |
+| User Management | Standard user management and authentication | Major | + 2 |  | Users can update their profile information, upload an avatar (and have a default avatar), add other users as friends and se their online status. Users have a profile page displaying their information. | all (backend and frontend) |
+| Web | Implement real-time features using WebSockets or similar technology | Major | + 2 |  |  |
+| Web | Custom-made design system with reusable components | Minor | +1 |   | Minimum of 10 reusable components, including proper color palette, typography and icons | matde-la, sluterea |
+| Web | A complete notification system for CRUD actions | Minor | +1 |  | Notifications popups with React on entity creationm update and deletion |  |
 
-Optional / to be discussed:
+// TODO Add a the base the project structure and finilize only if time left
+| Category | Module | Type | Points | Goal | Implementation | Contributors |
+|---|---|---|---|---|---|---|
+| Accessibility & i18n | Support for multiple languages | Minor | +1 |  |  Langage switch
+| Accessibility & i18n | Support for aditional browsers | Minor | +1 |  | Full compatibility in 3 browsers (Google Chrome, Firefox, Safari), documentation on browser-specific limitations, consisten UI/UX across all supported browsers |  |
+| User management | Game statistics and match history | Minor | +1 |  | Track user game statistics (wins, losses, ranking, level, etc.), display match history (1v1 games, dates, results, opponents), show achievements and progression, leaderboard integration | all (backend and frontend) |
+| User management | Advanced permissions system | Major | +2 |  | View, edit and delete users (CRUD), Roles management (admin, user, guest moderator, etc.) | Different views and actions based on user role |
+
+// TODO Bonus (if we have time left only)
 
 | Category | Module | Type | Points | Goal | Implementation | Contributors |
 |---|---|---|---|---|---|---|
-| User Management | (*+) Standard user management and authentication | Major | + 2 |  | Users can update their profile information, upload an avatar (and have a default avatar), add other users as friends and se their online status. Users have a profile page displaying their information. | all (backend and frontend) |
-| Web | (*+) Implement real-time features using WebScokets or similar technology | Major | + 2 |  |  |
-| Web | (**) A complete notification system for CRUD actions | Minor | +1 |  | Notifications popups with React on entity creationm update and deletion |  |
-| Web | (*) Custom-made design system with reusable components | Minor | +1 |   | Minimum of 10 reusable components, including proper color palette, typography and icons | matde-la, sluterea |
-| Accessibility & i18n | (*) Support for multiple languages | Minor | +1 |  |  Langage switch
-| Accessibility & i18n | (**) Support for aditional browsers | Minor | +1 |  | Full compatibility in 3 browsers (Google Chrome, Firefox, Safari), documentation on browser-specific limitations, consisten UI/UX across all supported browsers |  |
-| user management | (**) Remote authentication with OAuth 2.0 | Minor | + 1 |  | Google, Github, 42 authentication system |  |
-| User management | (*) Game statistics and match history | Minor | +1 |  | Track user game statistics (wins, losses, ranking, level, etc.), display match history (1v1 games, dates, results, opponents), show achievements and progression, leaderboard integration | all (backend and frontend) |
-| User management | (~~) Advanced permissions system | Major | +2 |  | View, edit and delete users (CRUD), Roles management (admin, user, guest moderator, etc.) | Different views and actions based on user role |
-| DevOps | (*-) Backend as microservices | Major | +2 |  | Loosely-coupled services with clear interfaces, REST APIs for communication, single-responsability for each service |  |
-| DevOps | (*) Health check and status page system | Minor | +1 |  | Page system with automated backups and disaster recovery procedures |  |
-| Data & Analytics | (*-) Data exports and imports | Minor | +1 |  | Export data in multiple formats (JSON, CSV, XML,...), Import data with validation, bulk operations support |  |
-
-Bonus (if we have time left only)
-
-| Category | Module | Type | Points | Goal | Implementation | Contributors |
-|---|---|---|---|---|---|---|
-| Gaming and UX | (**) 3D graphics | Major | +2 |  | 3D chess board using three.js, advanced rendering technics, smooth performance and user interaction |  |
-| Gaming and UX | (**) Game customization options | Minor | +1 |  | Power-ups and special abilities of pawns |  |
-
-
-
-
-| // TODO: module name | Major / Minor | Point calculation (Major = 2pts, Minor = 1pt) | Justify the choice of this module, especially if this is a custom "Modules of choice" | Explain how the module was implemented | List team member(s) who worked on this module |
-| | | | | | |
+| Data & Analytics | Data exports and imports | Minor | +1 |  | Export data in multiple formats (JSON, CSV, XML,...), Import data with validation, bulk operations support |  |
+| user management | Remote authentication with OAuth 2.0 | Minor | + 1 |  | Google, Github, 42 authentication system |  |
+| DevOps | Health check and status page system | Minor | +1 |  | Page system with automated backups and disaster recovery procedures |  |
+| Gaming and UX | 3D graphics | Major | +2 |  | 3D chess board using three.js, advanced rendering technics, smooth performance and user interaction |  |
+| Gaming and UX | Game customization options | Minor | +1 |  | Power-ups and special abilities of pawns |  |
 
 **Total points**: // TODO
 
