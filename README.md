@@ -116,14 +116,6 @@ Posts\
 
 ## Modules:
 
-Legend:
-* Optional we agree on
-** Optional new idea i bring
-~ Sure choice i am not sure about
-~~ Optional choice i am not sure about
-*+ Optinal that i want for sure
-*- Optional that i really don't want
-
 | Category | Module | Type | Points | Goal | Implementation | Contributors |
 |---|---|---|---|---|---|---|
 | Web | Use a framework for both frontend and backend | Major | +2 |  | Frontend: ReactJS, Backend: NestJS | matde-la, sluterea (ReactJS); ahetru, eproust (NestJS) |
