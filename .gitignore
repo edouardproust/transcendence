@@ -1,5 +1,31 @@
+# Logs
+logs
+*.log*
+
+# Dependencies
 node_modules/
+__pycache__/
+
+# Build
 dist/
+dist-ssr/
+build/
+
+# Environment
 .env
+.env.local
+
+# SSL
+**/ssl/*.pem
+**/ssl/*.key
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+*.sw?
+
+# OS
 .DS_Store
-coverage/
+
+# README in docker services
+docker/*/README.md
