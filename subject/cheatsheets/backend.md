@@ -29,9 +29,18 @@
 | npx prisma generate                            | Generate client (schema must be modified first: `prisma/schema.prisma`) |
 | npx prisma migrate dev --name <migration-name> | Migrate                                                                 |
 
+## Postgres
+
+| Command                                        | Description                                      |
+| ---------------------------------------------- | ------------------------------------------------ |
+| `docker exec -it -u postgres postgres-db psql` | Communicate with db (once continaer was started) |
+
 ## Useful tools:
 
-- `REST Client` extension: visualize HTTP response directly in VsCode
+| Type             | Tool                      | Description                                                             |
+| ---------------- | ------------------------- | ----------------------------------------------------------------------- |
+| VsCode extension | Thunder Client            | Visualize HTTP responses directly in VsCode                             |
+| VsCode extension | Prettier - Code formatter | Tool that automatically formats your code to enforce a consistent style |
 
 ## Links
 
