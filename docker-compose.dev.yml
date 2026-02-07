@@ -12,14 +12,19 @@ services:
       - postgres
 
   frontend:
-    build: ./docker/frontend
+    build:
+      context: ./docker/frontend
+      dockerfile: Dockerfile.dev
     ports:
-      - "4000:5173"
+      - "5173:5173"
+    volumes:
+      - ./docker/frontend:/app # for dev hot-reloading
+      - /app/node_modules # to prevent overwriting node_modules with the host's empty folder
 
   postgres:
     image: postgres:18.1-alpine3.23
     ports:
-      - "5000:5432"
+      - "5432:5432"
     env_file: .env
     volumes:
       - postgres-data:/var/lib/postgresql/data

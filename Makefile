@@ -1,20 +1,33 @@
-DOCKER_COMPOSE = docker compose -f ./docker-compose.yml
-
-# RULES
+DOCKER_COMPOSE_DEV = docker compose -f docker-compose.dev.yml
 
 all: up
 
 up:
-	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE_DEV) up -d
 
-logs:
-	$(DOCKER_COMPOSE) logs
+rebuild:
+	$(DOCKER_COMPOSE_DEV) up -d --build
 
 down:
-	$(DOCKER_COMPOSE) down
+	$(DOCKER_COMPOSE_DEV) down
 
 clean:
-	$(DOCKER_COMPOSE) down -v
-	docker system prune -af
+	$(DOCKER_COMPOSE_DEV) down -v
 
-re: clean all
+fclean:
+	$(DOCKER_COMPOSE_DEV) down -v --rmi all
+	docker system prune -f
+
+logs:
+	$(DOCKER_COMPOSE_DEV) logs -f
+
+ps:
+	$(DOCKER_COMPOSE_DEV) ps
+
+restart:
+	$(DOCKER_COMPOSE_DEV) restart
+
+nginx:
+	$(DOCKER_COMPOSE_DEV) exec nginx sh -c "nginx -t && nginx -s reload"
+
+.PHONY: all up rebuild down clean fclean logs ps restart nginx
