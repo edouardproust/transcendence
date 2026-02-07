@@ -30,11 +30,13 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   nginx:
-    image: nginx:stable-alpine3.23
+    image: nginx:1.0-alpine
     ports:
+      - "443:443"
       - "8080:80"
     volumes:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/certs:/etc/nginx/ssl/:ro
 
   adminer:
     image: adminer:5.4.1-fastcgi
