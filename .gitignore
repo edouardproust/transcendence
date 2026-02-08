@@ -16,8 +16,9 @@ build/
 .env.local
 
 # SSL
-**/ssl/*.pem
-**/ssl/*.key
+*.crt
+*.key
+*.pem
 
 # Editor
 .vscode/*

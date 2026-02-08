@@ -1,6 +1,9 @@
 DOCKER_COMPOSE_DEV = docker compose -f docker-compose.dev.yml
 
-all: up
+all: secrets up
+
+secrets:
+	sh ./docker/nginx/certs/generate-certs.sh
 
 up:
 	$(DOCKER_COMPOSE_DEV) up -d
