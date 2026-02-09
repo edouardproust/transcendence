@@ -7,7 +7,7 @@ function App() {
 	const [message, setMessage] = useState('');
 
 	useEffect(() => {
-	fetch('/api/users')
+	fetch('https://api.openweathermap.org/data/2.5/weather?q=London&appid=YOUR_API_KEY')
 		.then(res => res.text())
 		.then(text => setMessage(text))
 		.catch(err => console.error(err));
@@ -23,7 +23,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+      <h1>Vite + bye</h1>
       <div className="card">
         <div>Linking test with NestJS API::</div>
 		<code>{message}</code>
