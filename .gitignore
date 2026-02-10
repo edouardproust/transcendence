@@ -20,6 +20,10 @@ build/
 *.key
 *.pem
 
+# Prisma
+
+/**/prisma/generated/
+
 # Editor
 .vscode/*
 !.vscode/extensions.json

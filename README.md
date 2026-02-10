@@ -19,10 +19,10 @@ sudo apt install ...
 
 ### How to use
 
-// TODO: step-by-step instructions to run the project (compilation and execution) and usage examples
-
 ```bash
-docker-compose ...
+# Clone repo
+git clone https://github.com/edouardproust/transcendence.git checkio
+sh setup.sh
 ```
 
 ## Resources

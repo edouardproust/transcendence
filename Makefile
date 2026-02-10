@@ -1,8 +1,13 @@
 DOCKER_COMPOSE_DEV = docker compose -f docker-compose.dev.yml
 
-all: secrets up
+.PHONY: all setup certs up rebuild down clean fclean logs ps restart nginx postgres
 
-secrets:
+all: setup up
+
+setup:
+	@sh setup.dev.sh
+
+certs:
 	sh ./docker/nginx/certs/generate-certs.sh
 
 up:
@@ -32,5 +37,3 @@ restart:
 
 nginx:
 	$(DOCKER_COMPOSE_DEV) exec nginx sh -c "nginx -t && nginx -s reload"
-
-.PHONY: all up rebuild down clean fclean logs ps restart nginx

@@ -9,11 +9,13 @@ networks:
 services:
 
   api:
+    container_name: tr_api
     build:
       context: ./docker/api
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
+    env_file: .env
     volumes:
       - ./docker/api:/app # for dev hot-reloading
       - /app/node_modules # to prevent overwriting node_modules with the host's empty folder
@@ -23,6 +25,7 @@ services:
       - main-network
 
   client:
+    container_name: tr_client
     build:
       context: ./docker/client
       dockerfile: Dockerfile.dev
@@ -35,6 +38,7 @@ services:
       - main-network
 
   postgres:
+    container_name: tr_postgres
     image: postgres:18.1-alpine3.23
     ports:
       - "5432:5432"
@@ -45,6 +49,7 @@ services:
       - main-network
 
   nginx:
+    container_name: tr_nginx
     image: nginx:stable-alpine3.23
     ports:
       - "443:443"
@@ -56,6 +61,7 @@ services:
       - main-network
 
   adminer:
+    container_name: tr_adminer
     image: adminer:5.4.1-standalone
     ports:
       - "9000:8080"

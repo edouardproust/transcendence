@@ -12,9 +12,6 @@ services:
     build:
       context: ./docker/api
       dockerfile: Dockerfile.prod
-    volumes:
-      - ./docker/api:/app # for dev hot-reloading
-      - /app/node_modules # to prevent overwriting node_modules with the host's empty folder
     depends_on:
       - postgres
     networks:
@@ -24,9 +21,6 @@ services:
     build:
       context: ./docker/client
       dockerfile: Dockerfile.prod
-    volumes:
-      - ./docker/client:/app # for dev hot-reloading
-      - /app/node_modules # to prevent overwriting node_modules with the host's empty folder
     networks:
       - main-network
 
@@ -39,13 +33,12 @@ services:
       - main-network
 
   nginx:
-    image: nginx:stable-alpine3.23
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile.prod
     ports:
       - "443:443"
       - "80:80"
-    volumes:
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./docker/nginx/certs:/etc/nginx/ssl/:ro
     networks:
       - main-network
 

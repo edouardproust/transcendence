@@ -31,9 +31,9 @@
 
 ## Postgres
 
-| Command                                        | Description                                      |
-| ---------------------------------------------- | ------------------------------------------------ |
-| `docker exec -it -u postgres postgres-db psql` | Communicate with db (once continaer was started) |
+| Command                                                                     | Description                                      |
+| --------------------------------------------------------------------------- | ------------------------------------------------ |
+| `docker exec -it <postgres-container-name> psql -U <username> -d <db-name>` | Communicate with db (once container was started) |
 
 ## Useful tools:
 
