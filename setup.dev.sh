@@ -2,18 +2,10 @@
 
 API_PATH="./docker/api"
 
-info() {
-	echo "\033[1;33m$*\033[0m"
-}
-action() {
-	echo "\033[1;34m$*\033[0m"
-}
-success() {
-	echo "\033[1;32m$*\033[0m"
-}
-error() {
-    echo "\033[0;31m$*\033[0m"
-}
+info() { echo "\033[1;33m$*\033[0m"; }
+action() { echo "\033[1;34m$*\033[0m"; }
+success() { 	echo "\033[1;32m$*\033[0m"; }
+error() { echo "\033[0;31m$*\033[0m"; }
 
 info "SETUP DEV ENVIRONMENT"
 

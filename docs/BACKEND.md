@@ -35,13 +35,6 @@
 | --------------------------------------------------------------------------- | ------------------------------------------------ |
 | `docker exec -it <postgres-container-name> psql -U <username> -d <db-name>` | Communicate with db (once container was started) |
 
-## Useful tools:
-
-| Type             | Tool                      | Description                                                             |
-| ---------------- | ------------------------- | ----------------------------------------------------------------------- |
-| VsCode extension | Thunder Client            | Visualize HTTP responses directly in VsCode                             |
-| VsCode extension | Prettier - Code formatter | Tool that automatically formats your code to enforce a consistent style |
-
 ## Links
 
 - Deployment: https://docs.nestjs.com/deployment
