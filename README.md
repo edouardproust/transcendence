@@ -22,8 +22,10 @@ sudo apt install ...
 ```bash
 # Clone repo
 git clone https://github.com/edouardproust/transcendence.git checkio
-sh setup.sh
+make
 ```
+
+In a browser go to `https://localhost`
 
 ## Resources
 

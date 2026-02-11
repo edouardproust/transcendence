@@ -21,6 +21,8 @@
 
 ## Prisma ORM
 
+COurse video (1h45): https://www.youtube.com/watch?v=uWZ_6pDbLpU
+
 | Command                                        | Description                                                             |
 | ---------------------------------------------- | ----------------------------------------------------------------------- |
 | npm install -D prisma                          | Install CLI (dev only)                                                  |

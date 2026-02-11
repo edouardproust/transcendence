@@ -1,3 +1,6 @@
+# CLEAN VERSION OF THE SUBJECT FOR LLMS (AI) #
+
+
 ft_transcendence
 Surprise.
 
@@ -7,49 +10,8 @@ Remember the beginning of your journey in computer science.
 Look at you now; it’s time to shine!
 Version: 19.0
 
-Contents
-
-II	Preamble
-II.1	Team Organization and Project Management
-II.1.1	Required Team Roles
-II.1.2	Recommended Project Management Practices
-
-III	Mandatory part
-III.1	What are we doing?
-III.2	General requirements
-III.3	Technical requirements
-
-IV	Modules
-IV.1	Web
-IV.2	Accessibility and Internationalization
-IV.3	User Management
-IV.4	Artificial Intelligence
-IV.5	Cybersecurity
-IV.6	Gaming and user experience
-IV.7	Devops
-IV.8	Data and Analytics
-IV.9	Blockchain
-IV.10	Modules of choice
-
-V	Project Ideas and Examples
-V.1	Example: Building a Pong Game
-V.2	Gaming Projects
-V.3	Social and Collaborative Projects
-V.4	Creative and Media Projects
-V.5	Productivity and Tools Projects
-V.6	Specialized Projects
-
-VI	Readme Requirements
-
-VII	Submission and peer-evaluation
-
 ---
-Chapter I - AI Instructions
-
-[redacted]
-
----
-Chapter II - Preamble
+Chapter I - Preamble
 
 First of all, congratulations on reaching this milestone! You are now entering the final project of your Common Core, and yes, it will not be easy. Transcendence is a group project (4-5 people), which is intended to boost your creativity, self-confidence, adaptability to new technologies, and teamwork skills. You’ll create a real-world web application as a team that can move in many directions, depending on the modules you choose and the choices you make. Make sure to think things through together as a team before you start.
 
@@ -59,11 +21,11 @@ The project is divided into two parts:
 
 This is a long group project. Poor early choices and lack of team coordination will cost a lot of time. Your project and team management will strongly impact your results. All team members must actively participate and contribute to both the mandatory part and the modules.
 
-II.1 - Team Organization and Project Management
+I.1 - Team Organization and Project Management
 
 As this is a group project, proper team organization is crucial for success. You must establish clear roles and responsibilities from the start.
 
-II.1.1 - Required Team Roles
+I.1.1 - Required Team Roles
 
 Your team must assign the following roles (one person can have multiple roles if the team has 4 members):
 • Product Owner (PO): Defines the product vision, prioritizes features, and ensures the project meets user needs.
@@ -93,7 +55,7 @@ Developer, PO + Developer).
 • 5 people: Roles can be more specialized, with dedicated PO, PM, Tech Lead, and 2 Developers.
 All roles must be clearly documented in your README.md.
 
-II.1.2 - Recommended Project Management Practices
+I.1.2 - Recommended Project Management Practices
 
 While not mandatory, we strongly recommend implementing some basic project management practices to help your team succeed:
 • Regular communication: Meet regularly (weekly or bi-weekly) to sync on progress
@@ -117,13 +79,13 @@ All team members must be able to explain the project and their
 contributions.
 
 ---
-Chapter III - Mandatory part
+Chapter II - Mandatory part
 
 The project content is up to you. Yes, you have to bring your own ideas and decide together what application to build as a team.
 It’s a step forward from what you did previously in the Common Core. You need to think about the project as a whole, not just the features you’re going to implement.
 Of course, you won’t be completely free—there are constraints—but the idea is yours.
 
-III.1 - What are we doing?
+II.1 - What are we doing?
 
 First, you will have to create a comprehensive README.md file. The detailed requirements for the README are specified in the README Requirements section at the end of this document.
 
@@ -138,7 +100,7 @@ Your project can take many forms. Here are some valid examples:
 The key is to create something engaging that demonstrates your
 technical skills and creativity.
 
-III.2 - General requirements
+II.2 - General requirements
 
 Building an entire project is complicated, and many things can go wrong. To help you, we will provide a list of general requirements that you must follow. If you don’t follow
 them, your project will be rejected.
@@ -171,7 +133,7 @@ applicable.
 • No data corruption or race conditions occur with simultaneous
 user actions.
 
-III.3 - Technical requirements
+II.3 - Technical requirements
 
 This section, like the previous one, is mandatory. You will then be able to choose the modules you want to use in the next chapter.
 • A frontend that is clear, responsive, and accessible across all devices.
@@ -198,7 +160,7 @@ ecosystem and architectural patterns, even though it is technically a
 library.
 
 ---
-Chapter IV - Modules
+Chapter III - Modules
 
 You will need to earn 14 points in total to complete your project. Each major module is worth 2 points, and each minor module is worth 1 point.
 
@@ -226,7 +188,7 @@ Important - Module Dependencies and Evaluation:
 • Plan your modules carefully to ensure they work together coherently!
 • During evaluation: You will be asked to demonstrate each claimed module. Only fully functional and properly implemented modules will be counted toward your final score. Non-functional or incomplete modules = 0 points.
 
-IV.1 - Web
+III.1 - Web
 
 • Major: Use a framework for both the frontend and backend.
 	◦ Use a frontend framework (React, Vue, Angular, Svelte, etc.).
@@ -263,7 +225,7 @@ IV.1 - Web
 	◦ Progress indicators for uploads.
 	◦ Ability to delete uploaded files.
 
-IV.2 - Accessibility and Internationalization
+III.2 - Accessibility and Internationalization
 
 • Major: Complete accessibility compliance (WCAG 2.1 AA) with screen reader support, keyboard navigation, and assistive technologies.
 • Minor: Support for multiple languages (at least 3 languages).
@@ -283,7 +245,7 @@ IV.2 - Accessibility and Internationalization
 	◦ Document any browser-specific limitations.
 	◦ Consistent UI/UX across all supported browsers.
 
-IV.3 - User Management
+III.3 - User Management
 
 • Major: Standard user management and authentication.
 	◦ Users can update their profile information.
@@ -308,7 +270,7 @@ IV.3 - User Management
 • Minor: Implement a complete 2FA (Two-Factor Authentication) system for the users.
 • Minor: User activity analytics and insights dashboard.
 
-IV.4 - Artificial Intelligence
+III.4 - Artificial Intelligence
 
 • Major: Introduce an AI Opponent for games. [This module requires you to have implemented at least one game (see "Gaming and user experience" section). The AI must be able to play
 your game competently.]
@@ -335,13 +297,13 @@ your game competently.]
 • Minor: Sentiment analysis for user-generated content.
 • Minor: Image recognition and tagging system.
 
-IV.5 - Cybersecurity
+III.5 - Cybersecurity
 
 • Major: Implement WAF/ModSecurity (hardened) + HashiCorp Vault for secrets:
 	◦ Configure strict ModSecurity/WAF.
 	◦ Manage secrets in Vault (API keys, credentials, environment variables), encrypted and isolated.
 
-IV.6 - Gaming and user experience
+III.6 - Gaming and user experience
 
 • Major: Implement a complete web-based game where users can play against each other.
 	◦ The game can be real-time multiplayer (e.g., Pong, Chess, Tic-Tac-Toe, Card games, etc.).
@@ -394,7 +356,7 @@ support three or more players.]
 	◦ Real-time updates for spectators.
 	◦ Optional: spectator chat.
 
-IV.7 - Devops
+III.7 - Devops
 
 • Major: Infrastructure for log management using ELK (Elasticsearch, Logstash, Kibana).
 	◦ Elasticsearch to store and index logs.
@@ -414,7 +376,7 @@ IV.7 - Devops
 	◦ Each service should have a single responsibility.
 • Minor: Health check and status page system with automated backups and disaster recovery procedures.
 
-IV.8 - Data and Analytics
+III.8 - Data and Analytics
 
 • Major: Advanced analytics dashboard with data visualization.
 	◦ Interactive charts and graphs (line, bar, pie, etc.).
@@ -431,7 +393,7 @@ IV.8 - Data and Analytics
 	◦ Export user data in a readable format.
 	◦ Confirmation emails for data operations.
 
-IV.9 - Blockchain
+III.9 - Blockchain
 
 • Major: Store tournament scores on the Blockchain.
 	◦ Use Avalanche and Solidity smart contracts on a test blockchain.
@@ -439,7 +401,7 @@ IV.9 - Blockchain
 	◦ Ensure data integrity and immutability.
 • Minor: Use ICP (Internet Computer Protocol) for a backend that runs on a blockchain (incompatible with SSR).
 
-IV.10 - Modules of choice
+III.10 - Modules of choice
 
 • Major: Implement a custom module that is not listed above.
 	◦ The module must be substantial and demonstrate technical complexity.
@@ -457,13 +419,13 @@ IV.10 - Modules of choice
 	◦ Requires justification in README.md (similar to Major, but for 1 point).
 
 ---
-Chapter V - Project Ideas and Examples
+Chapter IV - Project Ideas and Examples
 
 To help you get started and inspire your creativity, this chapter provides concrete project
 ideas and examples of how to reach the required 14 points. Remember, these are just
 suggestions — feel free to be creative and come up with your own unique ideas!
 
-V.1 - Example: Building a Pong Game
+IV.1 - Example: Building a Pong Game
 
 If you choose to create a Pong game (like the original project), here’s how you can reach
 14 points:
@@ -476,7 +438,7 @@ Total: 14 points
 This is just one example. You can mix and match modules from different categories to create your own unique project. The key is to ensure that your modules work together coherently and add value
 to your application.
 
-V.2 - Gaming Projects
+IV.2 - Gaming Projects
 
 These projects focus on interactive gameplay and user competition:
 • Multiplayer Pong: Classic Pong with tournaments, remote play, AI opponents, and power-ups.
@@ -498,7 +460,7 @@ These projects focus on interactive gameplay and user competition:
 	Gamification, Analytics dashboard
 	◦ Point potential: 15+ points
 
-V.3 - Social and Collaborative Projects
+IV.3 - Social and Collaborative Projects
 
 These projects emphasize user interaction and community building:
 • Social Network: User profiles, posts, comments, likes, friends, real-time chat, and notifications.
@@ -518,7 +480,7 @@ These projects emphasize user interaction and community building:
 	◦ Suggested modules: User interaction, Organization system, Advanced permissions, File upload, Analytics dashboard
 	◦ Point potential: 15+ points
 
-V.4 - Creative and Media Projects
+IV.4 - Creative and Media Projects
 
 These projects focus on content creation and sharing:
 • Music Streaming Platform: Upload and stream music, playlists, recommendations, and social features.
@@ -540,7 +502,7 @@ shopping lists.
 	◦ Suggested modules: User interaction, File upload, Advanced search, Recommendation system, PWA
 	◦ Point potential: 14+ points
 
-V.5 - Productivity and Tools Projects
+IV.5 - Productivity and Tools Projects
 
 These projects help users organize and manage their work:
 • Task Management System: Projects, tasks, assignments, deadlines, team collaboration, and progress tracking.
@@ -562,7 +524,7 @@ and notifications.
 	Data export/import
 	◦ Point potential: 14+ points
 
-V.6 - Specialized Projects
+IV.6 - Specialized Projects
 
 These projects target specific niches or industries:
 • Real-time Trading Simulator: Stock and cryptocurrency trading simulation with real-time data and portfolios.
@@ -591,7 +553,7 @@ These are just ideas to inspire you. The key is to choose a project that:
 Discuss with your team, review the available modules, and choose wisely!
 
 ---
-Chapter VI - Readme Requirements
+Chapter V - Readme Requirements
 
 A README.md file must be provided at the root of your Git repository. Its purpose is to allow anyone unfamiliar with the project (peers, staff, recruiters, etc.) to quickly understand what the project is about, how to run it, and where to find more information on the topic.
 
@@ -650,7 +612,8 @@ It should be:
 • Honest about contributions and challenges.
 A poor or incomplete README can negatively impact your evaluation.
 
-Chapter VII - Submission and peer-evaluation
+---
+Chapter VI - Submission and peer-evaluation
 
 Submit your assignment in your Git repository as usual. Only the work inside your repository will be evaluated during the evaluation. Double-check file names.
 

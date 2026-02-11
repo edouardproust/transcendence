@@ -16,6 +16,8 @@ services:
     ports:
       - "3000:3000"
     env_file: .env
+    environment:
+       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
     volumes:
       - ./docker/api:/app # for dev hot-reloading
       - /app/node_modules # to prevent overwriting node_modules with the host's empty folder
