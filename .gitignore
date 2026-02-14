@@ -2,7 +2,24 @@
 .env
 *.crt
 *.key
+*.pem
 
 # compiled output
 node_modules/
+generated/
 dist/
+dist-ssr/
+build/
+
+# logs
+log/
+logs/
+*.log
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+*.sw?
+
+# OS
+.DS_Store

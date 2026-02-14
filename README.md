@@ -19,13 +19,26 @@ sudo apt install ...
 
 ### How to use
 
+#### Development Environment
+
 ```bash
 # Clone repo
 git clone https://github.com/edouardproust/transcendence.git checkio
+
+# Create secrets, build docker images and run containers
 make
 ```
 
-In a browser go to `https://localhost`
+- View `client` in browser: `https://localhost`
+- Test `API` requests: use `curl` or `ThunderClient` (VS Code extension)
+- Work on the `API`: open `api` folder in a `Dev Container` (eg. in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container))
+- Work on the `client`: open `client` folder in a `Dev Container` (eg. in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container))
+
+We use `Dev Containers` for development because `node_modules` folder contains binaries that are different between OS. Hence `node_modules` are installed in the containers only. As a consequence, `api/node_modules` ans `client/node_modules` are empty locally (on the host machine).
+
+#### Production Environment
+
+// TODO
 
 ## Resources
 

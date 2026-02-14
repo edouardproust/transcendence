@@ -8,7 +8,8 @@ done
 npx prisma generate
 
 #Applying Prisma migrations
-npx prisma migrate dev	# 'dev' if dev, 'deploy' if prod
+npx prisma migrate dev --name init	# if dev
+# npx prisma migrate deploy # if prod
 
 # Launch command passed as argument (e.g. npm run dev)
 exec "$@"
