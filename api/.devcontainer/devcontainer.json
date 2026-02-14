@@ -1,0 +1,25 @@
+{
+	"name": "API DEV", // name of the dev container
+	"dockerComposeFile": "../../docker-compose.yml", // path to docker-compose file
+	"service": "api", // service name in docker-compose.yml
+	"workspaceFolder": "/app", // workdir in the container
+	"customizations": {
+		"vscode": {
+			"extensions": [ // list of vscode extensions to install in the container
+				"dbaeumer.vscode-eslint", // ESLint extension for linting JavaScript and TypeScript code
+				"esbenp.prettier-vscode", // Prettier extension for code formatting
+				"prisma.prisma", // Prisma extension for working with Prisma schema files
+				"ms-azuretools.vscode-docker", // Docker extension for managing Docker containers and images
+				"usernamehw.errorlens", // Error Lens extension for highlighting errors and warnings in the code
+				"christian-kohler.path-intellisense", // Path Intellisense extension for autocompleting file paths
+				"rangav.vscode-thunder-client" // Thunder Client extension for testing REST APIs directly from the editor
+			],
+			"settings": { // vscode settings to apply in the container
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"editor.formatOnSave": true
+			}
+		}
+	},
+	"remoteUser": "root", // user to use in the container
+	"shutdownAction": "none" // action to take when shutting down the container (none, stopContainer, or removeContainer)
+}

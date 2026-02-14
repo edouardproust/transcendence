@@ -1,36 +1,8 @@
-# Logs
-logs
-*.log*
-
-# Dependencies
-node_modules/
-__pycache__/
-
-# Build
-dist/
-dist-ssr/
-build/
-
-# Environment
+# secrets
 .env
-.env.local
-
-# SSL
 *.crt
 *.key
-*.pem
 
-# Prisma
-
-/**/prisma/generated/
-
-# Editor
-.vscode/*
-!.vscode/extensions.json
-*.sw?
-
-# OS
-.DS_Store
-
-# README in docker services
-docker/*/README.md
+# compiled output
+node_modules/
+dist/

@@ -12,8 +12,6 @@
 
 | Command                               | Description                                                                                        |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `npm i -g @nestjs/cli`                | Install NestJS CLI globally                                                                        |
-| `nest new <project-name>`             | Create new project                                                                                 |
 | `nest g module <module-name>`         | Generate a new module                                                                              |
 | `nest g controller <controller-name>` | Generate a new controller                                                                          |
 | `nest g service <service-name>`       | Generate a new service                                                                             |
@@ -21,15 +19,13 @@
 
 ## Prisma ORM
 
-COurse video (1h45): https://www.youtube.com/watch?v=uWZ_6pDbLpU
-
-| Command                                        | Description                                                             |
-| ---------------------------------------------- | ----------------------------------------------------------------------- |
-| npm install -D prisma                          | Install CLI (dev only)                                                  |
-| npm install @prisma/client                     | Instal client (dev & prod)                                              |
-| npx prisma init                                | Initialize Prisma                                                       |
-| npx prisma generate                            | Generate client (schema must be modified first: `prisma/schema.prisma`) |
-| npx prisma migrate dev --name <migration-name> | Migrate                                                                 |
+| Command                                                                                                                | Description                                                                |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `npx prisma studio`                                                                                                    | Start Prisma Studio to visualize the databas in a web page                 |
+| `npx prisma generate`                                                                                                  | Generate typescript types from models defined in `prisma/schema.prisma`    |
+| `npx prisma migrate dev --name <migration-name>`                                                                       | Migrate models defined in `prisma/schema.prisma` to database               |
+| `npx prisma generate && npx prisma migrate dev`                                                                        | Generate client + Migrate models                                           |
+| `rm -rf prisma/migrations && npx prisma migrate reset -f && npx prisma generate && npx prisma migrate dev --name init` | Clean-up migrations (merge all migrations into a single one nammed "init") |
 
 ## Postgres
 
