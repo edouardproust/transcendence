@@ -10,7 +10,7 @@ COPY package*.json ./
 # DEV
 FROM base AS dev
 
-RUN apk add --no-cache bash git curl su-exec
+RUN apk add --no-cache bash git curl
 
 RUN npm install
 
