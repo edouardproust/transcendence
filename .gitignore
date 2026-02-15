@@ -23,3 +23,6 @@ logs/
 
 # OS
 .DS_Store
+
+# Prevent pushing files after `npm install` made in the root folder
+/package*.json

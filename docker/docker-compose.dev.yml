@@ -13,14 +13,14 @@ networks:
 services:
 
   nginx:
-    image: nginx:stable-alpine3.23
+    image: tr-nginx:1.0
     container_name: tr-nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     ports:
-      - "443:443"
       - "8080:80"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certs:/etc/nginx/ssl/:ro
+      - "443:443"
     networks:
       - main
 
@@ -28,14 +28,14 @@ services:
     image: tr-client:1.0
     container_name: tr-client
     build:
-      context: ./client
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/client/Dockerfile
       target: dev # change to 'prod' for production
-    ports:
-      - "5173:5173" # dev only (for testing using browser)
+    expose:
+      - "5173"
     env_file: .env
     volumes:
-      - ./client:/app # for dev hot-reloading
+      - ../client:/app # for dev hot-reloading
       - client-node-modules:/app/node_modules # to prevent overwriting node_modules with the host's empty folder
     depends_on:
       - api
@@ -46,17 +46,17 @@ services:
     image: tr-api:1.0
     container_name: tr-api
     build:
-      context: ./api
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/api/Dockerfile
       target: dev # change to 'prod' for production
     ports:
-      - "3000:3000" # dev only (for API testing using curl and ThunderClient)
+      - "3000:3000" # API debug via curl or in browser
       - "3001:3001" # Prisma Studio
     env_file: .env
     environment:
        - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
     volumes:
-      - ./api:/app # for dev hot-reloading
+      - ../api:/app # for dev hot-reloading
       - api-node-modules:/app/node_modules # to prevent overwriting node_modules with the host's empty folder
     depends_on:
       - postgres

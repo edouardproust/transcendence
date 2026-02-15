@@ -4,8 +4,10 @@ The API is based on NestJS and Prisma ORM.
 
 ## Development workflow
 
-- To edit the API, open this folder in a `Dev Container` (for example in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container)). Additionnal IDE extensions can be set in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json), then restart the docker container.
+To edit the API, open this folder in a `Dev Container`:
 
+- For example, open the current folder in VS Code (from project root: `code client`), then `Ctrl+Shift+P` → `Dev Containers: Reopen in Container` ([Doc](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container)).
+- Additionnal IDE extensions can be set in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json), then restart the docker container.
 - Commits and PRs must follow the [Git workflow](../docs/GIT-WORKFLOW.md).
 
 ## Useful commands
@@ -33,7 +35,7 @@ These commands must be used inside the `tr-api` container (via the terminal insi
 
 | Command                                                                                                                | Description                                                                |
 | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `npx prisma studio`                                                                                                    | Start Prisma Studio to visualize the databas in a web page                 |
+| `npx prisma studio`                                                                                                    | Start Prisma Studio to visualize the database in a web page                |
 | `npx prisma generate`                                                                                                  | Generate typescript types from models defined in `prisma/schema.prisma`    |
 | `npx prisma migrate dev --name <migration-name>`                                                                       | Migrate models defined in `prisma/schema.prisma` to database               |
 | `npx prisma generate && npx prisma migrate dev`                                                                        | Generate client + Migrate models                                           |

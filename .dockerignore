@@ -1,8 +1,8 @@
-node_modules
+node_modules/
 dist/
+.devcontainer/
 npm-debug.log
 .env
 .git/
 README.md
-test/
 *.md

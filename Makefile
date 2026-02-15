@@ -1,44 +1,55 @@
 # ---- VARIABLES ---- #
 
-DOCKER_COMPOSE = docker compose
-BACKEND_SERVICE_NAME = api
-NGINX_CERTS_PATH = ./nginx/certs
+ENV_FILE = ./docker/.env
+SSL_DIR = ./docker/nginx/ssl
+
+PROD ?= 0
+ifeq ($(PROD),1)
+DOCKER_COMPOSE = docker compose -f docker/docker-compose.prod.yml
+SETUP_SH = ./docker/setup.prod.sh
+else
+DOCKER_COMPOSE = docker compose -f docker/docker-compose.dev.yml
+SETUP_SH = ./docker/setup.dev.sh
+endif
 
 
 # ---- PHONY ---- #
 
-.PHONY: all up down clean fclean \
-	nginx-reload prisma-studio prisma-update prisma-reset
+.PHONY: all up down clean fclean nginx-reload prisma-studio
 
 
 # ---- GENERAL RULES ---- #
 
-all: # default target
-	@./setup.sh
+all: # Default target
+	@$(SETUP_SH)
 	$(DOCKER_COMPOSE) up -d --build
 
-help: # display this help message
-	@grep -P '^[\w_-]*:(.*)?( #{1,} [\w .,_-]*)?' $(MAKEFILE_LIST) | \
-	awk 'BEGIN {FS = ":(.*#+ +)?"}; {printf "%-16s %s\n", $$1, $$2}'
+help: # Display this help message
+	@echo "For development: make <rule>";
+	@echo "For production:  make <rule> PROD=1"
+	@echo "Rules list:";
+	@grep -P "^[\w_-]*:(.*)?( #{1,} [\w'.,_-]*)?" $(MAKEFILE_LIST) | \
+	awk 'BEGIN {FS = ":(.*#+ +)?"}; {printf " %-16s %s\n", $$1, $$2}'
 
-up:
+up: # Start all stopped containers
 	$(DOCKER_COMPOSE) up -d
 
-down:
+down: # Stop all running containers
 	$(DOCKER_COMPOSE) down
 
-clean:
+clean: # Stop all running containers and remove volumes
 	$(DOCKER_COMPOSE) down -v
 
-fclean:
+fclean: # Stop all containers, remove volumes and images, and prune system
 	-$(DOCKER_COMPOSE) down -v --rmi all --remove-orphans
 	-docker system prune -af --volumes
-	rm -f .env
-	rm -f $(NGINX_CERTS_PATH)/*.key
-	rm -f $(NGINX_CERTS_PATH)/*.crt
-
+	rm -f $(ENV_FILE)
+	rm -rf $(SSL_DIR)
 
 # ---- SERVICES RULES ---- #
 
-nginx-reload:
+nginx-reload: # Test Nginx configuration and reload nginx if valid
 	$(DOCKER_COMPOSE) exec nginx sh -c "nginx -t && nginx -s reload"
+
+prisma-studio: # Dev only: visualize database in the web browser.
+	$(DOCKER_COMPOSE) exec api sh -c "npx prisma studio --browser none --port 3001"

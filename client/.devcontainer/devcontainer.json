@@ -1,6 +1,6 @@
 {
 	"name": "CLIENT DEV", // name of the dev container
-	"dockerComposeFile": "../../docker-compose.yml", // path to docker-compose file
+	"dockerComposeFile": "../../docker/docker-compose.dev.yml", // path to docker-compose file
 	"service": "client", // service name in docker-compose.yml
 	"workspaceFolder": "/app", // workdir in the container
 	"customizations": {
