@@ -23,5 +23,5 @@
 		}
 	},
 	"remoteUser": "root", // user to use in the container
-	"shutdownAction": "none" // action to take when shutting down the container (none, stopContainer, or removeContainer)
+	"shutdownAction": "stopContainer" // action to take when shutting down the container (none, stopContainer, or removeContainer)
 }

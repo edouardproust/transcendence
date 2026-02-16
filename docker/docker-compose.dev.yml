@@ -4,7 +4,7 @@ volumes:
   api-node-modules:
     name: tr-api-node-modules
   postgres-data:
-    name: tr-postgres-data
+    name: tr-postgres
 
 networks:
   main:

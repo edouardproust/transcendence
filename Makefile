@@ -37,6 +37,9 @@ up: # Start all stopped containers
 down: # Stop all running containers
 	$(DOCKER_COMPOSE) down
 
+logs: # Watch logs of all containers
+	$(DOCKER_COMPOSE) logs -f
+
 clean: # Stop all running containers and remove volumes
 	$(DOCKER_COMPOSE) down -v
 

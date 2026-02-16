@@ -1,16 +1,16 @@
 volumes:
   postgres-data:
-    name: tr-postgres-data
+    name: tr-postgres-prod
 
 networks:
   main:
-    name: tr-main
+    name: tr-main-prod
 
 services:
 
   nginx:
-    image: tr-nginx:1.0
-    container_name: tr-nginx
+    image: tr-nginx:1.0-prod
+    container_name: tr-nginx-prod
     build:
       context: ./nginx
       dockerfile: Dockerfile
@@ -23,8 +23,8 @@ services:
     restart: unless-stopped
 
   client:
-    image: tr-client:1.0
-    container_name: tr-client
+    image: tr-client:1.0-prod
+    container_name: tr-client-prod
     build:
       context: ..
       dockerfile: docker/client/Dockerfile
@@ -39,8 +39,8 @@ services:
     restart: unless-stopped
 
   api:
-    image: tr-api:1.0
-    container_name: tr-api
+    image: tr-api:1.0-prod
+    container_name: tr-api-prod
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
@@ -59,7 +59,7 @@ services:
 
   postgres:
     image: postgres:18.1-alpine3.23
-    container_name: tr-postgres
+    container_name: tr-postgres-prod
     env_file: .env
     volumes:
       - postgres-data:/var/lib/postgresql/data

@@ -23,14 +23,15 @@ FROM base AS prod
 COPY docker/api/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 # Security: switch to node user for RUN, ENTRYPOINT and CMD commands
+RUN chown -R node:node /app
 USER node
 # install dependencies
 COPY --chown=node:node api/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 # copy source code as node user
 COPY --chown=node:node api/ .
 # build dist/ as node user (no bind-mount in docker-compose.prod.yml)
 RUN npm run build
 # run as node user
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/src/main.js"]

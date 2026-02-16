@@ -13,4 +13,7 @@ CMD ["nginx", "-g", "daemon off;"]
 FROM nginx:stable-alpine3.23 AS prod
 COPY ./conf/prod.conf /etc/nginx/conf.d/default.conf
 COPY ./ssl/ /etc/nginx/ssl/
+COPY ./entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

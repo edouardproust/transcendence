@@ -22,10 +22,13 @@ RUN npm run build
 # PROD
 FROM base AS prod
 # security: switch to node user for RUN, ENTRYPOINT and CMD commands
+RUN mkdir -p /home/node/.npm && \
+	chown -R node:node /home/node/.npm && \
+	chown -R node:node /app
 USER node
 # install dependencies
 COPY client/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 # copy source code as node user (for security)
 COPY --chown=node:node client/ .
 # build dist/

@@ -8,7 +8,7 @@
 	},
 	"overrideCommand": true,
 	"postCreateCommand": ["bash", "-c", "echo 'export PORT=3001' >> ~/.bashrc"], // to prevent conflicts on 3000 used on host machine
-    "postAttachCommand": ["bash", "-c", "source ~/.bashrc && npm run start:dev"], // Run the server on devcontainer load on port 3001
+    "postAttachCommand": ["bash", "-c", "source ~/.bashrc && rm -rf dist && npm run start:dev"], // Run the server on devcontainer load on port 3001
 	"portsAttributes": { // Name ports to not have to remember the numbers
 		"3001": {"label": "API"},
 		"3030": {"label": "Prisma Studio"}
@@ -31,5 +31,5 @@
 		}
 	},
 	"remoteUser": "root", // user to use in the container
-	"shutdownAction": "none" // action to take when shutting down the container (none, stopContainer, or removeContainer)
+	"shutdownAction": "stopContainer" // action to take when shutting down the container (none, stopContainer, or removeContainer)
 }
