@@ -7,11 +7,23 @@
 		"PORT": "3001" // update default port to prevent conflict with 3000 on host machine
 	},
 	"overrideCommand": true,
-	"postCreateCommand": ["bash", "-c", "echo 'export PORT=3001' >> ~/.bashrc"], // to prevent conflicts on 3000 used on host machine
-    "postAttachCommand": ["bash", "-c", "source ~/.bashrc && rm -rf dist && npm run start:dev"], // Run the server on devcontainer load on port 3001
+	"postCreateCommand": [
+		"bash",
+		"-c",
+		"echo 'export PORT=3001' >> ~/.bashrc"
+	], // to prevent conflicts on 3000 used on host machine
+	"postAttachCommand": [
+		"bash",
+		"-c",
+		"source ~/.bashrc && rm -rf dist && npm run start:dev"
+	], // Run the server on devcontainer load on port 3001
 	"portsAttributes": { // Name ports to not have to remember the numbers
-		"3001": {"label": "API"},
-		"3030": {"label": "Prisma Studio"}
+		"3001": {
+			"label": "API"
+		},
+		"3030": {
+			"label": "Prisma Studio"
+		}
 	},
 	"customizations": {
 		"vscode": {
@@ -20,13 +32,13 @@
 				"esbenp.prettier-vscode", // Prettier extension for code formatting
 				"prisma.prisma", // Prisma extension for working with Prisma schema files
 				"ms-azuretools.vscode-docker", // Docker extension for managing Docker containers and images
-				"usernamehw.errorlens", // Error Lens extension for highlighting errors and warnings in the code
 				"christian-kohler.path-intellisense", // Path Intellisense extension for autocompleting file paths
-				"rangav.vscode-thunder-client" // Thunder Client extension for testing REST APIs directly from the editor
+				"humao.rest-client" // For testing REST APIs directly from the editor
 			],
 			"settings": { // vscode settings to apply in the container
 				"terminal.integrated.defaultProfile.linux": "bash",
-				"editor.formatOnSave": true
+				"editor.formatOnSave": true,
+				"extensions.verifySignature": false
 			}
 		}
 	},

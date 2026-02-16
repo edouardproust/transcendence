@@ -11,3 +11,4 @@ else
 		-subj "/CN=localhost"
 	success "SSL certificates generated"
 fi
+echo

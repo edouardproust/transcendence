@@ -37,6 +37,7 @@ else
 			> $ENV_FILE
 		success "$ENV_FILE file created"
 fi
+echo
 
 if [ -f "$SSL_GENERATOR" ]; then
 	source $SSL_GENERATOR # launch as source to export vars
