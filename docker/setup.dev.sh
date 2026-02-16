@@ -13,6 +13,7 @@ error() { echo -e "\033[0;31m$*\033[0m"; }
 # ----
 
 title "DOCKER SETUP - DEV ENVIRONMENT"
+echo
 
 # Root .env file
 if [ -f $ENV_FILE ]; then

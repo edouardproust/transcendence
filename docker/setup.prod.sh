@@ -14,9 +14,10 @@ error() { echo -e "\033[0;31m$*\033[0m"; }
 # ----
 
 title "DOCKER SETUP - PRODUCTION ENVIRONMENT"
+echo
 
 # Root .env file
-if [ -f $ENV_FILE ]; then
+if [ -f "$ENV_FILE" ]; then
 	success "$ENV_FILE file already exists, skipping creation..."
 else
 	# Create .env.prod
@@ -26,37 +27,35 @@ else
 	read -p		"DOMAIN_NAME (check.io): " domain_name
 	read -p		"POSTGRES_DB (checkio_prod): " postgres_db
 	read -p		"POSTGRES_USER (admin): " postgres_user
-	read -sp	"POSTGRES_PASSWORD (REQUIRED - use strong password): " postgres_pswd
-	echo
-	# Fields validation
-		# Default values
-		domain_name=${postgres_db:-check.io}
+		# Fields validation
+		domain_name=${domain_name:-check.io}
 		postgres_db=${postgres_db:-checkio_prod}
 		postgres_user=${postgres_user:-admin}
-		# Check that password is not empty and has at least 12 characters
-		while true; do
-			if [ -z "$postgres_pswd" ]; then
-				error "POSTGRES_PASSWORD is required for production environment"
-				read -sp "POSTGRES_PASSWORD (REQUIRED - use strong password): " postgres_pswd
-			elif [ ${#postgres_pswd} -lt 12 ]; then
-				error "POSTGRES_PASSWORD must be at least 12 characters long for production"
-				read -sp "POSTGRES_PASSWORD (REQUIRED - use strong password): " postgres_pswd
-			else
-				echo
-				break # Password is valid, exit loop
-			fi
-		done
+	# Password prompt ()
+	while true; do
+		read -sp	"POSTGRES_PASSWORD: " postgres_pswd
+		echo
+		# Field validation: not empty and at least 12 characters
+		if [ -z "$postgres_pswd" ]; then
+			error "Required"
+		elif [ ${#postgres_pswd} -lt 12 ]; then
+			error "Must be at least 12 characters long"
+		else
+			break # Password is valid, exit loop
+		fi
+	done
+	echo
 	# Write file
 	printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\n' \
 		"$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" \
-		> $ENV_FILE
+		> "$ENV_FILE"
 	# Secure the file (only owner can read/write)
-	chmod 600 $ENV_FILE
+	chmod 600 "$ENV_FILE"
 	success "$ENV_FILE file created and secured (permissions: 600)"
 fi
 
 if [ -f "$SSL_GENERATOR" ]; then
-	source $SSL_GENERATOR # launch as source to export vars
+	source "$SSL_GENERATOR" # launch as source to export vars
 else
 	error "Certificate generation script not found, aborting..." >&2
 	exit 1
@@ -70,7 +69,7 @@ action "Running production environment checks..."
 if [ "$EUID" -eq 0 ]; then
 	error "WARNING: Running as root is not recommended for production deployments"
 	read -p "Continue anyway? (y/N): " continue_root
-	if [[ ! $continue_root =~ ^[Yy]$ ]]; then
+	if [[ ! "$continue_root" =~ ^[Yy]$ ]]; then
 		error "Aborting setup"
 		exit 1
 	fi
