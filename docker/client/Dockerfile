@@ -13,7 +13,6 @@ RUN npm install
 # run as root (listen on all ports for display in host machine's browser)
 CMD ["npm", "run", "dev", "--", "--host"]
 
-
 # BUILDER (compiling assets for prod in a temp container)
 FROM base AS builder
 RUN npm ci

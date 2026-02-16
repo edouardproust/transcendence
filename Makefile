@@ -15,19 +15,19 @@ endif
 
 # ---- PHONY ---- #
 
-.PHONY: all up down clean fclean nginx-reload prisma-studio
+.PHONY: all up down clean fclean nginx-reload client-reload api-reload prisma-studio
 
 
-# ---- GENERAL RULES ---- #
+# ---- GENERAL TARGETS ---- #
 
-all: # Default target
+all: # Default target. Rebuild and run all services
 	@$(SETUP_SH)
 	$(DOCKER_COMPOSE) up -d --build
 
 help: # Display this help message
-	@echo "For development: make <rule>";
-	@echo "For production:  make <rule> PROD=1"
-	@echo "Rules list:";
+	@echo "For development: make <target>";
+	@echo "For production:  make <target> PROD=1"
+	@echo "Targets:";
 	@grep -P "^[\w_-]*:(.*)?( #{1,} [\w'.,_-]*)?" $(MAKEFILE_LIST) | \
 	awk 'BEGIN {FS = ":(.*#+ +)?"}; {printf " %-16s %s\n", $$1, $$2}'
 
@@ -52,4 +52,4 @@ nginx-reload: # Test Nginx configuration and reload nginx if valid
 	$(DOCKER_COMPOSE) exec nginx sh -c "nginx -t && nginx -s reload"
 
 prisma-studio: # Dev only: visualize database in the web browser.
-	$(DOCKER_COMPOSE) exec api sh -c "npx prisma studio --browser none --port 3001"
+	$(DOCKER_COMPOSE) exec api sh -c "npx prisma studio --browser none --port 3030"
