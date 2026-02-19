@@ -60,10 +60,6 @@ Tips:
 - Test `API` requests: use `curl` in the terminal or the `REST Client` extension (already installed in the `devcontainer`)
 - As we use `Dev Containers` for development, `node_modules` are installed in the containers only. As a consequence, `api/node_modules` ans `client/node_modules` are empty on the host machine.
 
-#### Production Environment
-
-// TODO
-
 ## Resources
 
 // TODO: List references related to the topic (documentation, articles, tutorials, etc.), as well as a description of how AI was used (tasks and parts of the project).
