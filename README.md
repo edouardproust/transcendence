@@ -11,13 +11,44 @@ A real-time multiplayer chess game using WebSockets.
 
 ### Prerequisites
 
-// TODO: software, tools, versions, configuration like .env setup, etc.
+#### Production
 
-```bash
-sudo apt install ...
-```
+- No prerequisites. Everything needed is already included in the production image.
+
+#### Development
+
+- We work directly inside the containers, so you need an IDE that supports devcontainers (e.g., VS Code
+  with the Remote - Containers extension).
+- All tools and dependencies are pre-installed inside the devcontainer—no need to install anything extra on your host.
 
 ### How to use
+
+#### Production
+
+On the production server:
+
+```bash
+git clone https://github.com/edouardproust/transcendence.git checkio
+cd checkio
+make PROD=1
+```
+
+#### Developement
+
+On a local environment:
+
+```bash
+git clone git@github.com:edouardproust/transcendence.git checkio
+cd checkio
+make
+```
+
+Then code directly inside the container using DevContainers:
+
+- Open the project in VS Code.
+- Click “Reopen in Container” when prompted.
+- Wait for the container to build and start (this sets up Node, npm, Prisma, etc.).
+- Start working directly—your code edits in the IDE are synced to the container automatically.
 
 #### Development Environment
 
