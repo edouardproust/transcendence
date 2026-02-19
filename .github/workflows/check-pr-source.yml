@@ -1,0 +1,14 @@
+name: Check PR source branch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block if source is not develop
+        if: github.head_ref != 'develop'
+        run: echo "PRs to main must come from develop only." && exit 1
