@@ -41,6 +41,6 @@
 			}
 		}
 	},
-	"remoteUser": "root", // user to use in the container
+	"remoteUser": "node", // user to use in the container
 	"shutdownAction": "stopContainer" // action to take when shutting down the container (none, stopContainer, or removeContainer)
 }
