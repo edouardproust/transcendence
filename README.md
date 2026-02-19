@@ -28,8 +28,10 @@ A real-time multiplayer chess game using WebSockets.
 On the production server:
 
 ```bash
+# Clone repo
 git clone https://github.com/edouardproust/transcendence.git checkio
 cd checkio
+# Create secrets, build docker images and run containers for prod
 make PROD=1
 ```
 
@@ -38,34 +40,25 @@ make PROD=1
 On a local environment:
 
 ```bash
+# Clone repo
 git clone git@github.com:edouardproust/transcendence.git checkio
 cd checkio
+# Create secrets, build docker images and run containers
 make
 ```
 
 Then code directly inside the container using DevContainers:
 
-- Open the project in VS Code.
+- Open the module you want to work on. Eg. in VS Code: `code client` or `code api`.
 - Click “Reopen in Container” when prompted.
 - Wait for the container to build and start (this sets up Node, npm, Prisma, etc.).
 - Start working directly—your code edits in the IDE are synced to the container automatically.
 
-#### Development Environment
-
-```bash
-# Clone repo
-git clone https://github.com/edouardproust/transcendence.git checkio
-
-# Create secrets, build docker images and run containers
-make
-```
+Tips:
 
 - View `client` in browser: `https://localhost`
-- Test `API` requests: use `curl` or `ThunderClient` (VS Code extension)
-- Work on the `API`: open `api` folder in a `Dev Container` (eg. in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container))
-- Work on the `client`: open `client` folder in a `Dev Container` (eg. in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container))
-
-We use `Dev Containers` for development because `node_modules` folder contains binaries that are different between OS. Hence `node_modules` are installed in the containers only. As a consequence, `api/node_modules` ans `client/node_modules` are empty locally (on the host machine).
+- Test `API` requests: use `curl` in the terminal or the `REST Client` extension (already installed in the `devcontainer`)
+- As we use `Dev Containers` for development, `node_modules` are installed in the containers only. As a consequence, `api/node_modules` ans `client/node_modules` are empty on the host machine.
 
 #### Production Environment
 
