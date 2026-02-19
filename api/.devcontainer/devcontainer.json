@@ -28,7 +28,6 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [ // list of vscode extensions to install in the container
-				"dbaeumer.vscode-eslint", // ESLint extension for linting JavaScript and TypeScript code
 				"esbenp.prettier-vscode", // Prettier extension for code formatting
 				"prisma.prisma", // Prisma extension for working with Prisma schema files
 				"ms-azuretools.vscode-docker", // Docker extension for managing Docker containers and images
