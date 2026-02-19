@@ -7,14 +7,17 @@ WORKDIR /app
 FROM base AS dev
 # install extra tools for dev
 RUN apk add --no-cache bash git curl
-# install dependencies
-COPY api/package*.json ./
-RUN npm install
 RUN npm install -g @nestjs/cli
 # Copy entrypoint (in system dir = Linux convention)
 COPY docker/api/entrypoint.dev.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-# run as root
+# Switch to user node
+RUN chown node:node /app
+USER node
+# install dependencies
+COPY --chown=node:node api/package*.json ./
+RUN npm install
+# run as node user
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]
 
