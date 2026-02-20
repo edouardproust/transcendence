@@ -7,7 +7,7 @@ if [ -n "$DOMAIN_NAME" ]; then
 		/etc/nginx/conf.d/default.conf > /tmp/default.conf && \
 	mv /tmp/default.conf /etc/nginx/conf.d/default.conf
 else
-	echo "'DOMAIN_NAME' varible is not defined in docker-compose.prod.yml. Aboting..." >&2
+	echo "'DOMAIN_NAME' varible is not defined in docker-compose.prod.yml. Aborting..." >&2
 	exit 1
 fi
 

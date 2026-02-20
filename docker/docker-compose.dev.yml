@@ -16,8 +16,8 @@ services:
     image: tr-nginx:1.0
     container_name: tr-nginx
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/nginx/Dockerfile
       target: dev
     ports:
       - "8080:80"

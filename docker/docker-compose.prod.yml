@@ -12,28 +12,13 @@ services:
     image: tr-nginx:1.0-prod
     container_name: tr-nginx-prod
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/nginx/Dockerfile
       target: prod
+    env_file: .env
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      - main
-    restart: unless-stopped
-
-  client:
-    image: tr-client:1.0-prod
-    container_name: tr-client-prod
-    build:
-      context: ..
-      dockerfile: docker/client/Dockerfile
-      target: prod
-    env_file: .env
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - api
     networks:
       - main
     restart: unless-stopped
