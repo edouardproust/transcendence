@@ -1,26 +1,26 @@
-# secrets
+# =========================
+# .GITIGNORE - ROOT ONLY
+# =========================
+
+# Secrets
 .env
 *.crt
 *.key
 *.pem
 
-# compiled output
-node_modules/
-generated/
-dist/
-dist-ssr/
-build/
-
-# logs
+# No logs in root
 log/
 logs/
 *.log
 
-# editor
-*.sw?
-
 # OS
 .DS_Store
 
-# Prevent pushing files after `npm install` made in the root folder
-/package*.json
+# No editor settings in root
+.vscode/*
+*.sw?
+
+# Prevent an unwanted npm install in root
+/package-lock.json
+/yarn.lock
+/pnpm-lock.yaml
