@@ -17,42 +17,36 @@ title "DOCKER SETUP - PRODUCTION ENVIRONMENT"
 echo
 
 # Root .env file
-if [ -f "$ENV_FILE" ]; then
-	success "$ENV_FILE file already exists, skipping creation..."
-else
-	# Create .env.prod
-	action "Creating $ENV_FILE..."
-
-	# Prompts
-	read -p		"DOMAIN_NAME (check.io): " domain_name
-	read -p		"POSTGRES_DB (checkio_prod): " postgres_db
-	read -p		"POSTGRES_USER (admin): " postgres_user
-		# Fields validation
-		domain_name=${domain_name:-check.io}
-		postgres_db=${postgres_db:-checkio_prod}
-		postgres_user=${postgres_user:-admin}
-	# Password prompt ()
-	while true; do
-		read -sp	"POSTGRES_PASSWORD: " postgres_pswd
-		echo
-		# Field validation: not empty and at least 12 characters
-		if [ -z "$postgres_pswd" ]; then
-			error "Required"
-		elif [ ${#postgres_pswd} -lt 12 ]; then
-			error "Must be at least 12 characters long"
-		else
-			break # Password is valid, exit loop
-		fi
-	done
+action "Creating $ENV_FILE..."
+# Prompts
+read -p		"DOMAIN_NAME (check.io): " domain_name
+read -p		"POSTGRES_DB (checkio_prod): " postgres_db
+read -p		"POSTGRES_USER (admin): " postgres_user
+	# Fields validation
+	domain_name=${domain_name:-check.io}
+	postgres_db=${postgres_db:-checkio_prod}
+	postgres_user=${postgres_user:-admin}
+# Password prompt ()
+while true; do
+	read -sp	"POSTGRES_PASSWORD: " postgres_pswd
 	echo
-	# Write file
-	printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\n' \
-		"$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" \
-		> "$ENV_FILE"
-	# Secure the file (only owner can read/write)
-	chmod 600 "$ENV_FILE"
-	success "$ENV_FILE file created and secured (permissions: 600)"
-fi
+	# Field validation: not empty and at least 12 characters
+	if [ -z "$postgres_pswd" ]; then
+		error "Required"
+	elif [ ${#postgres_pswd} -lt 12 ]; then
+		error "Must be at least 12 characters long"
+	else
+		break # Password is valid, exit loop
+	fi
+done
+echo
+# Write file
+printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\n' \
+	"$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" \
+	> "$ENV_FILE"
+# Secure the file (only owner can read/write)
+chmod 600 "$ENV_FILE"
+success "$ENV_FILE file created and secured (permissions: 600)"
 
 if [ -f "$SSL_GENERATOR" ]; then
 	source "$SSL_GENERATOR" # launch as source to export vars
