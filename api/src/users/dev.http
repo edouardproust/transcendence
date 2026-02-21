@@ -10,8 +10,8 @@ Content-Type: application/json
 
 {
 	"username": "testuser",
-  "email": "test@example2.com",
-  "password": "test123456789"
+	"email": "test@example.com",
+	"password": "test123456789"
 }
 
 ### Create a user with invalid data
@@ -27,9 +27,9 @@ POST http://localhost:3001/users
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "12345678",
-  "username": "testuser"
+	"email": "test@example1.com",
+	"password": "12345678",
+	"username": "testuser2"
 }
 
 ### Create a user (missing fields)
@@ -37,26 +37,26 @@ POST http://localhost:3001/users
 Content-Type: application/json
 
 {
-  "email": "test@example.com"
+	"email": "test@example.com"
 }
 
 ### Delete a user
-DELETE http://localhost:3001/users/1
+DELETE http://localhost:3001/users/4
 
 ### Update a user (only mandatory fields)
-PUT http://localhost:3001/users/2
+PATCH http://localhost:3001/users/17
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "12345678"
+	"email": "test@example.com",
+	"password": "12345678"
 }
 
 ### Update a user (with invalid email)
-PUT http://localhost:3001/users/2
+PATCH http://localhost:3001/users/17
 Content-Type: application/json
 
 {
-  "email": "testexample.com",
-  "password": "12345678"
+	"email": "testexample.com",
+	"password": "12345678"
 }

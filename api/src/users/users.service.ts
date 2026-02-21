@@ -1,21 +1,28 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dtos/CreateUserDto';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { isUniqueConstraintError } from 'src/prisma/prisma.error';
-import { userInfo } from 'os';
+import {
+	getUniqueConstraintFields,
+	isPrismaError,
+	PrismaErrorCode,
+} from 'src/prisma/prisma.error';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
-export class UsersService
-{
+export class UsersService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	findAll() {
+	async findAll() {
 		return this.prisma.user.findMany();
 	}
 
 	async findOneById(id: number) {
 		const user = await this.prisma.user.findUnique({
-			where: { id }
+			where: { id },
 		});
 		if (!user) {
 			throw new NotFoundException(`User with id ${id} was not found`);
@@ -23,25 +30,45 @@ export class UsersService
 		return user;
 	}
 
-	async createOne(userData: CreateUserDto) {
-		const user =  await this.prisma.user
-			.create({ data: userData })
+	async createOne(createUserDto: CreateUserDto) {
+		return await this.prisma.user
+			.create({ data: createUserDto })
 			.catch((error) => {
-				if (isUniqueConstraintError(error)) {
-					const fields: string = error.meta?.driverAdapterError?.cause?.constraint?.fields.join(', ');
-					throw new ConflictException(`A user with the same ${fields} already exist`);
+				if (isPrismaError(error, PrismaErrorCode.UNIQUE_CONSTRAINT)) {
+					throw new ConflictException(
+						`A user with the same ${getUniqueConstraintFields(error).join(', ')} already exist`,
+					);
 				}
-				throw new InternalServerErrorException();
+				throw error;
 			});
-		return user;
 	}
 
 	async deleteOne(id: number) {
-		return await this.prisma.user
-			.delete({ where: { id: id }});
+		await this.prisma.user.delete({ where: { id } }).catch((error) => {
+			if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
+				throw new NotFoundException(
+					`User with id ${id} was not found.`,
+				);
+			}
+			throw error;
+		});
 	}
 
-	updateOne(id: string, userData: CreateUserDto) {
-		return `Update user with id ${id} with data: ${JSON.stringify(userData)}`;
+	async updateOneById(id: number, updateUserDto: UpdateUserDto) {
+		await this.prisma.user
+			.update({ where: { id }, data: updateUserDto })
+			.catch((error) => {
+				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
+					throw new NotFoundException(
+						`User with id ${id} was not found.`,
+					);
+				}
+				if (isPrismaError(error, PrismaErrorCode.UNIQUE_CONSTRAINT)) {
+					throw new ConflictException(
+						`A user with the same ${getUniqueConstraintFields(error).join(', ')} already exist`,
+					);
+				}
+				throw error;
+			});
 	}
 }
