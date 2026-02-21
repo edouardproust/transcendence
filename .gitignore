@@ -17,8 +17,6 @@ logs/
 *.log
 
 # editor
-.vscode/*
-!.vscode/extensions.json
 *.sw?
 
 # OS
