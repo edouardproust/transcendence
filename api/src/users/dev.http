@@ -1,0 +1,62 @@
+### Get all users
+GET http://localhost:3001/users
+
+### Get One user
+GET http://localhost:3001/users/5
+
+### Create a user (only mandatory fields)
+POST http://localhost:3001/users
+Content-Type: application/json
+
+{
+	"username": "testuser",
+  "email": "test@example2.com",
+  "password": "test123456789"
+}
+
+### Create a user with invalid data
+POST http://localhost:3001/users
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### Create a user (all fields)
+POST http://localhost:3001/users
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "12345678",
+  "username": "testuser"
+}
+
+### Create a user (missing fields)
+POST http://localhost:3001/users
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### Delete a user
+DELETE http://localhost:3001/users/1
+
+### Update a user (only mandatory fields)
+PUT http://localhost:3001/users/2
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "12345678"
+}
+
+### Update a user (with invalid email)
+PUT http://localhost:3001/users/2
+Content-Type: application/json
+
+{
+  "email": "testexample.com",
+  "password": "12345678"
+}

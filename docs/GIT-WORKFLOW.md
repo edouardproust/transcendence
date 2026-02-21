@@ -206,7 +206,7 @@ This is the body explaining the why..."
 ```bash
 # Start new feature
 git checkout develop
-git pull origin develop
+git pull
 git checkout -b feature/my-feature
 
 # Regular workflow
@@ -216,7 +216,7 @@ git push origin feature/my-feature
 
 # Update your branch with develop (REBASE)
 git checkout develop
-git pull origin develop
+git pull
 git checkout feature/my-feature
 git rebase develop
 git push --force-with-lease origin feature/my-feature
@@ -224,7 +224,7 @@ git push --force-with-lease origin feature/my-feature
 # After PR is merged (use "Squash and merge" on GitHub)
 # Delete local and remote branch
 git checkout develop
-git pull origin develop
+git pull
 git branch -d feature/my-feature
 git push origin --delete feature/my-feature
 ```
