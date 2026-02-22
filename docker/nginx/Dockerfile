@@ -15,7 +15,7 @@ WORKDIR /app
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ .
-RUN npm run build
+RUN npx prisma generate && npm run build
 
 # PROD
 FROM base AS prod

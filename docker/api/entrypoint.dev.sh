@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Set database suing Prisma
+# Set database using Prisma
 # (postgres healthcheck in docker-compose.yml ensures that database is ready before running the following commands)
 npx prisma generate # Generating Prisma Client
 npx prisma migrate dev --name init # Applying Prisma migrations
