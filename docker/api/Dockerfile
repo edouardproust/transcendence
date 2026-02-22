@@ -33,7 +33,7 @@ RUN npm ci
 COPY --chown=node:node api/ .
 # build dist/ as node user (no bind-mount in docker-compose.prod.yml)
 # (the build needs Prisma types to be generated first)
-RUN npx prisma generate npm run build
+RUN npx prisma generate && npm run build
 # run as node user
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["node", "dist/src/main.js"]
