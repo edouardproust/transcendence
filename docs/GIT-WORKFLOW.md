@@ -177,6 +177,7 @@ main
   ```
   type(scope): short description
   ```
+- In English
 - 50 characters max for the title
 - Present imperative: "add" instead of "added"
 
