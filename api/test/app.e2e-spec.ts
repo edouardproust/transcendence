@@ -6,12 +6,13 @@ import { createTestApp } from './setup';
 describe('App (e2e)', () => {
 	let app: INestApplication<App>;
 
-	beforeAll(async () => {
-		app = await createTestApp();
-	});
+	beforeEach(async () => {
+		const moduleFixture: TestingModule = await Test.createTestingModule({
+			imports: [AppModule],
+		}).compile();
 
-	afterAll(async () => {
-		await app.close();
+		app = moduleFixture.createNestApplication();
+		await app.init();
 	});
 
 	it('/ (GET)', () => {
