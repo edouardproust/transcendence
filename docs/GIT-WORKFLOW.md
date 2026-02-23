@@ -26,11 +26,10 @@ type(scope): subject
 
 - `feat`: New feature
 - `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code formatting (no logic change)
+- `chore`: Maintenance tasks (dependencies, config, ci, etc.)
 - `refactor`: Code restructuring (no feature/fix)
+- `docs`: Documentation changes
 - `test`: Adding or updating tests
-- `chore`: Maintenance tasks (dependencies, config, etc.)
 
 **Examples:**
 
@@ -172,20 +171,31 @@ main
 - **Write meaningful commit messages**: Help your future self and teammates
 - **Test before pushing**: Don't break the build
 
-### Branch Protection
+### Commits naming:
 
-We will enable the following protections:
+- Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+  ```
+  type(scope): short description
+  ```
+- In English
+- 50 characters max for the title
+- Present imperative: "add" instead of "added"
 
-- Require PR reviews (minimum 2)
-- Require status checks to pass
-- No direct pushes
-- No force pushes
+Examples:
 
-**`develop` branch:**
+```
+fix(api): add prisma generate before nest build
+feat(auth): add JWT refresh token
+chore(docker): fix typo in entrypoint comment
+```
 
-- Require PR reviews (minimum 1)
-- Require status checks to pass
-- No direct pushes
+If you need to explain the why, add a message body after a blank line. Example:
+
+```bash
+git commit -m "fix(api): add prisma generate before nest build
+
+This is the body explaining the why..."
+```
 
 ---
 
