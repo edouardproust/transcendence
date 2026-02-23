@@ -4,12 +4,12 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
 	getUniqueConstraintFields,
 	isPrismaError,
 	PrismaErrorCode,
-} from 'src/prisma/prisma.error';
+} from '../prisma/prisma.error';
 import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
