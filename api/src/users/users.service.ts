@@ -3,36 +3,72 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dtos/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
 	getUniqueConstraintFields,
 	isPrismaError,
 	PrismaErrorCode,
 } from '../prisma/prisma.error';
-import { UpdateUserDto } from './dtos/update-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
 	constructor(private readonly prisma: PrismaService) {}
 
+	/**
+	 * Returns all the registered users.
+	 * Endpoint accessible by role ADMIN only.
+	 *
+	 * @returnsArray of all the registered users. Passwords are omitted for security.
+	 */
 	async findAll() {
-		return this.prisma.user.findMany();
-	}
-
-	async findOneById(id: number) {
-		const user = await this.prisma.user.findUnique({
-			where: { id },
+		return this.prisma.user.findMany({
+			omit: { password: true },
 		});
-		if (!user) {
-			throw new NotFoundException(`User with id ${id} was not found`);
-		}
-		return user;
 	}
 
+	/**
+	 *	Return a registered user with a matching id.
+	 *
+	 * @param id User id
+	 * @returns The found user or null, password omitted for security.
+	 */
+	async findOneById(id: number) {
+		return this.prisma.user.findUnique({
+			where: { id },
+			omit: { password: true },
+		});
+	}
+
+	/**
+	 *	Return a registered user with a matching email.
+	 *
+	 * @param email User email
+	 * @returns The matching user or null, including password for `bcrypt.compare` in the caller.
+	 */
+	async findOneByEmail(email: string) {
+		return this.prisma.user.findUnique({
+			where: { email },
+		});
+	}
+
+	/**
+	 * Create a user in the database. Password is hashed.
+	 *
+	 * @param createUserDto
+	 * @returns Created user, password omitted for security.
+	 *
+	 */
 	async createOne(createUserDto: CreateUserDto) {
-		return await this.prisma.user
-			.create({ data: createUserDto })
+		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+		return this.prisma.user
+			.create({
+				data: { ...createUserDto, password: hashedPassword },
+				omit: { password: true },
+			})
 			.catch((error) => {
 				if (isPrismaError(error, PrismaErrorCode.UNIQUE_CONSTRAINT)) {
 					throw new ConflictException(
@@ -43,20 +79,45 @@ export class UsersService {
 			});
 	}
 
+	/**
+	 * Delete the user matching the id from the database.
+	 * @param id User id
+	 * @return The deleted user, password omitted for security.
+	 */
 	async deleteOne(id: number) {
-		await this.prisma.user.delete({ where: { id } }).catch((error) => {
-			if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
-				throw new NotFoundException(
-					`User with id ${id} was not found.`,
-				);
-			}
-			throw error;
-		});
+		return this.prisma.user
+			.delete({ where: { id }, omit: { password: true } })
+			.catch((error) => {
+				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
+					throw new NotFoundException(
+						`User with id ${id} was not found.`,
+					);
+				}
+				throw error;
+			});
 	}
 
+	/**
+	 * Update a user matching the id in the database.
+	 *
+	 * @param id User id
+	 * @param updateUserDto User poset data
+	 * @returns The updated user, password omitted for security.
+	 */
 	async updateOneById(id: number, updateUserDto: UpdateUserDto) {
-		await this.prisma.user
-			.update({ where: { id }, data: updateUserDto })
+		const data = updateUserDto.password
+			? {
+					...updateUserDto,
+					password: await bcrypt.hash(updateUserDto.password, 10),
+				}
+			: updateUserDto;
+
+		return this.prisma.user
+			.update({
+				where: { id },
+				data,
+				omit: { password: true },
+			})
 			.catch((error) => {
 				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
 					throw new NotFoundException(

@@ -14,13 +14,17 @@ To edit the API, open this folder in a `Dev Container`:
 
 These commands must be used inside the `tr-api` container (via the terminal inside the corresponding `Dev Container` or using `docker exec tr-api sh -c "<command>"`)
 
+### Compodoc
+
 ### NodeJS
 
-| Command              | Description                  |
-| -------------------- | ---------------------------- |
-| `npm run start:dev`  | Launch project in watch-mode |
-| `npm run start:prod` | Launch project in production |
-| `npm run test`       | Run app tests (using Jest)   |
+| Command              | Description                           |
+| -------------------- | ------------------------------------- |
+| `npm run doc`        | Build compodoc and view it in browser |
+| `npm run doc:serve`  | View compodoc in browser              |
+| `npm run start:dev`  | Launch project in watch-mode          |
+| `npm run start:prod` | Launch project in production          |
+| `npm run test`       | Run app tests (using Jest)            |
 
 ### NestJS
 
@@ -49,4 +53,5 @@ These commands must be used inside the `tr-api` container (via the terminal insi
 
 ## Links
 
+- Decode JWT token: https://www.jwt.io/
 - Deployment: https://docs.nestjs.com/deployment

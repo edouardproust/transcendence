@@ -22,19 +22,23 @@ else
 	# Create .env
 		action "Creating $ENV_FILE..."
 		# prompts
+		read -p		"PROJECT_NAME (Check.io): " project_name
 		read -p		"POSTGRES_DB (check.io): " postgres_db
 		read -p		"POSTGRES_USER (testuser): " postgres_user
 		read -sp	"POSTGRES_PASSWORD (testuser123): " postgres_pswd
 		echo
 		# Validate fields
 			# Default values
-			postgres_db=${postgres_db:-check.io}
-			postgres_user=${postgres_user:-testuser}
-			postgres_pswd=${postgres_pswd:-testuser123}
+			project_name=${project_name:-"Check.io"}
+			postgres_db=${postgres_db:-"check.io"}
+			postgres_user=${postgres_user:-"testuser"}
+			postgres_pswd=${postgres_pswd:-"testuser123"}
+		# Generate JWT secret (api auth)
+			JWT_SECRET=$(openssl rand -hex 64)
 		# Write file
-		printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\n' \
-			"$postgres_db" "$postgres_user" "$postgres_pswd" \
-			> $ENV_FILE
+			printf 'PROJECT_NAME="%s"\nPOSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nJWT_SECRET="%s"\n' \
+    		"$project_name" "$postgres_db" "$postgres_user" "$postgres_pswd" "$JWT_SECRET" \
+    			> $ENV_FILE
 		success "$ENV_FILE file created"
 fi
 echo

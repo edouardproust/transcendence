@@ -1,60 +1,28 @@
 ### Get all users
 GET http://localhost:3001/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE3LCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NzIzMzQ5MzIsImV4cCI6MTc3MjQyMTMzMn0.E5PNAZ__GHz3NTR_0CbyUQ1oJybyEHimBVIbUEceS2Y
 
 ### Get One user
 GET http://localhost:3001/users/5
-
-### Create a user (only mandatory fields)
-POST http://localhost:3001/users
-Content-Type: application/json
-
-{
-	"username": "testuser",
-	"email": "test@example.com",
-	"password": "test123456789"
-}
-
-### Create a user with invalid data
-POST http://localhost:3001/users
-Content-Type: application/json
-
-{
-  "email": "test@example.com"
-}
-
-### Create a user (all fields)
-POST http://localhost:3001/users
-Content-Type: application/json
-
-{
-	"email": "test@example1.com",
-	"password": "12345678",
-	"username": "testuser2"
-}
-
-### Create a user (missing fields)
-POST http://localhost:3001/users
-Content-Type: application/json
-
-{
-	"email": "test@example.com"
-}
 
 ### Delete a user
 DELETE http://localhost:3001/users/4
 
 ### Update a user (only mandatory fields)
-PATCH http://localhost:3001/users/17
+PATCH http://localhost:3001/users/16
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE2LCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3MjMzMjg0MCwiZXhwIjoxNzcyNDE5MjQwfQ.z03ZrHPeLaAsycuXTXW2IWkRDXdxR9Ojo6_Uon76k5o
 
 {
-	"email": "test@example.com",
-	"password": "12345678"
+	"email": "test12@example.com",
+	"password": "12345678",
+	"username": "test12"
 }
 
 ### Update a user (with invalid email)
-PATCH http://localhost:3001/users/17
+PATCH http://localhost:3001/users/12
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE0LCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3MjMzMjY4MSwiZXhwIjoxNzcyNDE5MDgxfQ.fbqDsVnb107X4mUW9bwvztd4SJqOicSkka-HOuDfMXU
 
 {
 	"email": "testexample.com",
