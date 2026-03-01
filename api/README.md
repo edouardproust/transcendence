@@ -40,6 +40,7 @@ These commands must be used inside the `tr-api` container (via the terminal insi
 | Command                                                                                                                | Description                                                                |
 | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `npx prisma studio`                                                                                                    | Start Prisma Studio to visualize the database in a web page                |
+| `npx prisma db seed`                                                                                                   | Fill db with data setup in `prisma/seed.ts` (fixtures)                     |
 | `npx prisma generate`                                                                                                  | Generate typescript types from models defined in `prisma/schema.prisma`    |
 | `npx prisma migrate dev --name <migration-name>`                                                                       | Migrate models defined in `prisma/schema.prisma` to database               |
 | `npx prisma generate && npx prisma migrate dev`                                                                        | Generate client + Migrate models                                           |

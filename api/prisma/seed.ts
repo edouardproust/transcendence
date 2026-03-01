@@ -10,6 +10,7 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+	// admin: upsert: if user already exists, do nothing; if not, create it
 	const admin = await prisma.user.upsert({
 		where: { email: 'admin@example.com' },
 		update: {},
