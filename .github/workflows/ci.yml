@@ -7,7 +7,7 @@ name: CI
 # - Code is pushed to any branch or a Pull Request is opened toward 'develop'
 #   or 'main'.
 #
-# Job Steps:
+# Job 'test-api' steps:
 # 1. Based on 'ubuntu-22.04' to ensures the CI environment is stable and
 #    reproducible over time.
 # 2. Checkout the repository code (equivalent to 'git clone' and 'git checkout'
@@ -28,13 +28,22 @@ on:
       - main
 
 jobs:
-  test:
+  test-api:
     runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24.13.0
           cache: "npm"
-      - run: npm ci
-      - run: npm run test:cov && npm run test:e2e
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: api
+
+      - name: Run tests
+        run: npm run test:cov && npm run test:e2e
+        working-directory: api
