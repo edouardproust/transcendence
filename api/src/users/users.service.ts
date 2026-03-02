@@ -15,7 +15,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(private readonly prismaService: PrismaService) {}
 
 	/**
 	 * Returns all the registered users.
@@ -24,7 +24,7 @@ export class UsersService {
 	 * @returnsArray of all the registered users. Passwords are omitted for security.
 	 */
 	async findAll() {
-		return this.prisma.user.findMany({
+		return this.prismaService.user.findMany({
 			omit: { password: true },
 		});
 	}
@@ -36,7 +36,7 @@ export class UsersService {
 	 * @returns The found user or null, password omitted for security.
 	 */
 	async findOneById(id: number) {
-		return this.prisma.user.findUnique({
+		return this.prismaService.user.findUnique({
 			where: { id },
 			omit: { password: true },
 		});
@@ -49,7 +49,7 @@ export class UsersService {
 	 * @returns The matching user or null, including password for `bcrypt.compare` in the caller.
 	 */
 	async findOneByEmail(email: string) {
-		return this.prisma.user.findUnique({
+		return this.prismaService.user.findUnique({
 			where: { email },
 		});
 	}
@@ -64,7 +64,7 @@ export class UsersService {
 	async createOne(createUserDto: CreateUserDto) {
 		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-		return this.prisma.user
+		return this.prismaService.user
 			.create({
 				data: { ...createUserDto, password: hashedPassword },
 				omit: { password: true },
@@ -85,7 +85,7 @@ export class UsersService {
 	 * @return The deleted user, password omitted for security.
 	 */
 	async deleteOne(id: number) {
-		return this.prisma.user
+		return this.prismaService.user
 			.delete({ where: { id }, omit: { password: true } })
 			.catch((error) => {
 				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
@@ -112,7 +112,7 @@ export class UsersService {
 				}
 			: updateUserDto;
 
-		return this.prisma.user
+		return this.prismaService.user
 			.update({
 				where: { id },
 				data,

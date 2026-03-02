@@ -19,10 +19,6 @@ lerna-debug.log*
 # OS
 .DS_Store
 
-# Tests
-/coverage
-/.nyc_output
-
 # IDEs and editors
 /.idea
 .project
@@ -64,3 +60,7 @@ generated/
 
 # Compodoc
 documentation/
+
+# Jest
+/coverage
+/.nyc_output

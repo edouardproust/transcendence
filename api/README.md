@@ -18,13 +18,15 @@ These commands must be used inside the `tr-api` container (via the terminal insi
 
 ### NodeJS
 
-| Command              | Description                           |
-| -------------------- | ------------------------------------- |
-| `npm run doc`        | Build compodoc and view it in browser |
-| `npm run doc:serve`  | View compodoc in browser              |
-| `npm run start:dev`  | Launch project in watch-mode          |
-| `npm run start:prod` | Launch project in production          |
-| `npm run test`       | Run app tests (using Jest)            |
+| Command              | Description                                                           |
+| -------------------- | --------------------------------------------------------------------- |
+| `npm run doc`        | Build compodoc and view it in browser                                 |
+| `npm run doc:serve`  | View compodoc in browser                                              |
+| `npm run start:dev`  | Launch project in watch-mode                                          |
+| `npm run start:prod` | Launch project in production                                          |
+| `npm run test`       | Run unit tests (in each `/src/**/*.spec.ts` file) using Jest          |
+| `npm run test:cov`   | Run unit tests and calculate their code coverage, using Jest          |
+| `npm run test:e2e`   | Run end-to-end tests (in each `/tests/*.e2e-spec.ts` file) using Jest |
 
 ### NestJS
 

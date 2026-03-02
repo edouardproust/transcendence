@@ -1,5 +1,16 @@
 name: Check PR source branch
 
+# This workflow ensures that all changes to 'main' go through 'develop' first.
+#
+# Triggers:
+# - A PR targets 'main'
+#
+# Job Steps:
+# 1. Based on 'ubuntu-22.04' to ensures the CI environment is stable and
+#    reproducible over time.
+# 2. Check the source branch: if it's not 'develop', it prints a message
+#    and fails the job with 'exit 1'.
+
 on:
   pull_request:
     branches:
@@ -7,7 +18,7 @@ on:
 
 jobs:
   check-source:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Block if source is not develop
         if: github.head_ref != 'develop'
