@@ -1,23 +1,9 @@
+# This workflow runs the project's Continuous Integration (CI) pipeline on GitHub Actions.
 name: CI
 
-# This workflow runs the project's Continuous Integration (CI) pipeline on
-# GitHub Actions.
-#
 # Triggers:
-# - Code is pushed to any branch or a Pull Request is opened toward 'develop'
-#   or 'main'.
-#
-# Job 'test-api' steps:
-# 1. Based on 'ubuntu-22.04' to ensures the CI environment is stable and
-#    reproducible over time.
-# 2. Checkout the repository code (equivalent to 'git clone' and 'git checkout'
-#    inside the temp test container)
-# 3. Setup Node.js version 24.13.0 (same as in Dockerfiles) and caches npm
-#    dependencies for speed
-# 4. Install dependencies with `npm ci`
-# 5. Run unit tests with coverage and end-to-end (e2e) tests. The unit tests
-#    coverage threshold is set to 70% in package.json under `coverageThreshold`.
-
+# - code is pushed to any branch
+# - a Pull Request is opened toward 'develop' or 'main'
 on:
   push:
     branches:
@@ -29,11 +15,19 @@ on:
 
 jobs:
   test-api:
+	# Based on 'ubuntu-22.04' to ensures the CI environment is stable and reproducible over time.
     runs-on: ubuntu-22.04
 
+    defaults:
+      run:
+		# Commends are run inside the api/ directory where the backend code is located
+        working-directory: api
+
     steps:
+	  # Checkout the repository code (equivalent to 'git clone' and 'git checkout' inside the temp test container)
       - uses: actions/checkout@v4
 
+	  # Setup Node.js version 24.13.0 (same as in Dockerfiles) and caches npm dependencies for speed
       - uses: actions/setup-node@v4
         with:
           node-version: 24.13.0
@@ -42,8 +36,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: api
+
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Run tests
         run: npm run test:cov && npm run test:e2e
-        working-directory: api
+		# Note: The unit tests coverage threshold is set to 70% in 'package.json' under "coverageThreshold"
