@@ -10,12 +10,11 @@ on:
 
 jobs:
   check-source: # Job name
-
-	# Based on 'ubuntu-22.04' to ensures the CI environment is stable and reproducible over time.
+    # Based on 'ubuntu-22.04' to ensures the CI environment is stable and reproducible over time.
     runs-on: ubuntu-22.04
 
     steps:
-	  # Check the source branch: if it's not 'develop', it prints a message and fails the job with 'exit 1'.
+      # Check the source branch: if it's not 'develop', it prints a message and fails the job with 'exit 1'.
       - name: Block if source is not develop
         if: github.head_ref != 'develop'
         run: echo "PRs to main must come from develop only." && exit 1
