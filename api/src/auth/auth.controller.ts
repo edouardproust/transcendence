@@ -18,8 +18,12 @@ export class AuthController {
 		return this.authService.login(loginDto);
 	}
 
+	/**
+	 * @remarks
+	 * Client-side must delete the JWT token upon calling this endpoint.
+	 */
 	@Post('logout')
-	async logout() {
-		// todo
+	logout() {
+		return this.authService.logout();
 	}
 }

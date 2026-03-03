@@ -20,15 +20,16 @@ export class AuthService {
 	/**
 	 * Create a new user in database, then and log him in by generating a JWT token.
 	 *
-	 * @param createUserDto
-	 * @returns
-	 * @throws
+	 * @param createUserDto POST user data
+	 * @returns Object containing JWT `access_token` & `user` data (password omitted for security)
+	 * @throws {ConflictException} If email or username already exists
 	 */
 	async register(createUserDto: CreateUserDto) {
-		const user = await this.usersService.createOne(createUserDto);
+		const userWithoutPassword =
+			await this.usersService.createOne(createUserDto);
 		return {
-			user,
-			access_token: this.generateToken(user),
+			user: userWithoutPassword,
+			access_token: this.generateToken(userWithoutPassword),
 		};
 	}
 

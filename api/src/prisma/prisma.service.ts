@@ -11,6 +11,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 		super({ adapter });
 	}
 
+	/**
+	 * Establish DB connexion when app starts.
+	 */
 	async onModuleInit() {
 		try {
 			await this.$connect();
@@ -19,5 +22,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 			Logger.error('Database connection failed', error);
 			throw error;
 		}
+	}
+
+	/**
+	 * Properly close DB connexion when app stops, to prevent connexions leaks in prod.
+	 */
+	async onModuleDestroy() {
+		await this.$disconnect();
+		Logger.log('Database connection closed');
 	}
 }

@@ -13,7 +13,7 @@
 		"start:debug": "nest start --debug --watch",
 		"start:prod": "node dist/main",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-		"test": "jest",
+		"test": "jest --verbose",
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -82,7 +82,13 @@
 			"^.+\\.(t|j)s$": "ts-jest"
 		},
 		"collectCoverageFrom": [
-			"**/*.(t|j)s"
+			"**/*.(t|j)s",
+			"!**/*.module.ts",
+			"!main.ts",
+			"!**/*.spec.ts",
+			"!**/*.mock.ts",
+			"!prisma/generated/**",
+			"!**/swagger.config.ts"
 		],
 		"coverageDirectory": "../coverage",
 		"testEnvironment": "node",
