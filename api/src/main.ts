@@ -9,7 +9,8 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
 	// Config NestJS
-	app.useGlobalPipes(new ValidationPipe());
+
+	app.useGlobalPipes(new ValidationPipe({ whitelist: true })); // whitelist: true strips any body fields not declared with class-validator decorators in the DTO (security)
 
 	// Config Swagger (only in dev)
 	if (process.env.NODE_ENV !== 'production') {
@@ -26,9 +27,13 @@ async function bootstrap() {
 
 	// Development logs
 	if (process.env.NODE_ENV !== 'production') {
-		console.log();
-		console.log(`Swagger is running on: http://localhost:${port}`);
-		console.log(`Compodoc: 'npm run doc'`);
+		console.log(`
+Links:
+- View API doc (Swagger): http://localhost:${port}
+- View databases (Adminer): http://localhost:8081
+Read 'api/README.md' for more details.
+`);
 	}
 }
+
 bootstrap();

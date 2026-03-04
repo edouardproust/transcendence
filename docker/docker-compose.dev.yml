@@ -60,7 +60,7 @@ services:
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      - DATABASE_TEST_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/e2e_tests?schema=public
+      - DATABASE_TEST_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/e2e?schema=public
       - NODE_ENV=development
     volumes:
       - ../api:/app:cached # for dev hot-reloading & cached for Windows & MacOS
@@ -89,4 +89,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:5-standalone
+    container_name: tr-adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - main
     restart: unless-stopped

@@ -32,7 +32,7 @@ export class UsersController {
 	async findOneById(@Param('id', ParseIntPipe) id: number) {
 		const user = await this.service.findOneById(id);
 		if (!user) {
-			throw new NotFoundException(`User #${id} not found`);
+			throw new NotFoundException(`User not found`);
 		}
 		return user;
 	}

@@ -89,9 +89,7 @@ export class UsersService {
 			.delete({ where: { id }, omit: { password: true } })
 			.catch((error) => {
 				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
-					throw new NotFoundException(
-						`User with id ${id} was not found.`,
-					);
+					throw new NotFoundException(`User not found`);
 				}
 				throw error;
 			});
@@ -120,9 +118,7 @@ export class UsersService {
 			})
 			.catch((error) => {
 				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
-					throw new NotFoundException(
-						`User with id ${id} was not found.`,
-					);
+					throw new NotFoundException(`User not found`);
 				}
 				if (isPrismaError(error, PrismaErrorCode.UNIQUE_CONSTRAINT)) {
 					throw new ConflictException(
