@@ -28,9 +28,9 @@ else
 	read -p		"POSTGRES_DB (checkio_prod): " postgres_db
 	read -p		"POSTGRES_USER (admin): " postgres_user
 		# Fields validation
-		domain_name=${domain_name:-check.io}
-		postgres_db=${postgres_db:-checkio_prod}
-		postgres_user=${postgres_user:-admin}
+		domain_name=${domain_name:-"check.io"}
+		postgres_db=${postgres_db:-"checkio_prod"}
+		postgres_user=${postgres_user:-"admin"}
 	# Password prompt ()
 	while true; do
 		read -sp	"POSTGRES_PASSWORD: " postgres_pswd

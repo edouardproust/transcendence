@@ -1,9 +1,6 @@
 # BASE
 FROM node:24.13.0-alpine3.23 AS base
 WORKDIR /app
-# Copy entrypoint (in system dir = Linux convention)
-COPY docker/api/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # DEV - with hot reload + run as root for flexibility
 # (No `COPY . .`, because it is handled by bind-mount in `docker-compose.dev.yml`)
@@ -20,6 +17,9 @@ CMD ["npm", "run", "start:dev"]
 
 # PROD - with assets compilation + run as node user for security
 FROM base AS prod
+# Copy entrypoint (in system dir = Linux convention)
+COPY docker/api/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 # Security: switch to node user for RUN, ENTRYPOINT and CMD commands
 RUN chown -R node:node /app
 USER node

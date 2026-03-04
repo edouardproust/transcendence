@@ -50,9 +50,9 @@ These commands must be used inside the `tr-api` container (via the terminal insi
 
 ## Postgres
 
-| Command                                                                     | Description                                      |
-| --------------------------------------------------------------------------- | ------------------------------------------------ |
-| `docker exec -it <postgres-container-name> psql -U <username> -d <db-name>` | Communicate with db (once container was started) |
+| Command                                                          | Description                                                                                      |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `docker exec -it <tr-postgres> psql -U <testuser> -d <check.io>` | Check a db manually (once container was started). Then use `\dt` to list tables, or `\q` to exit |
 
 ## Links
 
