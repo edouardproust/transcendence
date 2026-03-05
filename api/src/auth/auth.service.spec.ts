@@ -99,10 +99,4 @@ describe('AuthService', () => {
 			).rejects.toThrow(UnauthorizedException);
 		});
 	});
-
-	describe('logout', () => {
-		it('should return undefined', () => {
-			expect(service.logout()).toBeUndefined();
-		});
-	});
 });

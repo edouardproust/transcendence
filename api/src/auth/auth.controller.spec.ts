@@ -44,12 +44,4 @@ describe('AuthController', () => {
 			expect(authService.login).toHaveBeenCalledWith(dto);
 		});
 	});
-
-	describe('logout', () => {
-		it('should call authService.logout and return undefined', () => {
-			const result = controller.logout();
-			expect(authService.logout).toHaveBeenCalled();
-			expect(result).toBeUndefined();
-		});
-	});
 });

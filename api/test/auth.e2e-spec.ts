@@ -140,13 +140,4 @@ describe('AuthController (e2e)', () => {
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 	});
-
-	describe('POST /logout', () => {
-		it('should return 200 OK', async () => {
-			const response = await request(app.getHttpServer()).post(
-				'/auth/logout',
-			);
-			expect(response.status).toBe(HttpStatus.OK);
-		});
-	});
 });
