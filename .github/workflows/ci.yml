@@ -62,10 +62,10 @@ jobs:
           POSTGRES_PASSWORD: testuser123
           POSTGRES_DB: e2e
         options: >-
-          --health-cmd 'pg_isready'
-          --health-interval '5s'
-          --health-timeout '5s'
-          --health-retries '5'
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 5440:5432
           # Note: Map to another port to avoid conflicts with any local PostgreSQL instance that might be running on the default port 5432
