@@ -8,6 +8,11 @@ on:
   push:
     branches:
       - "**"
+    branches-ignore:
+      # Ignore pushes to 'develop' and 'main' branches to avoid running CI twice (once for push and once for PR)
+      # Note: Direct pushes are forbidden in Github Rules for 'develop' and 'main' branches
+      - develop
+      - main
   pull_request:
     branches:
       - develop
