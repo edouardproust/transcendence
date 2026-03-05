@@ -47,16 +47,22 @@ Commands are run **inside the running container\***.
 
 ### Tests
 
-Tests are made using `jest`.
+- Tests are made with **Jest**, a JavaScript testing framework with built-in mocking, assertions, and code coverage.
 
-- **Unit tests** verify each class in isolation with mocked dependencies (code coverage).
-- **e2e tests** verify the full HTTP request chain against a real database.
+| Command            | Description                                                |
+| ------------------ | ---------------------------------------------------------- |
+| `npm run test`     | Run unit tests (in each `/src/**/*.spec.ts` file)          |
+| `npm run test:cov` | Run unit tests and calculate their code coverage           |
+| `npm run test:e2e` | Run end-to-end tests (in each `/tests/*.e2e-spec.ts` file) |
 
-| Command            | Description                                                           |
-| ------------------ | --------------------------------------------------------------------- |
-| `npm run test`     | Run unit tests (in each `/src/**/*.spec.ts` file) using Jest          |
-| `npm run test:cov` | Run unit tests and calculate their code coverage, using Jest          |
-| `npm run test:e2e` | Run end-to-end tests (in each `/tests/*.e2e-spec.ts` file) using Jest |
+- CI workflow is made using **Github Actions**. To test the CI locally, you can use `act`:
+
+```bash
+# Install act globally on the host machine
+curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+# Inside the project folder (alongside the .github/ folder)
+act push
+```
 
 ### Nest.js CLI
 
