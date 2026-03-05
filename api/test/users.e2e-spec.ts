@@ -6,7 +6,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../src/prisma/generated/enums';
 
-describe('AppController (e2e)', () => {
+describe('UserController (e2e)', () => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 
@@ -21,7 +21,7 @@ describe('AppController (e2e)', () => {
 		await app.init();
 	});
 
-	afterEach(async () => {
+	beforeEach(async () => {
 		await prisma.user.deleteMany();
 	});
 
@@ -265,15 +265,11 @@ describe('AppController (e2e)', () => {
 			const updatedUser = await prisma.user.findUnique({
 				where: { id: user.id },
 			});
-			if (updatedUser) {
-				const isPasswordHashed = await bcrypt.compare(
-					newPassword,
-					updatedUser.password,
-				);
-				expect(isPasswordHashed).toBe(true);
-			} else {
-				fail('User not found in database after password update');
-			}
+			const isPasswordHashed = await bcrypt.compare(
+				newPassword,
+				updatedUser!.password,
+			);
+			expect(isPasswordHashed).toBe(true);
 		});
 
 		it('should not update role even if role is provided in the request body', async () => {
@@ -288,11 +284,7 @@ describe('AppController (e2e)', () => {
 			const updatedUser = await prisma.user.findUnique({
 				where: { id: user.id },
 			});
-			if (updatedUser) {
-				expect(updatedUser.role).toBe(Role.USER);
-			} else {
-				fail('User not found in database after update');
-			}
+			expect(updatedUser!.role).toBe(Role.USER);
 		});
 
 		it('should ignore extra fields in the request body', async () => {

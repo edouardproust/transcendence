@@ -9,8 +9,8 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
 	// Config NestJS
-
-	app.useGlobalPipes(new ValidationPipe({ whitelist: true })); // whitelist: true strips any body fields not declared with class-validator decorators in the DTO (security)
+	// whitelist: true strips any body fields not declared with class-validator decorators in the DTO (security)
+	app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
 	// Config Swagger (only in dev)
 	if (process.env.NODE_ENV !== 'production') {
