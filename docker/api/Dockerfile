@@ -8,6 +8,9 @@ FROM base AS dev
 # install extra tools for dev
 RUN apk add --no-cache bash curl
 RUN npm install -g @nestjs/cli
+# Copy entrypoint (in system dir = Linux convention)
+COPY docker/api/entrypoint.dev.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 # install dependencies
 COPY api/package*.json ./
 RUN npm install
