@@ -23,7 +23,7 @@ import {
 	ApiTags,
 } from '@nestjs/swagger';
 
-@Controller('users')
+@Controller('users') // /users
 @ApiTags('users')
 @ApiBearerAuth()
 export class UsersController {
@@ -48,7 +48,7 @@ export class UsersController {
 		return this.service.findAll();
 	}
 
-	@Get(':id')
+	@Get(':id') // /users/12
 	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
 	@ApiOperation({ summary: 'Get user by id (owner or admin only)' })
 	@ApiResponse({ status: HttpStatus.OK, description: 'Returns user data' })
@@ -72,7 +72,7 @@ export class UsersController {
 		return user;
 	}
 
-	@Delete(':id')
+	@Delete(':id') // DELETE /users/12
 	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
 	@HttpCode(HttpStatus.NO_CONTENT) // Override default 200 status code for DELETE
 	@ApiOperation({ summary: 'Delete user by id (owner or admin only)' })

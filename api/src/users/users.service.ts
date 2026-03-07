@@ -110,7 +110,16 @@ export class UsersService {
 				}
 			: updateUserDto;
 
-		return this.prismaService.user
+		const exists = this.prismaService.user.findUnique({
+				where: { id } });
+				
+		const user = this.prismaService.user.update({
+				where: { id },
+				data,
+				omit: { password: true },
+			});
+
+		return this.prismaService.user.
 			.update({
 				where: { id },
 				data,

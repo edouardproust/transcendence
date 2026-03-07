@@ -76,7 +76,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'create').mockResolvedValue(
 				userFixture,
 			);
-			await service.createOne(createUserDto);
+			const createdUser = await service.createOne(createUserDto);
 			expect(bcrypt.hash).toHaveBeenCalledWith(
 				createUserDto.password,
 				10,
@@ -85,6 +85,7 @@ describe('UsersService', () => {
 				data: { ...createUserDto, password: 'hashedPassword' },
 				omit: { password: true },
 			});
+			expect(createdUser).toHaveProperty('role');
 		});
 
 		it('should throw ConflictException on unique constraint violation', async () => {
