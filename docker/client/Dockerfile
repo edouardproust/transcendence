@@ -1,17 +1,14 @@
 # BASE
 FROM node:24.13.0-alpine3.23 AS base
 WORKDIR /app
-# security: switch to node user for RUN, ENTRYPOINT and CMD commands
-RUN chown -R node:node /app
-USER node
 # install dependencies
-COPY --chown=node:node client/package*.json ./
+COPY client/package*.json ./
 
-# DEV
+# DEV - runs as root to avoid UID mismatch with bind-mount on 42 school machines
 FROM base AS dev
 RUN npm install
-# No `COPY . .` here (handled by bind-mount in docker-compose.yml)
-# run as root (listen on all ports for display in host machine's browser)
+# No `COPY . .` here (handled by bind-mount in docker-compose.dev.yml)
+# --host: listen on all network interfaces (0.0.0.0) so the host machine can access the dev server
 CMD ["npm", "run", "dev", "--", "--host"]
 
 # PROD

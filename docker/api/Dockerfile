@@ -11,13 +11,10 @@ FROM base AS dev
 # install extra tools for dev
 RUN apk add --no-cache bash curl
 RUN npm install -g @nestjs/cli
-# Switch to user node
-RUN chown node:node /app
-USER node
 # install dependencies
-COPY --chown=node:node api/package*.json ./
+COPY api/package*.json ./
 RUN npm install
-# run as node user
+# run as root user (for compatibility)
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]
 
