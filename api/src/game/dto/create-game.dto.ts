@@ -4,9 +4,9 @@ import { IsInt } from 'class-validator';
 export class CreateGameDto {
 	@Type(() => Number)
 	@IsInt()
-	whiteId: string;
+	whiteId: number;
 
 	@Type(() => Number)
 	@IsInt()
-	blackId: string;
+	blackId: number;
 }
