@@ -44,6 +44,6 @@ model Game {
     white User @relation("WhitePlayer", fields: [whiteId], references: [id])
     black User @relation("BlackPlayer", fields: [blackId], references: [id])
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt  DateTime @default(now())
+    updateedAt DateTime @default(now())
 }
