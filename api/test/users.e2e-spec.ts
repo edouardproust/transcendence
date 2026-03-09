@@ -22,6 +22,7 @@ describe('UserController (e2e)', () => {
 	});
 
 	beforeEach(async () => {
+		await prisma.game.deleteMany();
 		await prisma.user.deleteMany();
 	});
 
