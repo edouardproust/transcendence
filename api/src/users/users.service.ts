@@ -55,6 +55,18 @@ export class UsersService {
 	}
 
 	/**
+	 *	Return a registered user with a matching username.
+	 *
+	 * @param username
+	 * @returns The matching user or null, including password for `bcrypt.compare` in the caller.
+	 */
+	async findOneByUsername(username: string) {
+		return this.prismaService.user.findUnique({
+			where: { username },
+		});
+	}
+
+	/**
 	 * Create a user in the database. Password is hashed.
 	 *
 	 * @param createUserDto

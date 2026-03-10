@@ -12,6 +12,12 @@ async function bootstrap() {
 	// whitelist: true strips any body fields not declared with class-validator decorators in the DTO (security)
 	app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
+	// Enable CORS (to allow frontend to communicate with API)
+	app.enableCors({
+		origin: process.env.CORS_ORIGIN,
+		credentials: true,
+	});
+
 	// Config Swagger (only in dev)
 	if (process.env.NODE_ENV !== 'production') {
 		const document = SwaggerModule.createDocument(

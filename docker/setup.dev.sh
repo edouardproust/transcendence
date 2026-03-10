@@ -5,10 +5,20 @@ set -e # for security
 ENV_FILE="./docker/.env"
 SSL_DIR="./docker/nginx/ssl"
 SSL_GENERATOR="./docker/nginx/generate-ssl.sh"
+REQUIRED_VARS=(PROJECT_NAME POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET CORS_ORIGIN)
+
 title() { echo -e "\033[1;33m$*\033[0m"; }
 action() { echo -e "\033[1;34m$*\033[0m"; }
 success() { echo -e "\033[0;32m$*\033[0m"; }
 error() { echo -e "\033[0;31m$*\033[0m"; }
+
+env_is_complete() {
+    [ -f "$ENV_FILE" ] || return 1
+    for var in "${REQUIRED_VARS[@]}"; do
+        grep -q "^${var}=" "$ENV_FILE" || return 1
+    done
+    return 0
+}
 
 # ----
 
@@ -16,7 +26,7 @@ title "DOCKER SETUP - DEV ENVIRONMENT"
 echo
 
 # Root .env file
-if [ -f $ENV_FILE ]; then
+if env_is_complete; then
 	success "$ENV_FILE file already exists, skipping creation..."
 else
 	# Create .env
@@ -36,9 +46,9 @@ else
 		# Generate JWT secret (api auth)
 			JWT_SECRET=$(openssl rand -hex 64)
 		# Write file
-			printf 'PROJECT_NAME="%s"\nPOSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nJWT_SECRET="%s"\n' \
-    		"$project_name" "$postgres_db" "$postgres_user" "$postgres_pswd" "$JWT_SECRET" \
-    			> $ENV_FILE
+			printf 'PROJECT_NAME="%s"\nPOSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nJWT_SECRET="%s"\nCORS_ORIGIN="http://localhost:8080"\n' \
+				"$project_name" "$postgres_db" "$postgres_user" "$postgres_pswd" "$JWT_SECRET" \
+				> $ENV_FILE
 		success "$ENV_FILE file created"
 fi
 echo

@@ -46,9 +46,16 @@ export class AuthService {
 	 * - `role`: required by `RolesGuard` to check for admin access
 	 */
 	async login(loginDto: LoginDto) {
-		const errorMsg = 'Invalid email or password'; // Vague to give no info to attackers
-		const user = await this.usersService.findOneByEmail(loginDto.email);
+		const errorMsg = 'Invalid email, username or password'; // Vague to give no info to attackers
+		const isEmail = /\S+@\S+\.\S+/.test(loginDto.emailOrUsername);
+
+		let user = isEmail
+			? await this.usersService.findOneByEmail(loginDto.emailOrUsername)
+			: await this.usersService.findOneByUsername(
+					loginDto.emailOrUsername,
+				);
 		if (!user) throw new UnauthorizedException(errorMsg);
+
 		if (!(await bcrypt.compare(loginDto.password, user.password)))
 			throw new UnauthorizedException(errorMsg);
 
@@ -58,14 +65,4 @@ export class AuthService {
 			access_token: this.generateToken(userWithoutPassword),
 		};
 	}
-
-	/**
-	 * Logout a user.
-	 *
-	 * @remarks
-	 * No server-side logic needed for now. Since we use stateless JWT, logout is handled
-	 * client-side by deleting the token. A blacklist or refresh token strategy can be
-	 * implemented later if token revocation is required.
-	 */
-	logout() {}
 }

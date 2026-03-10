@@ -11,7 +11,8 @@ import {
 	genericErrorMsg,
 	prismaNotFoundException,
 	prismaUniqueConstraintException,
-	userFixture,
+	userInDb,
+	usersFixture,
 } from './users.service.mock';
 
 jest.mock('bcrypt', () => ({
@@ -40,41 +41,69 @@ describe('UsersService', () => {
 
 	describe('findAll', () => {
 		it('should query users with password omitted', async () => {
-			await service.findAll();
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
+				usersFixture,
+			);
+			const users = await service.findAll();
 			expect(prismaService.user.findMany).toHaveBeenCalledWith({
 				omit: { password: true },
 			});
+			users.forEach((user) =>
+				expect(user).not.toHaveProperty('password'),
+			);
 		});
 	});
 
 	describe('findOneById', () => {
 		it('should query user with password omitted', async () => {
-			await service.findOneById(userFixture.id);
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userInDb,
+			);
+			const user = await service.findOneById(userInDb.id);
 			expect(prismaService.user.findUnique).toHaveBeenCalledWith({
-				where: { id: userFixture.id },
+				where: { id: userInDb.id },
 				omit: { password: true },
 			});
+			expect(user).not.toHaveProperty('password');
 		});
 	});
 
 	describe('findOneByEmail', () => {
 		it('should query user by email', async () => {
-			await service.findOneByEmail(userFixture.email);
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userInDb,
+			);
+			const user = await service.findOneByEmail(userInDb.email);
 			expect(prismaService.user.findUnique).toHaveBeenCalledWith({
-				where: { email: userFixture.email },
+				where: { email: userInDb.email },
 			});
+			expect(user).not.toHaveProperty('password');
+		});
+	});
+
+	describe('findOneByUsername', () => {
+		it('should query user by email', async () => {
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userInDb,
+			);
+			const user = await service.findOneByUsername(userInDb.email);
+			expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+				where: { email: userInDb.email },
+			});
+			expect(user).not.toHaveProperty('password');
 		});
 	});
 
 	describe('createOne', () => {
 		const createUserDto: CreateUserDto = {
-			email: 'new@example.com',
-			password: 'password123',
+			email: userInDb.email,
+			password: 'password',
+			username: userInDb.username,
 		};
 
 		it('should call create with hashed password and omit password', async () => {
 			jest.spyOn(prismaService.user, 'create').mockResolvedValue(
-				userFixture,
+				userInDb,
 			);
 			const createdUser = await service.createOne(createUserDto);
 			expect(bcrypt.hash).toHaveBeenCalledWith(
@@ -86,6 +115,11 @@ describe('UsersService', () => {
 				omit: { password: true },
 			});
 			expect(createdUser).toHaveProperty('role');
+			expect(createdUser).toHaveProperty('email', createUserDto.email);
+			expect(createdUser).toHaveProperty(
+				'username',
+				createUserDto.username,
+			);
 		});
 
 		it('should throw ConflictException on unique constraint violation', async () => {
@@ -110,11 +144,11 @@ describe('UsersService', () => {
 	describe('deleteOne', () => {
 		it('should delete user by id with password omitted', async () => {
 			jest.spyOn(prismaService.user, 'delete').mockResolvedValue(
-				userFixture,
+				userInDb,
 			);
-			await service.deleteOne(userFixture.id);
+			await service.deleteOne(userInDb.id);
 			expect(prismaService.user.delete).toHaveBeenCalledWith({
-				where: { id: userFixture.id },
+				where: { id: userInDb.id },
 				omit: { password: true },
 			});
 		});
@@ -154,11 +188,11 @@ describe('UsersService', () => {
 
 		it('should call update with correct arguments', async () => {
 			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
-				userFixture,
+				userInDb,
 			);
-			await service.updateOneById(userFixture.id, updateUserDto);
+			await service.updateOneById(userInDb.id, updateUserDto);
 			expect(prismaService.user.update).toHaveBeenCalledWith({
-				where: { id: userFixture.id },
+				where: { id: userInDb.id },
 				data: updateUserDto,
 				omit: { password: true },
 			});
@@ -166,18 +200,15 @@ describe('UsersService', () => {
 
 		it('should hash the new password when provided', async () => {
 			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
-				userFixture,
+				userInDb,
 			);
-			await service.updateOneById(
-				userFixture.id,
-				updateUserDtoWithPassword,
-			);
+			await service.updateOneById(userInDb.id, updateUserDtoWithPassword);
 			expect(bcrypt.hash).toHaveBeenCalledWith(
 				updateUserDtoWithPassword.password,
 				10,
 			);
 			expect(prismaService.user.update).toHaveBeenCalledWith({
-				where: { id: userFixture.id },
+				where: { id: userInDb.id },
 				data: { ...updateUserDto, password: 'hashedPassword' },
 				omit: { password: true },
 			});
@@ -185,12 +216,12 @@ describe('UsersService', () => {
 
 		it('should not hash when no password in DTO', async () => {
 			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
-				userFixture,
+				userInDb,
 			);
-			await service.updateOneById(userFixture.id, updateUserDto);
+			await service.updateOneById(userInDb.id, updateUserDto);
 			expect(bcrypt.hash).not.toHaveBeenCalled();
 			expect(prismaService.user.update).toHaveBeenCalledWith({
-				where: { id: userFixture.id },
+				where: { id: userInDb.id },
 				data: updateUserDto,
 				omit: { password: true },
 			});
@@ -210,7 +241,7 @@ describe('UsersService', () => {
 				prismaUniqueConstraintException,
 			);
 			await expect(
-				service.updateOneById(userFixture.id, updateUserDto),
+				service.updateOneById(userInDb.id, updateUserDto),
 			).rejects.toThrow(ConflictException);
 		});
 

@@ -1,8 +1,8 @@
-import { Prisma, Role, User } from '../prisma/generated/client';
+import { Prisma, Role } from '../prisma/generated/client';
 import { PrismaErrorCode } from '../prisma/prisma.error';
 import { UsersService } from './users.service';
 
-export const usersFixture: Omit<User, 'password'>[] = [
+export const usersFixture: any[] = [
 	{
 		id: 1,
 		email: 'admin@example.com',
@@ -27,14 +27,16 @@ export const UsersServiceMock = {
 		findAll: jest.fn(),
 		findOneById: jest.fn(),
 		findOneByEmail: jest.fn(),
+		findOneByUsername: jest.fn(),
 		createOne: jest.fn(),
 		deleteOne: jest.fn(),
 		updateOneById: jest.fn(),
 	},
 };
 
-export const userFixture: any = usersFixture[0];
-export const genericErrorMsg = 'Error!';
+export const adminInDb: any = usersFixture[0];
+export const userInDb: any = usersFixture[0];
+export const genericErrorMsg: string = 'Error!';
 export const genericError = new Error(genericErrorMsg);
 export const prismaUniqueConstraintException =
 	new Prisma.PrismaClientKnownRequestError('Unique constraint', {

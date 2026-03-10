@@ -2,10 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { UsersServiceMock, usersFixture } from '../users/users.service.mock';
+import {
+	UsersServiceMock,
+	userInDb,
+	usersFixture,
+} from '../users/users.service.mock';
 import { JwtServiceMock } from './auth.service.mock';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn().mockResolvedValue('hashedPassword'),
@@ -17,7 +22,7 @@ describe('AuthService', () => {
 	let usersService: UsersService;
 	let jwtService: JwtService;
 
-	const userWithPassword = { ...usersFixture[0], password: 'hashedPassword' };
+	const userWithPassword = { ...userInDb, password: 'hashedPassword' };
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
@@ -34,29 +39,31 @@ describe('AuthService', () => {
 	});
 
 	describe('register', () => {
+		const createUserDto: CreateUserDto = {
+			email: 'new@example.com',
+			password: 'password123',
+			username: 'testuser',
+		};
 		it('should call usersService.createOne and jwtService.sign', async () => {
 			jest.spyOn(usersService, 'createOne').mockResolvedValue(
-				usersFixture[0] as any,
+				userInDb as any,
 			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
-			await service.register({
-				email: 'test@test.com',
-				password: 'password123',
-			});
+			await service.register(createUserDto);
 
-			expect(usersService.createOne).toHaveBeenCalledWith({
-				email: 'test@test.com',
-				password: 'password123',
-			});
+			expect(usersService.createOne).toHaveBeenCalledWith(createUserDto);
 			expect(jwtService.sign).toHaveBeenCalledWith({
-				sub: usersFixture[0].id,
-				role: usersFixture[0].role,
+				sub: userInDb.id,
+				role: userInDb.role,
 			});
 		});
 	});
 
 	describe('login', () => {
+		const password = 'password123';
+		const access_token = 'token';
+
 		it('should return user without password and access token when credentials are valid', async () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
 				userWithPassword as any,
@@ -64,13 +71,36 @@ describe('AuthService', () => {
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			const result = await service.login({
-				email: userWithPassword.email,
-				password: 'password123',
+				emailOrUsername: userWithPassword.email,
+				password,
 			});
 
+			expect(usersService.findOneByEmail).toHaveBeenCalledWith(
+				userWithPassword.email,
+			);
 			expect(result).toEqual({
-				user: usersFixture[0],
-				access_token: 'token',
+				user: userInDb,
+				access_token,
+			});
+		});
+
+		it('should return user without password and access token when username is valid', async () => {
+			jest.spyOn(usersService, 'findOneByUsername').mockResolvedValue(
+				userWithPassword as any,
+			);
+			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
+
+			const result = await service.login({
+				emailOrUsername: userWithPassword.username,
+				password,
+			});
+
+			expect(usersService.findOneByUsername).toHaveBeenCalledWith(
+				userWithPassword.username,
+			);
+			expect(result).toEqual({
+				user: userInDb,
+				access_token,
 			});
 		});
 
@@ -79,8 +109,8 @@ describe('AuthService', () => {
 
 			await expect(
 				service.login({
-					email: 'unknown@test.com',
-					password: 'password123',
+					emailOrUsername: 'unknown@test.com',
+					password,
 				}),
 			).rejects.toThrow(UnauthorizedException);
 		});
@@ -93,7 +123,7 @@ describe('AuthService', () => {
 
 			await expect(
 				service.login({
-					email: userWithPassword.email,
+					emailOrUsername: userWithPassword.email,
 					password: 'wrongpassword',
 				}),
 			).rejects.toThrow(UnauthorizedException);

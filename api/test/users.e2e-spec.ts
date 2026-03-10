@@ -29,11 +29,12 @@ describe('UserController (e2e)', () => {
 		await app.close();
 	});
 
-	const password = 'plainpassword';
+	const password = 'Password123$';
 	const makeUser = async (email: string = 'test@example.com') => {
 		return {
 			email,
 			password: await bcrypt.hash(password, 10),
+			username: email.split('@')[0],
 		};
 	};
 	const seedUser = async (email: string = 'test@example.com') => {
@@ -49,7 +50,7 @@ describe('UserController (e2e)', () => {
 	const login = async (email: string, password: string) => {
 		const response = await request(app.getHttpServer())
 			.post('/auth/login')
-			.send({ email, password })
+			.send({ emailOrUsername: email, password })
 			.expect(200);
 		return response.body.access_token;
 	};
@@ -256,7 +257,7 @@ describe('UserController (e2e)', () => {
 		it('should hash password if password is updated', async () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
-			const newPassword = 'newplainpassword';
+			const newPassword = 'NewPassword123!';
 			const response = await updateUser(user.id.toString(), token, {
 				password: newPassword,
 			});
@@ -308,7 +309,7 @@ describe('UserController (e2e)', () => {
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 
-		it('should return 400 if password is too short', async () => {
+		it('should return 400 if password format is invalid', async () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
@@ -322,6 +323,15 @@ describe('UserController (e2e)', () => {
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
 				email: 'invalidemail', // Invalid email format
+			});
+			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it('should return 400 if username contains invalid characters', async () => {
+			const user = await seedUser();
+			const token = await login(user.email, password);
+			const response = await updateUser(user.id.toString(), token, {
+				username: 'invalid username!', // spaces and special characters not allowed
 			});
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});
