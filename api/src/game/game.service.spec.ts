@@ -9,6 +9,7 @@ const mockPrismaService = {
 	},
 	game: {
 		create: jest.fn(),
+		findUnique: jest.fn(),
 	},
 };
 
@@ -50,5 +51,19 @@ describe('GameService', () => {
 		await expect(
 			service.createGame({ whiteId: 1, blackId: 1 }),
 		).rejects.toThrow(BadRequestException);
+	});
+
+	it('should throw if player not found', async () => {
+		mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+		await expect(
+			service.createGame({ whiteId: 1, blackId: 2 }),
+		).rejects.toThrow('Player not found');
+	});
+
+	it('should throw if game not found', async () => {
+		mockPrismaService.game.findUnique.mockResolvedValue(null);
+
+		await expect(service.getGame(1)).rejects.toThrow('Game not found');
 	});
 });

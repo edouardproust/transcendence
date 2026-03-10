@@ -34,4 +34,16 @@ export class GameService {
 
 		return game;
 	}
+
+	async getGame(id: number) {
+		const game = await this.prisma.game.findUnique({
+			where: { id },
+		});
+
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		return game;
+	}
 }

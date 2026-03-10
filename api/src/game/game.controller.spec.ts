@@ -32,4 +32,13 @@ describe('GameController', () => {
 		expect(result).toEqual(gameFixture);
 		expect(service.createGame).toHaveBeenCalled();
 	});
+
+	it('should get a game', async () => {
+		jest.spyOn(service, 'getGame').mockResolvedValue(gameFixture);
+
+		const result = await controller.getGame(1);
+
+		expect(result).toEqual(gameFixture);
+		expect(service.getGame).toHaveBeenCalled();
+	});
 });
