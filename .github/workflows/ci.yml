@@ -1,0 +1,104 @@
+# This workflow runs the project's Continuous Integration (CI) pipeline on GitHub Actions.
+name: CI
+
+# Triggers:
+# - code is pushed to any branch
+# - a Pull Request is opened toward 'develop' or 'main'
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  # UNIT TESTS
+  test-unit:
+    # Based on 'ubuntu-22.04' to ensures the CI environment is stable and reproducible over time.
+    # Note: No need to run 'npx prisma migrate' because unit tests don't use a real database
+    # Note: The unit tests coverage threshold is set to 70% in 'package.json' under "coverageThreshold"
+    name: Run unit tests
+    runs-on: ubuntu-22.04
+
+    # Commands are run inside the api/ directory where the backend code is located
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      # Checkout the repository code (equivalent to 'git clone' and 'git checkout' inside the temp test container)
+      - uses: actions/checkout@v4
+
+      # Setup Node.js version 24.13.0 (same as in Dockerfiles) and caches npm dependencies for speed
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.0
+          cache: "npm"
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run unit tests
+        run: npm run test:cov
+
+  # END-TO-END TESTS
+  test-e2e:
+    name: Run end-to-end tests
+    runs-on: ubuntu-22.04
+
+    services:
+      # The e2e tests require a real PostgreSQL database to run
+      # We use the same image and configuration as in 'docker-compose.dev.yml' to ensure consistency between local development and CI environments
+      postgres:
+        image: postgres:18.1-alpine3.23
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testuser123
+          POSTGRES_DB: e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5440:5432
+          # Note: Map to another port to avoid conflicts with any local PostgreSQL instance that might be running on the default port 5432
+
+    # Global env is necessary for prisma to connect to the test database and for JWT authentication in e2e tests.
+    env:
+      DATABASE_URL: postgresql://testuser:testuser123@localhost:5440/e2e?schema=public
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # Note: The JWT_SECRET is stored as a GitHub secret (repo > Settings > Secrets and variables > Actions)
+
+    # Same defaults as for 'test-unit'
+    defaults:
+      run:
+        working-directory: api
+
+    # Same steps as for 'test-unit' but with an additional step to apply Prisma migrations before running the e2e tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.0
+          cache: "npm"
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Run e2e tests
+        run: npm run test:e2e

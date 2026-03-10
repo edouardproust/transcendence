@@ -16,16 +16,17 @@ error() { echo -e "\033[0;31m$*\033[0m"; }
 title "DOCKER SETUP - PRODUCTION ENVIRONMENT"
 echo
 
-# Root .env file
+# Create .env.prod
 action "Creating $ENV_FILE..."
+
 # Prompts
 read -p		"DOMAIN_NAME (check.io): " domain_name
 read -p		"POSTGRES_DB (checkio_prod): " postgres_db
 read -p		"POSTGRES_USER (admin): " postgres_user
 	# Fields validation
-	domain_name=${domain_name:-check.io}
-	postgres_db=${postgres_db:-checkio_prod}
-	postgres_user=${postgres_user:-admin}
+	domain_name=${domain_name:-"check.io"}
+	postgres_db=${postgres_db:-"checkio_prod"}
+	postgres_user=${postgres_user:-"admin"}
 # Password prompt ()
 while true; do
 	read -sp	"POSTGRES_PASSWORD: " postgres_pswd
@@ -40,9 +41,11 @@ while true; do
 	fi
 done
 echo
+# Generate JWT token (api auth)
+	jwt_secret=$(openssl rand -hex 64)
 # Write file
-printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\n' \
-	"$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" \
+printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\nJWT_SECRET="%s"\nCORS_ORIGIN="https://%s"\n' \
+	"$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" "$jwt_secret" "$domain_name" \
 	> "$ENV_FILE"
 # Secure the file (only owner can read/write)
 chmod 600 "$ENV_FILE"
