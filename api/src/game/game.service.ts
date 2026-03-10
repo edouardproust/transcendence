@@ -5,10 +5,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
+import { Chess } from 'chess.js';
 
 @Injectable()
 export class GameService {
 	constructor(private prisma: PrismaService) {}
+
 	async createGame(dto: CreateGameDto) {
 		if (dto.whiteId === dto.blackId) {
 			throw new BadRequestException('Players must be different');

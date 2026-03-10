@@ -44,6 +44,9 @@ model Game {
     white User @relation("WhitePlayer", fields: [whiteId], references: [id])
     black User @relation("BlackPlayer", fields: [blackId], references: [id])
 
-    createdAt  DateTime @default(now())
-    updateedAt DateTime @default(now())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    currentFEN String //Snapshot de la position actuelle
+    movesPGN   String //Historique des coups
 }
