@@ -31,6 +31,8 @@ export class GameService {
 			data: {
 				whiteId: dto.whiteId,
 				blackId: dto.blackId,
+				currentFEN: '',
+				movesPGN: '',
 			},
 		});
 
