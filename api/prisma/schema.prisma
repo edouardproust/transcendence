@@ -38,6 +38,9 @@ model User {
 model Game {
     id Int @id @default(autoincrement())
 
+    ongoing Boolean @default(true)
+    result  String?
+
     whiteId Int
     blackId Int
 
@@ -47,6 +50,6 @@ model Game {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    currentFEN String @default("") //Snapshot de la position actuelle
+    currentFEN String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") //Snapshot de la position actuelle
     movesPGN   String @default("") //Historique des coups
 }

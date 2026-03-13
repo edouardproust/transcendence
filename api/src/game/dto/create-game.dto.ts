@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt } from 'class-validator';
+import { IsInt, IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateGameDto {
 	@Type(() => Number)
@@ -9,4 +9,10 @@ export class CreateGameDto {
 	@Type(() => Number)
 	@IsInt()
 	blackId: number;
+}
+
+export class MakeMoveDto {
+	@IsString()
+	@IsNotEmpty()
+	move: string;
 }

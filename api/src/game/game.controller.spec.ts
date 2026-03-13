@@ -41,4 +41,17 @@ describe('GameController', () => {
 		expect(result).toEqual(gameFixture);
 		expect(service.getGame).toHaveBeenCalled();
 	});
+
+	it('should make a move', async () => {
+		jest.spyOn(service, 'makeMove').mockResolvedValue(gameFixture);
+
+		const result = await controller.makeMove(
+			1,
+			{ move: 'e4' },
+			{ user: { id: 1 } },
+		);
+
+		expect(result).toEqual(gameFixture);
+		expect(service.makeMove).toHaveBeenCalledWith(1, { move: 'e4' }, 1);
+	});
 });

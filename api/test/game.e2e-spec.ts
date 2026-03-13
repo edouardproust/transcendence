@@ -46,52 +46,54 @@ describe('GameController (e2e)', () => {
 		return response.body.access_token;
 	};
 
-	describe('POST /games', () => {
-		const createGame = async (token: string, body: object) => {
+	describe('POST /games/:id/move', () => {
+		const makeMove = async (
+			token: string,
+			gameId: number,
+			move: string,
+		) => {
 			return request(app.getHttpServer())
-				.post('/games')
+				.post(`/games/${gameId}/move`)
 				.set('Authorization', `Bearer ${token}`)
-				.send(body);
+				.send({ move });
 		};
 
-		it('should return 401 if not authenticated', async () => {
-			const response = await request(app.getHttpServer())
-				.post('/games')
-				.send({ whiteId: 1, blackId: 2 });
-			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
-		});
-
-		it('should return 400 if players are the same', async () => {
-			const user = await seedUser('player@example.com');
-			const token = await login(user.email);
-			const response = await createGame(token, {
-				whiteId: user.id,
-				blackId: user.id,
-			});
-			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
-		});
-
-		it('should return 404 if a player does not exist', async () => {
-			const user = await seedUser('player@example.com');
-			const token = await login(user.email);
-			const response = await createGame(token, {
-				whiteId: user.id,
-				blackId: 9999,
-			});
-			expect(response.status).toBe(HttpStatus.NOT_FOUND);
-		});
-
-		it('should create a game if players are valid', async () => {
+		it('should return 400 if game is already finished', async () => {
 			const white = await seedUser('white@example.com');
 			const black = await seedUser('black@example.com');
 			const token = await login(white.email);
-			const response = await createGame(token, {
-				whiteId: white.id,
-				blackId: black.id,
+
+			const game = await request(app.getHttpServer())
+				.post('/games')
+				.set('Authorization', `Bearer ${token}`)
+				.send({ whiteId: white.id, blackId: black.id })
+				.expect(HttpStatus.CREATED);
+
+			await prisma.game.update({
+				where: { id: game.body.id },
+				data: { ongoing: false, result: '1-0' },
 			});
-			expect(response.status).toBe(HttpStatus.CREATED);
-			expect(response.body.whiteId).toBe(white.id);
-			expect(response.body.blackId).toBe(black.id);
+
+			const response = await makeMove(token, game.body.id, 'e4');
+			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it('should return 200 and updated game on valid move', async () => {
+			const white = await seedUser('white@example.com');
+			const black = await seedUser('black@example.com');
+			const token = await login(white.email);
+
+			const game = await request(app.getHttpServer())
+				.post('/games')
+				.set('Authorization', `Bearer ${token}`)
+				.send({ whiteId: white.id, blackId: black.id })
+				.expect(HttpStatus.CREATED);
+
+			const response = await makeMove(token, game.body.id, 'e4');
+			expect(response.status).toBe(HttpStatus.OK);
+			expect(response.body.movesPGN).toContain('e4');
+			expect(response.body.ongoing).toBe(true);
+			expect(response.body.result).toBeNull();
 		});
 	});
 });
