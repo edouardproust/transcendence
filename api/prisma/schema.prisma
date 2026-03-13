@@ -47,6 +47,6 @@ model Game {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    currentFEN String //Snapshot de la position actuelle
-    movesPGN   String //Historique des coups
+    currentFEN String @default("") //Snapshot de la position actuelle
+    movesPGN   String @default("") //Historique des coups
 }
