@@ -11,9 +11,9 @@ export class OwnerOrAdminGuard implements CanActivate {
 	canActivate(context: ExecutionContext): boolean {
 		const request = context.switchToHttp().getRequest();
 		const user = request.user;
-		const id = parseInt(request.params.id);
+		const id = request.params.id;
 
-		if (user.role === Role.ADMIN || user.id === id) return true;
+		if (user.role === Role.admin || user.id === id) return true;
 
 		throw new ForbiddenException(
 			"You don't have permission to access this resource",

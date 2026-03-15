@@ -62,7 +62,7 @@ describe('AuthService', () => {
 
 	describe('login', () => {
 		const password = 'password123';
-		const access_token = 'token';
+		const token = 'token';
 
 		it('should return user without password and access token when credentials are valid', async () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
@@ -80,7 +80,7 @@ describe('AuthService', () => {
 			);
 			expect(result).toEqual({
 				user: userInDb,
-				access_token,
+				token,
 			});
 		});
 
@@ -100,7 +100,7 @@ describe('AuthService', () => {
 			);
 			expect(result).toEqual({
 				user: userInDb,
-				access_token,
+				token,
 			});
 		});
 

@@ -30,6 +30,7 @@ describe('UserController (e2e)', () => {
 	});
 
 	const password = 'Password123$';
+	const nonExistentId = '00000000-0000-0000-0000-000000000000';
 	const makeUser = async (email: string = 'test@example.com') => {
 		return {
 			email,
@@ -44,7 +45,7 @@ describe('UserController (e2e)', () => {
 	};
 	const seedAdmin = async (email: string = 'admin@example.com') => {
 		return prisma.user.create({
-			data: { ...(await makeUser(email)), role: Role.ADMIN },
+			data: { ...(await makeUser(email)), role: Role.admin },
 		});
 	};
 	const login = async (email: string, password: string) => {
@@ -52,7 +53,7 @@ describe('UserController (e2e)', () => {
 			.post('/auth/login')
 			.send({ emailOrUsername: email, password })
 			.expect(200);
-		return response.body.access_token;
+		return response.body.token;
 	};
 
 	// E2E TESTS
@@ -110,7 +111,7 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const response = await getUser('999', token); // Assuming 999 is a non-existent user ID
+			const response = await getUser(nonExistentId, token);
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
 			expect(response.body.message).toBe('User not found');
 		});
@@ -158,7 +159,7 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const response = await deleteUser('999', token); // Assuming 999 is a non-existent user ID
+			const response = await deleteUser(nonExistentId, token); // Assuming 999 is a non-existent user ID
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
 			expect(response.body.message).toBe('User not found');
 		});
@@ -217,7 +218,7 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const response = await updateUser('999', token, {
+			const response = await updateUser(nonExistentId, token, {
 				username: 'newusername',
 			});
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
@@ -277,15 +278,15 @@ describe('UserController (e2e)', () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
-				role: Role.ADMIN,
+				role: Role.admin,
 			});
 			expect(response.status).toBe(HttpStatus.OK);
-			expect(response.body.role).toBe(Role.USER); // Role should remain unchanged
+			expect(response.body.role).toBe(Role.user); // Role should remain unchanged
 			// Verify that the role is actually unchanged in the database
 			const updatedUser = await prisma.user.findUnique({
 				where: { id: user.id },
 			});
-			expect(updatedUser!.role).toBe(Role.USER);
+			expect(updatedUser!.role).toBe(Role.user);
 		});
 
 		it('should ignore extra fields in the request body', async () => {

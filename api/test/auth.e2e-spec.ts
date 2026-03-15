@@ -52,7 +52,7 @@ describe('AuthController (e2e)', () => {
 		it('should return 201 Created', async () => {
 			const response = await registerUser(email, username, password);
 			expect(response.status).toBe(HttpStatus.CREATED);
-			expect(response.body).toHaveProperty('access_token');
+			expect(response.body).toHaveProperty('token');
 			expect(response.body.user).toMatchObject({ email: email });
 			expect(response.body.user).not.toHaveProperty('password');
 		});
@@ -140,7 +140,7 @@ describe('AuthController (e2e)', () => {
 		it('should return 200 OK and access token when logging in with email', async () => {
 			const response = await loginUser(email, password);
 			expect(response.status).toBe(HttpStatus.OK);
-			expect(response.body).toHaveProperty('access_token');
+			expect(response.body).toHaveProperty('token');
 			expect(response.body.user).toMatchObject({ email });
 			expect(response.body.user).not.toHaveProperty('password');
 		});
@@ -148,7 +148,7 @@ describe('AuthController (e2e)', () => {
 		it('should return 200 OK and access token when logging in with username', async () => {
 			const response = await loginUser(username, password);
 			expect(response.status).toBe(HttpStatus.OK);
-			expect(response.body).toHaveProperty('access_token');
+			expect(response.body).toHaveProperty('token');
 			expect(response.body.user).toMatchObject({ username });
 			expect(response.body.user).not.toHaveProperty('password');
 		});

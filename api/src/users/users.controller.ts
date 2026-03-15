@@ -7,7 +7,7 @@ import {
 	HttpStatus,
 	NotFoundException,
 	Param,
-	ParseIntPipe,
+	ParseUUIDPipe,
 	Patch,
 	UseGuards,
 } from '@nestjs/common';
@@ -64,7 +64,7 @@ export class UsersController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
-	async findOneById(@Param('id', ParseIntPipe) id: number) {
+	async findOneById(@Param('id', ParseUUIDPipe) id: string) {
 		const user = await this.service.findOneById(id);
 		if (!user) {
 			throw new NotFoundException(`User not found`);
@@ -92,7 +92,7 @@ export class UsersController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
-	async deleteOne(@Param('id', ParseIntPipe) id: number) {
+	async deleteOne(@Param('id', ParseUUIDPipe) id: string) {
 		return this.service.deleteOne(id);
 	}
 
@@ -120,7 +120,7 @@ export class UsersController {
 		description: 'Invalid input',
 	})
 	async updateOne(
-		@Param('id', ParseIntPipe) id: number,
+		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateUserDto: UpdateUserDto,
 	) {
 		return this.service.updateOneById(id, updateUserDto);

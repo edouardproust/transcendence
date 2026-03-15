@@ -15,19 +15,22 @@ datasource db {
 }
 
 enum Role {
-    USER
-    ADMIN
+    user
+    admin
 }
 
 model User {
-    id       Int    @id @default(autoincrement())
-    email    String @unique
-    password String
-    username String @unique
-    role     Role   @default(USER)
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id        String    @id @default(uuid())
+    email     String    @unique
+    password  String
+    username  String    @unique
+    role      Role      @default(user)
+    elo       Int       @default(1200)
+    avatarUrl String?
+    isOnline  Boolean   @default(false)
+    lastSeen  DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
 
     @@map("users")
 }
