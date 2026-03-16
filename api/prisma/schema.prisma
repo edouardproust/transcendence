@@ -35,21 +35,45 @@ model User {
     @@map("users")
 }
 
+enum GameStatus {
+    WAITING
+    ONGOING
+    FINISHED
+    ABORTED
+}
+
+enum GameMode {
+    ONLINE
+    AI
+}
+
+enum TimeControl {
+    BULLET
+    BLITZ
+    RAPID
+    CLASSICAL
+    UNLIMITED
+}
+
 model Game {
     id Int @id @default(autoincrement())
 
-    ongoing Boolean @default(true)
-    result  String?
+    status GameStatus @default(WAITING)
 
     whiteId Int
-    blackId Int
+    blackId Int?
 
-    white User @relation("WhitePlayer", fields: [whiteId], references: [id])
-    black User @relation("BlackPlayer", fields: [blackId], references: [id])
+    white User  @relation("WhitePlayer", fields: [whiteId], references: [id])
+    black User? @relation("BlackPlayer", fields: [blackId], references: [id])
+
+    currentFEN String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    movesPGN   String @default("")
+
+    mode        GameMode
+    timeControl TimeControl
+    initialTime Int?
+    increment   Int?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-
-    currentFEN String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") //Snapshot de la position actuelle
-    movesPGN   String @default("") //Historique des coups
 }
