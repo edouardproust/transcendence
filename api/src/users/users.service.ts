@@ -35,7 +35,7 @@ export class UsersService {
 	 * @param id User id
 	 * @returns The found user or null, password omitted for security.
 	 */
-	async findOneById(id: number) {
+	async findOneById(id: string) {
 		return this.prismaService.user.findUnique({
 			where: { id },
 			omit: { password: true },
@@ -96,7 +96,7 @@ export class UsersService {
 	 * @param id User id
 	 * @return The deleted user, password omitted for security.
 	 */
-	async deleteOne(id: number) {
+	async deleteOne(id: string) {
 		return this.prismaService.user
 			.delete({ where: { id }, omit: { password: true } })
 			.catch((error) => {
@@ -114,7 +114,7 @@ export class UsersService {
 	 * @param updateUserDto User poset data
 	 * @returns The updated user, password omitted for security.
 	 */
-	async updateOneById(id: number, updateUserDto: UpdateUserDto) {
+	async updateOneById(id: string, updateUserDto: UpdateUserDto) {
 		const data = updateUserDto.password
 			? {
 					...updateUserDto,

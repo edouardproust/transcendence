@@ -13,7 +13,7 @@ export class AuthService {
 		private readonly jwtService: JwtService,
 	) {}
 
-	private generateToken(user: { id: number; role: Role }) {
+	private generateToken(user: { id: string; role: Role }) {
 		return this.jwtService.sign({ sub: user.id, role: user.role });
 	}
 
@@ -21,7 +21,7 @@ export class AuthService {
 	 * Create a new user in database, then and log him in by generating a JWT token.
 	 *
 	 * @param createUserDto POST user data
-	 * @returns Object containing JWT `access_token` & `user` data (password omitted for security)
+	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws {ConflictException} If email or username already exists
 	 */
 	async register(createUserDto: CreateUserDto) {
@@ -29,7 +29,7 @@ export class AuthService {
 			await this.usersService.createOne(createUserDto);
 		return {
 			user: userWithoutPassword,
-			access_token: this.generateToken(userWithoutPassword),
+			token: this.generateToken(userWithoutPassword),
 		};
 	}
 
@@ -37,7 +37,7 @@ export class AuthService {
 	 * Login a user by generating a JWT token.
 	 *
 	 * @param loginDto Post data for login
-	 * @returns Object containing JWT `access_token` & `user` data (password omitted for security)
+	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws UnauthorizedException if email or password is invalid
 	 *
 	 * @remarks
@@ -62,7 +62,7 @@ export class AuthService {
 		const { password, ...userWithoutPassword } = user;
 		return {
 			user: userWithoutPassword,
-			access_token: this.generateToken(userWithoutPassword),
+			token: this.generateToken(userWithoutPassword),
 		};
 	}
 }

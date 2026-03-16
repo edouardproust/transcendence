@@ -157,7 +157,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'delete').mockRejectedValue(
 				prismaNotFoundException,
 			);
-			await expect(service.deleteOne(1337)).rejects.toThrow(
+			await expect(service.deleteOne('invalid-uuid')).rejects.toThrow(
 				NotFoundException,
 			);
 		});
@@ -166,7 +166,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'delete').mockRejectedValue(
 				genericError,
 			);
-			await expect(service.deleteOne(999)).rejects.toThrow(
+			await expect(service.deleteOne('invalid-uuid')).rejects.toThrow(
 				genericErrorMsg,
 			);
 		});
@@ -232,7 +232,7 @@ describe('UsersService', () => {
 				prismaNotFoundException,
 			);
 			await expect(
-				service.updateOneById(1337, updateUserDto),
+				service.updateOneById('invalid-uuid', updateUserDto),
 			).rejects.toThrow(NotFoundException);
 		});
 
@@ -250,7 +250,7 @@ describe('UsersService', () => {
 				genericError,
 			);
 			await expect(
-				service.updateOneById(1337, updateUserDto),
+				service.updateOneById('invalid-uuid', updateUserDto),
 			).rejects.toThrow(genericErrorMsg);
 		});
 	});
