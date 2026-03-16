@@ -1,68 +1,135 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --color-bg: #f3f4f6;
+    --color-surface: #ffffff;
+    --color-text: #111827;
+    --color-primary: #2563eb;
+    --color-success: #16a34a;
+    --color-danger: #dc2626;
   }
-  a:hover {
-    color: #747bff;
+
+  /* Theme transitions */
+  * {
+    @apply transition-colors duration-200;
+    font-family: 'Space Grotesk', sans-serif;
   }
-  button {
-    background-color: #f9f9f9;
+
+  body {
+    @apply bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+  }
+
+  .board-3d-stage {
+    position: relative;
+    padding: 20px 14px 34px;
+    border-radius: 18px;
+  }
+
+  .board-3d-stage--wood {
+    background:
+      radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.38) 0, rgba(255, 255, 255, 0) 45%),
+      linear-gradient(155deg, #5d3a1e 0%, #422710 50%, #2d1a0d 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -16px 26px rgba(0, 0, 0, 0.2),
+      0 20px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  .board-3d-stage--obsidian {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(226, 232, 240, 0.32) 0, rgba(226, 232, 240, 0) 46%),
+      linear-gradient(160deg, #374151 0%, #1f2937 52%, #111827 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -14px 24px rgba(0, 0, 0, 0.25),
+      0 18px 26px rgba(0, 0, 0, 0.34);
+  }
+
+  .board-3d-container {
+    position: relative;
+    perspective: 1600px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .board-3d-container--wood {
+    background:
+      linear-gradient(145deg, #c69c6d 0%, #a67a47 45%, #7f5932 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+      0 14px 22px rgba(0, 0, 0, 0.26);
+  }
+
+  .board-3d-container--obsidian {
+    background:
+      linear-gradient(145deg, #6b7280 0%, #4b5563 45%, #374151 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.22),
+      0 14px 22px rgba(17, 24, 39, 0.36);
+  }
+
+  .board-3d-container::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 10px;
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 36%),
+      linear-gradient(330deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 48%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .board-3d-container::after {
+    content: '';
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: -24px;
+    height: 22px;
+    border-radius: 999px;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(0, 0, 0, 0.42) 0%,
+      rgba(0, 0, 0, 0.08) 52%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    filter: blur(6px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .board-3d-container > div {
+    position: relative;
+    z-index: 2;
+  }
+
+  .board-3d-container canvas {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-200 dark:bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-600 rounded-lg;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-500;
   }
 }
