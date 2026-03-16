@@ -69,8 +69,8 @@ model Game {
     currentFEN String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     movesPGN   String @default("")
 
-    mode        GameMode
-    timeControl TimeControl
+    mode        GameMode    @default(ONLINE)
+    timeControl TimeControl @default(UNLIMITED)
     initialTime Int?
     increment   Int?
 

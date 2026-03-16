@@ -4,6 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { GameStatus } from '../src/prisma/generated/enums';
 
 describe('GameController (e2e)', () => {
 	let app: INestApplication;
@@ -43,6 +44,7 @@ describe('GameController (e2e)', () => {
 			.post('/auth/login')
 			.send({ email, password: 'password123' })
 			.expect(200);
+
 		return response.body.access_token;
 	};
 
@@ -71,10 +73,11 @@ describe('GameController (e2e)', () => {
 
 			await prisma.game.update({
 				where: { id: game.body.id },
-				data: { ongoing: false, result: '1-0' },
+				data: { status: GameStatus.FINISHED },
 			});
 
 			const response = await makeMove(token, game.body.id, 'e4');
+
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 
@@ -90,10 +93,10 @@ describe('GameController (e2e)', () => {
 				.expect(HttpStatus.CREATED);
 
 			const response = await makeMove(token, game.body.id, 'e4');
+
 			expect(response.status).toBe(HttpStatus.OK);
 			expect(response.body.movesPGN).toContain('e4');
-			expect(response.body.ongoing).toBe(true);
-			expect(response.body.result).toBeNull();
+			expect(response.body.status).toBe(GameStatus.ONGOING);
 		});
 	});
 });

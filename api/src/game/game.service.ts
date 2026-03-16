@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGameDto, MakeMoveDto } from './dto/create-game.dto';
 import { Chess } from 'chess.js';
+import { GameMode, GameStatus, TimeControl } from '../prisma/generated/enums';
 
 @Injectable()
 export class GameService {
@@ -29,15 +30,16 @@ export class GameService {
 		}
 
 		const chess = new Chess();
-		chess.setHeader('SetUp', '1');
-		chess.setHeader('FEN', chess.fen());
 
 		const game = await this.prisma.game.create({
 			data: {
 				whiteId: dto.whiteId,
 				blackId: dto.blackId,
+				status: GameStatus.ONGOING,
+				mode: GameMode.ONLINE,
+				timeControl: TimeControl.UNLIMITED,
 				currentFEN: chess.fen(),
-				movesPGN: chess.pgn(),
+				movesPGN: '',
 			},
 		});
 
@@ -65,16 +67,18 @@ export class GameService {
 			throw new NotFoundException('Game not found');
 		}
 
-		if (!game.ongoing) {
+		if (game.status !== GameStatus.ONGOING) {
 			throw new BadRequestException('Game is already over');
 		}
 
 		const chess = new Chess();
+
 		if (game.movesPGN) {
 			chess.loadPgn(game.movesPGN);
 		} else {
 			chess.load(game.currentFEN);
 		}
+
 		const isWhiteMove = chess.turn() === 'w';
 		const expectedPlayerId = isWhiteMove ? game.whiteId : game.blackId;
 
@@ -89,32 +93,32 @@ export class GameService {
 		} catch {
 			throw new BadRequestException('Illegal move');
 		}
+
 		if (!move) {
 			throw new BadRequestException('Illegal move');
 		}
 
-		let updateOngoing = true;
-		let result: string | null = null;
-		if (chess.isCheckmate()) {
-			updateOngoing = false;
-			result = isWhiteMove ? '1-0' : '0-1';
-		} else if (
+		let status = GameStatus.ONGOING;
+
+		if (
+			chess.isCheckmate() ||
 			chess.isDraw() ||
 			chess.isStalemate() ||
 			chess.isThreefoldRepetition() ||
 			chess.isInsufficientMaterial()
 		) {
-			updateOngoing = false;
-			result = '1/2-1/2';
+			status = GameStatus.FINISHED;
 		}
 
 		const updatedGame = await this.prisma.game.update({
-			where: { id: gameId },
+			where: {
+				id: gameId,
+				currentFEN: game.currentFEN, // Optimistic concurrency control
+			},
 			data: {
 				currentFEN: chess.fen(),
 				movesPGN: chess.pgn(),
-				ongoing: updateOngoing,
-				result: result,
+				status,
 			},
 		});
 
