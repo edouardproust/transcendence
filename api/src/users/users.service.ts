@@ -299,6 +299,12 @@ export class UsersService {
 		};
 	}
 
+	/**
+	 * Search users by username (case-insensitive).
+	 *
+	 * @param query Search string (minimum 2 characters, enforced by DTO)
+	 * @returns List of matching users, password and email omitted for privacy.
+	 */
 	async search(query: string) {
 		return this.prismaService.user.findMany({
 			where: {
