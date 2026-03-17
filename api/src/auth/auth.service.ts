@@ -4,7 +4,6 @@ import { LoginDto } from './dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from '../prisma/generated/enums';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { CONSTRAINTS } from '../common/constants';
