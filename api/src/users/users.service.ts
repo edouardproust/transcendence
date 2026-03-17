@@ -12,6 +12,7 @@ import {
 } from '../prisma/prisma.error';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '../prisma/generated/client';
 
 @Injectable()
 export class UsersService {
@@ -171,7 +172,10 @@ export class UsersService {
 	async search(query: string) {
 		return this.prismaService.user.findMany({
 			where: {
-				username: { contains: query, mode: 'insensitive' },
+				username: {
+					contains: query,
+					mode: Prisma.QueryMode.insensitive,
+				},
 			},
 			omit: { password: true, email: true },
 		});
