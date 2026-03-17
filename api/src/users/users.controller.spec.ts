@@ -45,16 +45,18 @@ describe('UsersController', () => {
 
 		it('should throw NotFoundException when user not found', async () => {
 			jest.spyOn(usersService, 'findOneById').mockResolvedValue(null);
-			await expect(controller.findOneById(1337)).rejects.toThrow(
-				NotFoundException,
-			);
+			await expect(
+				controller.findOneById('invalid-uuid'),
+			).rejects.toThrow(NotFoundException);
 		});
 	});
 
 	describe('deleteOne', () => {
 		it('should call service.deleteOne with correct id', async () => {
 			await controller.deleteOne(userFixture.id);
-			expect(usersService.deleteOne).toHaveBeenCalledWith(userFixture.id);
+			expect(usersService.deleteOneById).toHaveBeenCalledWith(
+				userFixture.id,
+			);
 		});
 	});
 

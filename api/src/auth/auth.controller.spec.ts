@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { AuthServiceMock } from './auth.service.mock';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { UsersServiceMock } from '../users/users.service.mock';
 
 describe('AuthController', () => {
 	let controller: AuthController;
@@ -12,7 +13,7 @@ describe('AuthController', () => {
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [AuthController],
-			providers: [AuthServiceMock],
+			providers: [AuthServiceMock, UsersServiceMock],
 		}).compile();
 
 		controller = module.get<AuthController>(AuthController);
@@ -26,6 +27,7 @@ describe('AuthController', () => {
 	describe('register', () => {
 		it('should call authService.register with correct dto', async () => {
 			const dto: CreateUserDto = {
+				username: 'testuser',
 				email: 'test@test.com',
 				password: 'password123',
 			};
@@ -37,7 +39,7 @@ describe('AuthController', () => {
 	describe('login', () => {
 		it('should call authService.login with correct dto', async () => {
 			const dto: LoginDto = {
-				email: 'test@test.com',
+				emailOrUsername: 'test@test.com',
 				password: 'password123',
 			};
 			await controller.login(dto);

@@ -37,13 +37,15 @@ export const UsersServiceMock = {
 		findOneByEmail: jest.fn(),
 		findOneByUsername: jest.fn(),
 		createOne: jest.fn(),
-		deleteOne: jest.fn(),
+		deleteOneById: jest.fn(),
 		updateOneById: jest.fn(),
+		findProfileById: jest.fn(),
+		search: jest.fn(),
 	},
 };
 
 export const adminInDb: any = usersFixture[0];
-export const userInDb: any = usersFixture[0];
+export const userInDb: any = usersFixture[1];
 export const genericErrorMsg: string = 'Error!';
 export const genericError = new Error(genericErrorMsg);
 export const prismaUniqueConstraintException =
