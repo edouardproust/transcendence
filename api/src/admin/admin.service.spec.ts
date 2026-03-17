@@ -1,3 +1,4 @@
+// admin/admin.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AdminService } from './admin.service';
@@ -7,6 +8,7 @@ import { usersFixture } from '../users/users.service.mock';
 import { gameFixture } from '../game/game.service.mock';
 import { GameStatus } from '../prisma/generated/enums';
 import { prismaNotFoundException } from '../users/users.service.mock';
+import { AdminGamesQueryDto } from './dtos/admin-games-query.dto';
 
 const userWithCount = {
 	...usersFixture[0],
@@ -180,9 +182,29 @@ describe('AdminService', () => {
 			const result = await service.getStats();
 
 			expect(result.stats.totalUsers).toBe(10);
-			expect(result.stats.totalGames).toBe(5);
+			expect(result.stats.newUsersWeek).toBe(10);
+			expect(result.stats.totalGames).toBe(0);
 			expect(result.topPlayers).toEqual(usersFixture);
-			expect(result.recentActivity).toHaveLength(1);
+			expect(result.recentActivity).toEqual([]);
+		});
+	});
+
+	describe('getGames', () => {
+		it('should return empty placeholder until games module is ready', async () => {
+			const query: AdminGamesQueryDto = { page: 1, limit: 20 };
+			const result = await service.getGames(query);
+
+			expect(result.games).toEqual([]);
+			expect(result.pagination.total).toBe(0);
+			expect(result.pagination.page).toBe(1);
+		});
+	});
+
+	describe('deleteGame', () => {
+		it('should do nothing until games module is ready', async () => {
+			await expect(
+				service.deleteGame('some-uuid'),
+			).resolves.toBeUndefined();
 		});
 	});
 });
