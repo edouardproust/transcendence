@@ -117,6 +117,17 @@ describe('AdminService', () => {
 			expect(result.pagination.total).toBe(0);
 			expect(result.pagination.page).toBe(1);
 		});
+
+		it('should use default page and limit when not provided', async () => {
+			const result = await service.getGames({});
+			expect(result.pagination.page).toBe(1);
+			expect(result.pagination.limit).toBe(20);
+		});
+
+		it('should filter by status when provided', async () => {
+			const result = await service.getGames({ status: 'active' });
+			expect(result.games).toEqual([]);
+		});
 	});
 
 	describe('deleteGame', () => {
