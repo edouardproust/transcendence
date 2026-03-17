@@ -4,6 +4,9 @@ import { usersFixture, UsersServiceMock } from './users.service.mock';
 import { UsersService } from './users.service';
 import { NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { RequestUser } from '../auth/interfaces/request-user.interface';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SearchUsersDto } from './dto/search-users.dto';
 
 describe('UsersController', () => {
 	let controller: UsersController;
@@ -69,6 +72,52 @@ describe('UsersController', () => {
 			expect(usersService.updateOneById).toHaveBeenCalledWith(
 				userFixture.id,
 				updateUserDto,
+			);
+		});
+	});
+
+	describe('search', () => {
+		it('should call service.search with correct query', async () => {
+			const query = { query: 'john' };
+			await controller.search(query as SearchUsersDto);
+			expect(usersService.search).toHaveBeenCalledWith('john');
+		});
+	});
+
+	describe('getOwnProfile', () => {
+		it('should call service.findProfileById with user id and includeEmail=true', async () => {
+			const user: RequestUser = {
+				id: userFixture.id,
+				role: userFixture.role,
+			};
+			await controller.getOwnProfile(user);
+			expect(usersService.findProfileById).toHaveBeenCalledWith(
+				userFixture.id,
+				true,
+			);
+		});
+	});
+
+	describe('getProfileById', () => {
+		it('should call service.findProfileById with correct id', async () => {
+			await controller.getProfileById(userFixture.id);
+			expect(usersService.findProfileById).toHaveBeenCalledWith(
+				userFixture.id,
+			);
+		});
+	});
+
+	describe('updateProfile', () => {
+		it('should call service.updateOneById with user id and dto', async () => {
+			const user: RequestUser = {
+				id: userFixture.id,
+				role: userFixture.role,
+			};
+			const dto: UpdateProfileDto = { username: 'newusername' };
+			await controller.updateProfile(user, dto);
+			expect(usersService.updateOneById).toHaveBeenCalledWith(
+				userFixture.id,
+				dto,
 			);
 		});
 	});

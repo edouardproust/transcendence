@@ -88,6 +88,8 @@
 			"!main.ts",
 			"!**/*.spec.ts",
 			"!**/*.mock.ts",
+			"!**/*.dto.ts",
+			"!**/*.decorator.ts",
 			"!prisma/generated/**",
 			"!**/swagger.config.ts"
 		],
