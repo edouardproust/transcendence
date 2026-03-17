@@ -9,6 +9,7 @@ import {
 	Param,
 	ParseUUIDPipe,
 	Patch,
+	Query,
 	UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -22,12 +23,22 @@ import {
 	ApiResponse,
 	ApiTags,
 } from '@nestjs/swagger';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { RequestUser } from '../auth/interfaces/request-user.interface';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { SearchUsersDto } from './dto/search-users.dto';
+import { UserPublicResponseDto } from './dto/user-public-response.dto';
+import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
-@Controller('users') // /users
+@Controller('users')
 @ApiTags('users')
 @ApiBearerAuth()
 export class UsersController {
-	constructor(private readonly service: UsersService) {}
+	constructor(private readonly usersService: UsersService) {}
+
+	// several users
 
 	@Get()
 	@UseGuards(JwtAuthGuard, AdminGuard)
@@ -44,11 +55,101 @@ export class UsersController {
 		status: HttpStatus.FORBIDDEN,
 		description: 'Admin role required',
 	})
-	async findAll() {
-		return this.service.findAll();
+	async findAll(): Promise<UserResponseDto[]> {
+		return this.usersService.findAll();
 	}
 
-	@Get(':id') // /users/12
+	@Get('search')
+	@UseGuards(JwtAuthGuard)
+	@ApiOperation({ summary: 'Search users by username' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Returns list of matching users',
+		type: [UserPublicResponseDto],
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Query must be at least 2 characters',
+	})
+	async search(
+		@Query() query: SearchUsersDto,
+	): Promise<UserPublicResponseDto[]> {
+		return this.usersService.search(query.query);
+	}
+
+	// profile (user model + games data related to this user)
+
+	@Get('profile')
+	@UseGuards(JwtAuthGuard)
+	@ApiOperation({ summary: 'Get own profile' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description:
+			'Returns current authenticated user profile with game stats',
+		type: UserProfileResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async getOwnProfile(
+		@CurrentUser() user: RequestUser,
+	): Promise<UserProfileResponseDto> {
+		return this.usersService.findProfileById(user.id, true);
+	}
+
+	@Get('profile/:id')
+	@UseGuards(JwtAuthGuard)
+	@ApiOperation({ summary: 'Get user profile by id' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Returns user profile with game stats',
+		type: UserPublicProfileResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'User not found',
+	})
+	async getProfileById(
+		@Param('id', ParseUUIDPipe) id: string,
+	): Promise<UserPublicProfileResponseDto> {
+		return this.usersService.findProfileById(id);
+	}
+
+	@Patch('profile')
+	@UseGuards(JwtAuthGuard)
+	@ApiOperation({ summary: 'Update own profile' })
+	@ApiResponse({ status: HttpStatus.OK, type: UserResponseDto })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid input',
+	})
+	@ApiResponse({
+		status: HttpStatus.CONFLICT,
+		description: 'Email or username already taken',
+	})
+	async updateProfile(
+		@CurrentUser() user: RequestUser,
+		@Body() dto: UpdateProfileDto,
+	): Promise<UserResponseDto> {
+		return this.usersService.updateOneById(user.id, dto);
+	}
+
+	// user standard crud
+
+	@Get(':id')
 	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
 	@ApiOperation({ summary: 'Get user by id (owner or admin only)' })
 	@ApiResponse({ status: HttpStatus.OK, description: 'Returns user data' })
@@ -64,15 +165,17 @@ export class UsersController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
-	async findOneById(@Param('id', ParseUUIDPipe) id: string) {
-		const user = await this.service.findOneById(id);
+	async findOneById(
+		@Param('id', ParseUUIDPipe) id: string,
+	): Promise<UserResponseDto> {
+		const user = await this.usersService.findOneById(id);
 		if (!user) {
 			throw new NotFoundException(`User not found`);
 		}
 		return user;
 	}
 
-	@Delete(':id') // DELETE /users/12
+	@Delete(':id')
 	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
 	@HttpCode(HttpStatus.NO_CONTENT) // Override default 200 status code for DELETE
 	@ApiOperation({ summary: 'Delete user by id (owner or admin only)' })
@@ -92,8 +195,10 @@ export class UsersController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
-	async deleteOne(@Param('id', ParseUUIDPipe) id: string) {
-		return this.service.deleteOne(id);
+	async deleteOne(
+		@Param('id', ParseUUIDPipe) id: string,
+	): Promise<UserResponseDto> {
+		return this.usersService.deleteOneById(id);
 	}
 
 	@Patch(':id')
@@ -122,7 +227,7 @@ export class UsersController {
 	async updateOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateUserDto: UpdateUserDto,
-	) {
-		return this.service.updateOneById(id, updateUserDto);
+	): Promise<UserResponseDto> {
+		return this.usersService.updateOneById(id, updateUserDto);
 	}
 }

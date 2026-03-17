@@ -5,6 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '../prisma/generated/enums';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { AuthResponseDto } from './dto/auth-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,8 +15,18 @@ export class AuthService {
 		private readonly jwtService: JwtService,
 	) {}
 
-	private generateToken(user: { id: string; role: Role }) {
-		return this.jwtService.sign({ sub: user.id, role: user.role });
+	/**
+	 * Generate a JWT token for the given user.
+	 *
+	 * The payload contains only 2 fields to keep the token minimal:
+	 * - `id` (user id): required by `OwnerOrAdminGuard` to compare with `params.id`
+	 * - `role` (user role): required by `AdminGuard` to check for admin access
+	 */
+	private generateToken(payload: JwtPayload): string {
+		return this.jwtService.sign({
+			sub: payload.sub,
+			role: payload.role,
+		});
 	}
 
 	/**
@@ -24,12 +36,15 @@ export class AuthService {
 	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws {ConflictException} If email or username already exists
 	 */
-	async register(createUserDto: CreateUserDto) {
+	async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
 		const userWithoutPassword =
 			await this.usersService.createOne(createUserDto);
 		return {
 			user: userWithoutPassword,
-			token: this.generateToken(userWithoutPassword),
+			token: this.generateToken({
+				sub: userWithoutPassword.id,
+				role: userWithoutPassword.role,
+			}),
 		};
 	}
 
@@ -39,13 +54,8 @@ export class AuthService {
 	 * @param loginDto Post data for login
 	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws UnauthorizedException if email or password is invalid
-	 *
-	 * @remarks
-	 * The JWT payload contains only 3 fields to keep the token minimal:
-	 * - `sub` (user id): required by `OwnerOrAdminGuard` to compare with `params.id`
-	 * - `role`: required by `RolesGuard` to check for admin access
 	 */
-	async login(loginDto: LoginDto) {
+	async login(loginDto: LoginDto): Promise<AuthResponseDto> {
 		const errorMsg = 'Invalid email, username or password'; // Vague to give no info to attackers
 		const isEmail = /\S+@\S+\.\S+/.test(loginDto.emailOrUsername);
 
@@ -62,7 +72,10 @@ export class AuthService {
 		const { password, ...userWithoutPassword } = user;
 		return {
 			user: userWithoutPassword,
-			token: this.generateToken(userWithoutPassword),
+			token: this.generateToken({
+				sub: userWithoutPassword.id,
+				role: userWithoutPassword.role,
+			}),
 		};
 	}
 }
