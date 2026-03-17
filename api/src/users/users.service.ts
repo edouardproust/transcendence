@@ -266,4 +266,40 @@ export class UsersService {
 
 		return { avatarUrl: this.storageService.getUrl(key) };
 	}
+
+	/**
+	 * Return a registered user with a matching id, enriched with game statistics.
+	 *
+	 * @param id User id
+	 * @param includeEmail Whether to include the email field (default: false, use true for own profile)
+	 * @returns The found user with game stats, password omitted for security. Email omitted unless includeEmail is true.
+	 * @throws {NotFoundException} If user not found
+	 */
+	async findProfileById(id: string, includeEmail = false) {
+		const user = await this.prismaService.user.findUnique({
+			where: { id },
+			omit: includeEmail
+				? { password: true }
+				: { password: true, email: true },
+		});
+		if (!user) throw new NotFoundException('User not found');
+
+		// TODO: replace with real queries once games module is implemented
+		return {
+			...user,
+			totalGames: 0,
+			wins: 0,
+			losses: 0,
+			draws: 0,
+		};
+	}
+
+	async search(query: string) {
+		return this.prismaService.user.findMany({
+			where: {
+				username: { contains: query, mode: 'insensitive' },
+			},
+			omit: { password: true, email: true },
+		});
+	}
 }
