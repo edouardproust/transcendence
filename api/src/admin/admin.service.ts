@@ -7,6 +7,7 @@ import { AdminStatsResponseDto } from './dtos/admin-stats-response.dto';
 import { AdminUsersResponseDto } from './dtos/admin-users-response.dto';
 import { isPrismaError, PrismaErrorCode } from '../prisma/prisma.error';
 import { GameStatus } from '../prisma/generated/enums';
+import { Prisma } from '../prisma/generated/client';
 
 @Injectable()
 export class AdminService {
@@ -45,13 +46,13 @@ export class AdminService {
 						{
 							username: {
 								contains: search,
-								mode: 'insensitive' as const,
+								mode: Prisma.QueryMode.insensitive,
 							},
 						},
 						{
 							email: {
 								contains: search,
-								mode: 'insensitive' as const,
+								mode: Prisma.QueryMode.insensitive,
 							},
 						},
 					],
