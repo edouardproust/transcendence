@@ -46,6 +46,7 @@ export class UsersController {
 	@ApiResponse({
 		status: HttpStatus.OK,
 		description: 'Returns list of users',
+		type: [UserResponseDto],
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
@@ -152,7 +153,11 @@ export class UsersController {
 	@Get(':id')
 	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
 	@ApiOperation({ summary: 'Get user by id (owner or admin only)' })
-	@ApiResponse({ status: HttpStatus.OK, description: 'Returns user data' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Returns user data',
+		type: UserResponseDto,
+	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
 		description: 'Invalid token',
@@ -177,7 +182,7 @@ export class UsersController {
 
 	@Delete(':id')
 	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
-	@HttpCode(HttpStatus.NO_CONTENT) // Override default 200 status code for DELETE
+	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete user by id (owner or admin only)' })
 	@ApiResponse({
 		status: HttpStatus.NO_CONTENT,
@@ -195,10 +200,8 @@ export class UsersController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
-	async deleteOne(
-		@Param('id', ParseUUIDPipe) id: string,
-	): Promise<UserResponseDto> {
-		return this.usersService.deleteOneById(id);
+	async deleteOne(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+		await this.usersService.deleteOneById(id);
 	}
 
 	@Patch(':id')
@@ -207,6 +210,7 @@ export class UsersController {
 	@ApiResponse({
 		status: HttpStatus.OK,
 		description: 'Returns updated user data',
+		type: UserResponseDto,
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
