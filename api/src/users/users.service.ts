@@ -13,6 +13,7 @@ import {
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '../prisma/generated/client';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -115,13 +116,17 @@ export class UsersService {
 	 * @param updateUserDto User poset data
 	 * @returns The updated user, password omitted for security.
 	 */
-	async updateOneById(id: string, updateUserDto: UpdateUserDto) {
-		const data = updateUserDto.password
-			? {
-					...updateUserDto,
-					password: await bcrypt.hash(updateUserDto.password, 10),
-				}
-			: updateUserDto;
+	async updateOneById(
+		id: string,
+		updateUserDto: UpdateUserDto | UpdateProfileDto,
+	) {
+		const data =
+			'password' in updateUserDto && updateUserDto.password
+				? {
+						...updateUserDto,
+						password: await bcrypt.hash(updateUserDto.password, 10),
+					}
+				: updateUserDto;
 
 		return this.prismaService.user
 			.update({
