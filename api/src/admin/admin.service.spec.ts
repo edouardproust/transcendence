@@ -166,6 +166,32 @@ describe('AdminService', () => {
 				NotFoundException,
 			);
 		});
+
+		it('should return all users when no search provided', async () => {
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
+				usersFixture,
+			);
+			jest.spyOn(prismaService.user, 'count').mockResolvedValue(2);
+
+			const result = await service.getUsers({ page: 1, limit: 20 });
+
+			expect(prismaService.user.findMany).toHaveBeenCalledWith(
+				expect.objectContaining({ where: {} }),
+			);
+			expect(result.users).toHaveLength(2);
+		});
+
+		it('should use default page and limit when not provided', async () => {
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
+				usersFixture,
+			);
+			jest.spyOn(prismaService.user, 'count').mockResolvedValue(2);
+
+			const result = await service.getUsers({});
+
+			expect(result.pagination.page).toBe(1);
+			expect(result.pagination.limit).toBe(20);
+		});
 	});
 
 	describe('getStats', () => {
