@@ -23,6 +23,7 @@ endif
 all: # Default target. Rebuild and run all services
 	@$(SETUP_SH)
 	$(DOCKER_COMPOSE) up -d --build
+	@printf "\nServices are available at:\n- App (HTTPS): https://localhost:8443\n- Redirect entrypoint: http://localhost:8080\n- API docs: http://localhost:3000\n- Adminer: http://localhost:8081\n\n"
 
 help: # Display this help message
 	@echo "For development: make <target>";

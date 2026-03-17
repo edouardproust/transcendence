@@ -47,6 +47,13 @@ cd checkio
 make
 ```
 
+Once `make` finishes, use these URLs from your host machine:
+
+- App: `https://localhost:8443`
+- HTTP entrypoint (redirects to HTTPS): `http://localhost:8080`
+- API docs (Swagger): `http://localhost:3000`
+- Adminer: `http://localhost:8081`
+
 Then code directly inside the container using DevContainers:
 
 - Open the module you want to work on. Eg. in VS Code: `code client` or `code api`.
@@ -56,7 +63,7 @@ Then code directly inside the container using DevContainers:
 
 Tips:
 
-- View `client` in browser: `https://localhost`
+- View `client` in browser: `https://localhost:8443`
 - Test `API` requests: use `curl` in the terminal or the `REST Client` extension (already installed in the `devcontainer`)
 - As we use `Dev Containers` for development, `node_modules` are installed in the containers only. As a consequence, `api/node_modules` ans `client/node_modules` are empty on the host machine.
 
