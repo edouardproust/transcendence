@@ -1,3 +1,4 @@
+// admin/admin.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AdminService } from './admin.service';
