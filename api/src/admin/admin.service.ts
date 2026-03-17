@@ -46,13 +46,13 @@ export class AdminService {
 						{
 							username: {
 								contains: search,
-								mode: Prisma.QueryMode.insensitive,
+								mode: 'insensitive' as const,
 							},
 						},
 						{
 							email: {
 								contains: search,
-								mode: Prisma.QueryMode.insensitive,
+								mode: 'insensitive' as const,
 							},
 						},
 					],
