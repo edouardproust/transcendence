@@ -19,10 +19,13 @@ export class AdminGamesQueryDto {
 	@Min(1)
 	limit?: number = DEFAULTS.pagination.limit;
 
+	// TODO: remove:
 	@ApiPropertyOptional({
 		example: GameStatus.WAITING,
 		enum: Object.values(GameStatus),
 	})
+	// TODO: replace by this:
+	//@ApiPropertyOptional({ example: GameStatus.active, enum: Object.values(GameStatus)})
 	@IsOptional()
 	@IsEnum(GameStatus)
 	status?: string;

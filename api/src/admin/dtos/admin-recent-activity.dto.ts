@@ -6,10 +6,13 @@ export class AdminRecentActivityDto {
 	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
+	// TODO: Remove:
 	@ApiProperty({
 		example: GameStatus.WAITING,
 		enum: Object.values(GameStatus),
 	})
+	// TOSO: Replace by this:
+	//@ApiProperty({ example: GameStatus.waiting, enum: Object.values(GameStatus) })
 	status: string;
 
 	@ApiProperty({ example: GameMode.AI, enum: Object.values(GameMode) })
