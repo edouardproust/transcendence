@@ -1,17 +1,18 @@
 import * as bcrypt from 'bcrypt';
 import { Role } from '../src/prisma/generated/enums';
 import { PrismaClient, User } from '../src/prisma/generated/client';
+import { EXAMPLES } from '../src/common/constants';
 
 export const seedUsers = async (prisma: PrismaClient) => {
 	const result: User[] = [];
 
 	const user = await prisma.user.upsert({
-		where: { email: 'admin@example.com' },
+		where: { email: EXAMPLES.admin.email },
 		update: {},
 		create: {
-			email: 'admin@example.com',
-			password: await bcrypt.hash('admin1234', 10),
-			username: 'admin',
+			email: EXAMPLES.admin.email,
+			password: await bcrypt.hash(EXAMPLES.admin.password, 10),
+			username: EXAMPLES.admin.username,
 			role: Role.admin,
 		},
 	});

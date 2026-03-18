@@ -1,6 +1,4 @@
-export const ENUMS = {
-	roles: ['user', 'admin'],
-};
+import { Role } from '../prisma/generated/enums';
 
 export const CONSTRAINTS = {
 	password: {
@@ -26,7 +24,7 @@ export const EXAMPLES = {
 		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJyb2xlIjoidXNlciIsImlhdCI6MTcwNDAwMDAwMH0.signature',
 	date: '2024-01-01T00:00:00.000Z',
 	admin: {
-		role: ENUMS.roles[1],
+		role: Role.admin,
 		id: '550e8400-e29b-41d4-a716-446655440000',
 		password: 'Password123!',
 		email: 'admin@example.com',
@@ -42,7 +40,7 @@ export const EXAMPLES = {
 		lastSeen: '2024-01-15T14:30:00.000Z',
 	},
 	user: {
-		role: ENUMS.roles[0],
+		role: Role.user,
 		id: '550e8400-e29b-41d4-a716-446655440001',
 		email: 'john@example.com',
 		username: 'john_doe',

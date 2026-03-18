@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ENUMS, EXAMPLES } from '../../common/constants';
+import { EXAMPLES } from '../../common/constants';
+import { Role } from '../../prisma/generated/enums';
 
 export class UserPublicResponseDto {
 	@ApiProperty({ example: EXAMPLES.user.id })
@@ -11,7 +12,7 @@ export class UserPublicResponseDto {
 	@ApiProperty({ example: EXAMPLES.user.elo })
 	elo: number;
 
-	@ApiProperty({ example: EXAMPLES.user.role, enum: ENUMS.roles })
+	@ApiProperty({ example: EXAMPLES.user.role, enum: Object.values(Role) })
 	role: string;
 
 	@ApiProperty({ example: EXAMPLES.user.avatarUrl })
