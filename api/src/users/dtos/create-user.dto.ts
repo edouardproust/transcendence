@@ -12,7 +12,7 @@ import { CONSTRAINTS, EXAMPLES } from '../../common/constants';
 export class CreateUserDto {
 	@IsEmail()
 	@IsNotEmpty()
-	@ApiProperty({ example: EXAMPLES.user.email })
+	@ApiProperty({ example: EXAMPLES.email })
 	readonly email: string;
 
 	@IsString()
@@ -21,7 +21,7 @@ export class CreateUserDto {
 	@Matches(CONSTRAINTS.password.regex, {
 		message: CONSTRAINTS.password.message.regex,
 	})
-	@ApiProperty({ example: EXAMPLES.user.password })
+	@ApiProperty({ example: EXAMPLES.password })
 	readonly password: string;
 
 	@IsString()
@@ -30,6 +30,6 @@ export class CreateUserDto {
 	@Matches(CONSTRAINTS.username.regex, {
 		message: CONSTRAINTS.username.message.regex,
 	})
-	@ApiProperty({ example: EXAMPLES.user.username })
+	@ApiProperty({ example: EXAMPLES.username })
 	readonly username: string;
 }

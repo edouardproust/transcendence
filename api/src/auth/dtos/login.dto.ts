@@ -7,8 +7,8 @@ export class LoginDto {
 	@IsNotEmpty()
 	@ApiProperty({
 		oneOf: [
-			{ type: 'string', format: 'email', example: EXAMPLES.user.email },
-			{ type: 'string', example: EXAMPLES.user.username },
+			{ type: 'string', format: 'email', example: EXAMPLES.email },
+			{ type: 'string', example: EXAMPLES.username },
 		],
 		description: 'Email or username',
 	})
@@ -16,6 +16,6 @@ export class LoginDto {
 
 	@IsString()
 	@IsNotEmpty()
-	@ApiProperty({ example: EXAMPLES.user.password })
+	@ApiProperty({ example: EXAMPLES.password })
 	readonly password: string;
 }
