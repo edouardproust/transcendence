@@ -41,20 +41,20 @@ export class FriendsController {
 		type: FriendRequestResponseDto,
 	})
 	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid input',
+	})
+	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
 		description: 'Invalid token',
 	})
 	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Receiver not found',
+	})
+	@ApiResponse({
 		status: HttpStatus.CONFLICT,
 		description: 'Friend request already sent',
-	})
-	@ApiResponse({
-		status: HttpStatus.NOT_FOUND,
-		description: 'User not found',
-	})
-	@ApiResponse({
-		status: HttpStatus.BAD_REQUEST,
-		description: 'Invalid input',
 	})
 	async sendRequest(
 		@CurrentUser() user: RequestUser,
@@ -91,16 +91,20 @@ export class FriendsController {
 		type: FriendshipResponseDto,
 	})
 	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid UUID format',
+	})
+	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
 		description: 'Invalid token',
 	})
 	@ApiResponse({
-		status: HttpStatus.NOT_FOUND,
-		description: 'Friend request not found',
-	})
-	@ApiResponse({
 		status: HttpStatus.FORBIDDEN,
 		description: 'Not the receiver of this request',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Friend request not found',
 	})
 	@ApiResponse({
 		status: HttpStatus.CONFLICT,
@@ -121,16 +125,20 @@ export class FriendsController {
 		description: 'Friend request rejected',
 	})
 	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid UUID format',
+	})
+	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
 		description: 'Invalid token',
 	})
 	@ApiResponse({
-		status: HttpStatus.NOT_FOUND,
-		description: 'Friend request not found',
-	})
-	@ApiResponse({
 		status: HttpStatus.FORBIDDEN,
 		description: 'Not the receiver of this request',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Friend request not found',
 	})
 	async rejectRequest(
 		@CurrentUser() user: RequestUser,
@@ -164,6 +172,10 @@ export class FriendsController {
 	@ApiResponse({
 		status: HttpStatus.NO_CONTENT,
 		description: 'Friend removed',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid UUID format',
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
