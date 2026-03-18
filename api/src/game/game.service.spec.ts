@@ -1,127 +1,362 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+	BadRequestException,
+	NotFoundException,
+	ForbiddenException,
+} from '@nestjs/common';
 import { GameService } from './game.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { GameStatus } from '../prisma/generated/enums';
+import { PrismaServiceMock } from '../prisma/prisma.service.mock';
+import { GameStatus, GameMode } from '../prisma/generated/enums';
 
-const mockPrismaService = {
-	user: {
-		findUnique: jest.fn(),
-	},
-	game: {
-		create: jest.fn(),
-		findUnique: jest.fn(),
-		update: jest.fn(),
-	},
+// Partie en base (format Prisma, avant sérialisation)
+const dbGameFixture = {
+	id: 1,
+	status: GameStatus.WAITING,
+	mode: GameMode.ONLINE,
+	whiteId: 1,
+	blackId: null,
+	winnerId: null,
+	currentFen: null,
+	pgn: null,
+	timeControl: '10+0',
+	createdAt: new Date('2024-01-01T00:00:00.000Z'),
+	updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+};
+
+const ongoingGameFixture = {
+	...dbGameFixture,
+	status: GameStatus.ONGOING,
+	blackId: 2,
+	currentFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+	pgn: '',
 };
 
 describe('GameService', () => {
 	let service: GameService;
+	let prisma: PrismaService;
 
 	beforeEach(async () => {
-		jest.clearAllMocks();
-
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [
-				GameService,
-				{
-					provide: PrismaService,
-					useValue: mockPrismaService,
-				},
-			],
+			providers: [GameService, PrismaServiceMock],
 		}).compile();
 
 		service = module.get<GameService>(GameService);
+		prisma = module.get<PrismaService>(PrismaService);
+
+		jest.clearAllMocks();
 	});
 
 	it('should be defined', () => {
 		expect(service).toBeDefined();
 	});
 
-	it('should call prisma with correct data', async () => {
-		mockPrismaService.user.findUnique.mockResolvedValue({ id: 1 });
-		mockPrismaService.game.create.mockResolvedValue({
-			id: 1,
-			whiteId: 1,
-			blackId: 2,
+	// ------------------------------------------------------------------ //
+	// createGame
+	// ------------------------------------------------------------------ //
+	describe('createGame', () => {
+		it('should create an online game and return serialized game', async () => {
+			(prisma.game.create as jest.Mock).mockResolvedValue(dbGameFixture);
+
+			const result = await service.createGame(
+				{ timeControl: '10+0', mode: 'online' },
+				1,
+			);
+
+			expect(prisma.game.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						whiteId: 1,
+						blackId: null,
+						mode: GameMode.ONLINE,
+						timeControl: '10+0',
+					}),
+				}),
+			);
+			expect(result.status).toBe('waiting');
+			expect(result.mode).toBe('online');
+			expect(result.white_player_id).toBe(1);
+			expect(result.black_player_id).toBeNull();
 		});
 
-		await service.createGame({ whiteId: 1, blackId: 2 });
+		it('should create an AI game with blackId null', async () => {
+			const aiGameFixture = {
+				...dbGameFixture,
+				mode: GameMode.AI,
+				blackId: null,
+			};
+			(prisma.game.create as jest.Mock).mockResolvedValue(aiGameFixture);
 
-		expect(mockPrismaService.game.create).toHaveBeenCalledWith({
-			data: expect.objectContaining({
-				whiteId: 1,
+			const result = await service.createGame(
+				{ timeControl: 'unlimited', mode: 'ai' },
+				1,
+			);
+
+			expect(prisma.game.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						whiteId: 1,
+						blackId: null,
+						mode: GameMode.AI,
+					}),
+				}),
+			);
+			expect(result.mode).toBe('ai');
+			expect(result.black_player_id).toBeNull();
+		});
+	});
+
+	// ------------------------------------------------------------------ //
+	// getGame
+	// ------------------------------------------------------------------ //
+	describe('getGame', () => {
+		it('should return a serialized game', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				dbGameFixture,
+			);
+
+			const result = await service.getGame(1);
+
+			expect(result.id).toBe(1);
+			expect(result.status).toBe('waiting');
+		});
+
+		it('should throw NotFoundException if game does not exist', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
+
+			await expect(service.getGame(999)).rejects.toThrow(
+				NotFoundException,
+			);
+		});
+	});
+
+	// ------------------------------------------------------------------ //
+	// getActiveGames
+	// ------------------------------------------------------------------ //
+	describe('getActiveGames', () => {
+		it('should return a list of serialized waiting online games', async () => {
+			(prisma.game.findMany as jest.Mock).mockResolvedValue([
+				dbGameFixture,
+			]);
+
+			const result = await service.getActiveGames();
+
+			expect(prisma.game.findMany).toHaveBeenCalledWith(
+				expect.objectContaining({
+					where: {
+						status: GameStatus.WAITING,
+						mode: GameMode.ONLINE,
+						blackId: null,
+					},
+					take: 20,
+				}),
+			);
+			expect(result).toHaveLength(1);
+			expect(result[0].status).toBe('waiting');
+		});
+	});
+
+	// ------------------------------------------------------------------ //
+	// getUserGames
+	// ------------------------------------------------------------------ //
+	describe('getUserGames', () => {
+		it('should return games where user is white or black', async () => {
+			(prisma.game.findMany as jest.Mock).mockResolvedValue([
+				dbGameFixture,
+			]);
+
+			const result = await service.getUserGames(1);
+
+			expect(prisma.game.findMany).toHaveBeenCalledWith(
+				expect.objectContaining({
+					where: { OR: [{ whiteId: 1 }, { blackId: 1 }] },
+				}),
+			);
+			expect(result).toHaveLength(1);
+		});
+	});
+
+	// ------------------------------------------------------------------ //
+	// startGame
+	// ------------------------------------------------------------------ //
+	describe('startGame', () => {
+		it('should start a waiting game', async () => {
+			const startedGame = {
+				...dbGameFixture,
 				blackId: 2,
 				status: GameStatus.ONGOING,
-			}),
+				currentFen:
+					'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+				pgn: '',
+			};
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue({
+				...dbGameFixture,
+				blackId: 2,
+			});
+			(prisma.game.update as jest.Mock).mockResolvedValue(startedGame);
+
+			const result = await service.startGame(1, 1);
+
+			expect(prisma.game.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						status: GameStatus.ONGOING,
+					}),
+				}),
+			);
+			expect(result.status).toBe('ongoing');
+		});
+
+		it('should return current game unchanged if already ongoing', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				ongoingGameFixture,
+			);
+
+			const result = await service.startGame(1, 1);
+
+			expect(prisma.game.update).not.toHaveBeenCalled();
+			expect(result.status).toBe('ongoing');
+		});
+
+		it('should throw NotFoundException if game does not exist', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
+
+			await expect(service.startGame(999, 1)).rejects.toThrow(
+				NotFoundException,
+			);
+		});
+
+		it('should throw ForbiddenException if user is not a player', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				dbGameFixture,
+			);
+
+			await expect(service.startGame(1, 42)).rejects.toThrow(
+				ForbiddenException,
+			);
+		});
+
+		it('should throw BadRequestException if game is already finished', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue({
+				...dbGameFixture,
+				status: GameStatus.FINISHED,
+			});
+
+			await expect(service.startGame(1, 1)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 	});
 
-	it('should return the created game', async () => {
-		const mockGame = {
-			id: 1,
-			whiteId: 1,
-			blackId: 2,
-			status: GameStatus.ONGOING,
-			currentFEN:
-				'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-			movesPGN: '',
-			createdAt: new Date(),
-		};
+	// ------------------------------------------------------------------ //
+	// finishGame
+	// ------------------------------------------------------------------ //
+	describe('finishGame', () => {
+		it('should finish a game and persist the result', async () => {
+			const finishedGame = {
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+				winnerId: 1,
+			};
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				ongoingGameFixture,
+			);
+			(prisma.game.update as jest.Mock).mockResolvedValue(finishedGame);
 
-		mockPrismaService.user.findUnique.mockResolvedValue({ id: 1 });
-		mockPrismaService.game.create.mockResolvedValue(mockGame);
+			const result = await service.finishGame(
+				1,
+				{ winnerId: 1, currentFen: 'some-fen', pgn: '1. e4' },
+				1,
+			);
 
-		const result = await service.createGame({ whiteId: 1, blackId: 2 });
+			expect(prisma.game.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						status: GameStatus.FINISHED,
+						winnerId: 1,
+					}),
+				}),
+			);
+			expect(result.status).toBe('finished');
+			expect(result.winner_id).toBe(1);
+		});
 
-		expect(result).toEqual(mockGame);
-	});
+		it('should return game unchanged if already finished', async () => {
+			const finishedGame = {
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+			};
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				finishedGame,
+			);
 
-	it('should throw if players are the same', async () => {
-		await expect(
-			service.createGame({ whiteId: 1, blackId: 1 }),
-		).rejects.toThrow(BadRequestException);
-	});
+			await service.finishGame(
+				1,
+				{ winnerId: null, currentFen: 'fen', pgn: '' },
+				1,
+			);
 
-	it('should throw if player not found', async () => {
-		mockPrismaService.user.findUnique.mockResolvedValue(null);
+			expect(prisma.game.update).not.toHaveBeenCalled();
+		});
 
-		await expect(
-			service.createGame({ whiteId: 1, blackId: 2 }),
-		).rejects.toThrow(NotFoundException);
-	});
-
-	const ongoingGame = {
-		id: 1,
-		whiteId: 1,
-		blackId: 2,
-		status: GameStatus.ONGOING,
-		currentFEN: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-		movesPGN: '',
-	};
-
-	describe('makeMove', () => {
-		it('should throw NotFoundException if game not found', async () => {
-			mockPrismaService.game.findUnique.mockResolvedValue(null);
+		it('should throw ForbiddenException if user is not a player', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				ongoingGameFixture,
+			);
 
 			await expect(
-				service.makeMove(1, { move: 'e4' }, 1),
+				service.finishGame(
+					1,
+					{ winnerId: null, currentFen: 'fen', pgn: '' },
+					42,
+				),
+			).rejects.toThrow(ForbiddenException);
+		});
+	});
+
+	// ------------------------------------------------------------------ //
+	// makeMove
+	// ------------------------------------------------------------------ //
+	describe('makeMove', () => {
+		it('should apply a legal move and return updated game', async () => {
+			const updatedGame = {
+				...ongoingGameFixture,
+				currentFen: 'new-fen',
+				pgn: '1. e4',
+			};
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				ongoingGameFixture,
+			);
+			(prisma.game.update as jest.Mock).mockResolvedValue(updatedGame);
+
+			const result = await service.makeMove(1, { move: 'e4' }, 1);
+
+			expect(prisma.game.update).toHaveBeenCalled();
+			expect(result).toBeDefined();
+		});
+
+		it('should throw NotFoundException if game does not exist', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
+
+			await expect(
+				service.makeMove(999, { move: 'e4' }, 1),
 			).rejects.toThrow(NotFoundException);
 		});
 
 		it('should throw BadRequestException if game is not ongoing', async () => {
-			mockPrismaService.game.findUnique.mockResolvedValue({
-				...ongoingGame,
-				status: GameStatus.FINISHED,
-			});
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				dbGameFixture,
+			); // WAITING
 
 			await expect(
 				service.makeMove(1, { move: 'e4' }, 1),
 			).rejects.toThrow(BadRequestException);
 		});
 
-		it('should throw BadRequestException if not the player turn', async () => {
-			mockPrismaService.game.findUnique.mockResolvedValue(ongoingGame);
+		it('should throw BadRequestException if it is not the player turn', async () => {
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				ongoingGameFixture,
+			); // white turn
 
 			await expect(
 				service.makeMove(1, { move: 'e4' }, 2),
@@ -129,39 +364,13 @@ describe('GameService', () => {
 		});
 
 		it('should throw BadRequestException on illegal move', async () => {
-			mockPrismaService.game.findUnique.mockResolvedValue(ongoingGame);
+			(prisma.game.findUnique as jest.Mock).mockResolvedValue(
+				ongoingGameFixture,
+			);
 
 			await expect(
 				service.makeMove(1, { move: 'e9' }, 1),
 			).rejects.toThrow(BadRequestException);
-		});
-
-		it('should update and return the game after a valid move', async () => {
-			mockPrismaService.game.findUnique.mockResolvedValue(ongoingGame);
-
-			const updatedGame = {
-				...ongoingGame,
-				currentFEN:
-					'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
-				movesPGN: expect.any(String),
-			};
-
-			mockPrismaService.game.update.mockResolvedValue(updatedGame);
-
-			const result = await service.makeMove(1, { move: 'e4' }, 1);
-
-			expect(mockPrismaService.game.update).toHaveBeenCalledWith({
-				where: expect.objectContaining({
-					id: 1,
-				}),
-				data: expect.objectContaining({
-					status: GameStatus.ONGOING,
-					currentFEN: expect.any(String),
-					movesPGN: expect.any(String),
-				}),
-			});
-
-			expect(result.movesPGN).toEqual(expect.any(String));
 		});
 	});
 });

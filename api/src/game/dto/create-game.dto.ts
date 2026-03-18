@@ -1,18 +1,34 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsIn, IsOptional, IsInt } from 'class-validator';
 
+// POST /games
 export class CreateGameDto {
-	@Type(() => Number)
-	@IsInt()
-	whiteId: number;
+	@IsString()
+	@IsNotEmpty()
+	timeControl: string; // ex: "10+0", "5+3", "unlimited"
 
-	@Type(() => Number)
-	@IsInt()
-	blackId: number;
+	@IsString()
+	@IsIn(['online', 'ai'])
+	mode: 'online' | 'ai';
 }
 
+// POST /games/:id/move
 export class MakeMoveDto {
 	@IsString()
 	@IsNotEmpty()
 	move: string;
+}
+
+// POST /games/:id/finish
+export class FinishGameDto {
+	@IsOptional()
+	@IsInt()
+	winnerId: number | null;
+
+	@IsString()
+	@IsNotEmpty()
+	currentFen: string;
+
+	@IsString()
+	@IsNotEmpty()
+	pgn: string;
 }

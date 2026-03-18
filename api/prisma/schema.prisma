@@ -28,9 +28,11 @@ model User {
 
     whiteGames Game[] @relation("WhitePlayer")
     blackGames Game[] @relation("BlackPlayer")
+    wonGames   Game[] @relation("Winner") @ignore // Never used, just to satisfy prisma's relation requirements
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    games     Game[]
 
     @@map("users")
 }
@@ -47,18 +49,11 @@ enum GameMode {
     AI
 }
 
-enum TimeControl {
-    BULLET
-    BLITZ
-    RAPID
-    CLASSICAL
-    UNLIMITED
-}
-
 model Game {
     id Int @id @default(autoincrement())
 
     status GameStatus @default(WAITING)
+    mode   GameMode   @default(ONLINE)
 
     whiteId Int
     blackId Int?
@@ -66,14 +61,19 @@ model Game {
     white User  @relation("WhitePlayer", fields: [whiteId], references: [id])
     black User? @relation("BlackPlayer", fields: [blackId], references: [id])
 
-    currentFEN String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    movesPGN   String @default("")
+    winnerId Int?
+    winner   User? @relation("Winner", fields: [winnerId], references: [id])
 
-    mode        GameMode    @default(ONLINE)
-    timeControl TimeControl @default(UNLIMITED)
-    initialTime Int?
-    increment   Int?
+    currentFen String?
+
+    pgn String?
+
+    timeControl String @default("unlimited")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    user      User?    @relation(fields: [userId], references: [id])
+    userId    Int?
+
+    @@map("games")
 }
