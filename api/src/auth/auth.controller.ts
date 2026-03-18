@@ -8,12 +8,12 @@ import {
 	UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { LoginDto } from './dtos/login.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthResponseDto } from './dtos/auth-response.dto';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
-import { UserResponseDto } from '../users/dto/user-response.dto';
+import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RequestUser } from './interfaces/request-user.interface';
 import { UsersService } from '../users/users.service';

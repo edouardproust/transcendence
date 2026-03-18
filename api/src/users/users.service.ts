@@ -3,17 +3,18 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
 	getUniqueConstraintFields,
 	isPrismaError,
 	PrismaErrorCode,
 } from '../prisma/prisma.error';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '../prisma/generated/client';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateProfileDto } from './dtos/update-profile.dto';
+import { UpdateUserSystemDto } from './dtos/update-user-system.dto';
 
 @Injectable()
 export class UsersService {
@@ -118,7 +119,7 @@ export class UsersService {
 	 */
 	async updateOneById(
 		id: string,
-		updateUserDto: UpdateUserDto | UpdateProfileDto,
+		updateUserDto: UpdateUserDto | UpdateProfileDto | UpdateUserSystemDto,
 	) {
 		const data =
 			'password' in updateUserDto && updateUserDto.password

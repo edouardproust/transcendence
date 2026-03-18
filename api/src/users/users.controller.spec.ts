@@ -3,10 +3,10 @@ import { UsersController } from './users.controller';
 import { usersFixture, UsersServiceMock } from './users.service.mock';
 import { UsersService } from './users.service';
 import { NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { RequestUser } from '../auth/interfaces/request-user.interface';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { SearchUsersDto } from './dto/search-users.dto';
+import { UpdateProfileDto } from './dtos/update-profile.dto';
+import { SearchUsersDto } from './dtos/search-users.dto';
 
 describe('UsersController', () => {
 	let controller: UsersController;

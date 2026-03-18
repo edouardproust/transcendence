@@ -13,7 +13,7 @@ import {
 	UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { OwnerOrAdminGuard } from '../auth/guard/owner-or-admin.guard';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { AdminGuard } from '../auth/guard/admin.guard';
@@ -25,12 +25,12 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequestUser } from '../auth/interfaces/request-user.interface';
-import { UserProfileResponseDto } from './dto/user-profile-response.dto';
-import { UserResponseDto } from './dto/user-response.dto';
-import { SearchUsersDto } from './dto/search-users.dto';
-import { UserPublicResponseDto } from './dto/user-public-response.dto';
-import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserProfileResponseDto } from './dtos/user-profile-response.dto';
+import { UserResponseDto } from './dtos/user-response.dto';
+import { SearchUsersDto } from './dtos/search-users.dto';
+import { UserPublicResponseDto } from './dtos/user-public-response.dto';
+import { UserPublicProfileResponseDto } from './dtos/user-public-profile-response.dto';
+import { UpdateProfileDto } from './dtos/update-profile.dto';
 
 @Controller('users')
 @ApiTags('users')

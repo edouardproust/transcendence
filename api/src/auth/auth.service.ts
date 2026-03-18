@@ -1,12 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { LoginDto } from './dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '../prisma/generated/enums';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthResponseDto } from './dtos/auth-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +70,13 @@ export class AuthService {
 			throw new UnauthorizedException(errorMsg);
 
 		const { password, ...userWithoutPassword } = user;
+
+		// update user
+		await this.usersService.updateOneById(userWithoutPassword.id, {
+			lastSeen: new Date(),
+			isOnline: true,
+		});
+
 		return {
 			user: userWithoutPassword,
 			token: this.generateToken({

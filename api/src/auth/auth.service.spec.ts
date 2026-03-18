@@ -10,7 +10,7 @@ import {
 import { JwtServiceMock } from './auth.service.mock';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn().mockResolvedValue('hashedPassword'),

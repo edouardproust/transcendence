@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserPublicResponseDto } from './user-public-response.dto';
+import { EXAMPLES } from '../../common/constants';
 
 export class UserPublicProfileResponseDto extends UserPublicResponseDto {
-	@ApiProperty({ example: 10 })
+	@ApiProperty({ example: EXAMPLES.user.totalGames })
 	totalGames: number;
 
-	@ApiProperty({ example: 6 })
+	@ApiProperty({ example: EXAMPLES.user.wins })
 	wins: number;
 
-	@ApiProperty({ example: 3 })
+	@ApiProperty({ example: EXAMPLES.user.losses })
 	losses: number;
 
-	@ApiProperty({ example: 1 })
+	@ApiProperty({ example: EXAMPLES.user.draws })
 	draws: number;
 }
