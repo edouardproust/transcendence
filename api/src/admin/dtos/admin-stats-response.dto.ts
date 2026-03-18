@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AdminRecentActivityDto } from './admin-recent-activity.dto';
+import { EXAMPLES } from '../../common/constants';
 
 export class AdminStatsDto {
 	@ApiProperty({ example: 100 })
@@ -22,19 +23,19 @@ export class AdminStatsDto {
 }
 
 export class AdminTopPlayerDto {
-	@ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
+	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
-	@ApiProperty({ example: 'john' })
+	@ApiProperty({ example: EXAMPLES.username })
 	username: string;
 
-	@ApiProperty({ example: 'john@example.com' })
+	@ApiProperty({ example: EXAMPLES.email })
 	email: string;
 
-	@ApiProperty({ example: 1400 })
+	@ApiProperty({ example: EXAMPLES.elo })
 	elo: number;
 
-	@ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
+	@ApiProperty({ example: EXAMPLES.date })
 	createdAt: Date;
 }
 

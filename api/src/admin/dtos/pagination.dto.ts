@@ -1,13 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DEFAULTS } from '../../common/constants';
 
 export class PaginationDto {
 	@ApiProperty({ example: 100 })
 	total: number;
 
-	@ApiProperty({ example: 1 })
+	@ApiProperty({ example: DEFAULTS.pagination.page })
 	page: number;
 
-	@ApiProperty({ example: 20 })
+	@ApiProperty({ example: DEFAULTS.pagination.limit })
 	limit: number;
 
 	@ApiProperty({ example: 5 })

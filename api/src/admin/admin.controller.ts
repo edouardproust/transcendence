@@ -20,14 +20,14 @@ import {
 	ApiTags,
 } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
-import { UpdateUserAdminDto } from '../users/dto/update-user-admin.dto';
-import { UserResponseDto } from '../users/dto/user-response.dto';
 import { AdminUsersResponseDto } from './dtos/admin-users-response.dto';
 import { AdminUsersQueryDto } from './dtos/admin-users-query.dto';
 import { AdminService } from './admin.service';
 import { AdminStatsResponseDto } from './dtos/admin-stats-response.dto';
 import { AdminGamesQueryDto } from './dtos/admin-games-query.dto';
 import { AdminGamesResponseDto } from './dtos/admin-games-response.dto';
+import { UserResponseDto } from '../users/dtos/user-response.dto';
+import { UpdateUserAdminDto } from '../users/dtos/update-user-admin.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)

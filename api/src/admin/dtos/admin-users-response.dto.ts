@@ -1,26 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginationDto } from './pagination.dto';
+import { EXAMPLES } from '../../common/constants';
+import { Role } from '../../prisma/generated/enums';
 
 export class AdminUserDto {
-	@ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
+	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
-	@ApiProperty({ example: 'john' })
+	@ApiProperty({ example: EXAMPLES.username })
 	username: string;
 
-	@ApiProperty({ example: 'john@example.com' })
+	@ApiProperty({ example: EXAMPLES.email })
 	email: string;
 
-	@ApiProperty({ example: 1200 })
+	@ApiProperty({ example: EXAMPLES.elo })
 	elo: number;
 
-	@ApiProperty({ example: 'user', enum: ['user', 'admin'] })
+	@ApiProperty({ example: EXAMPLES.role, enum: Object.values(Role) })
 	role: string;
 
-	@ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
+	@ApiProperty({ example: EXAMPLES.date })
 	createdAt: Date;
 
-	@ApiProperty({ example: 12 })
+	@ApiProperty({ example: EXAMPLES.totalGames })
 	totalGames: number;
 }
 

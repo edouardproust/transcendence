@@ -6,6 +6,10 @@ export const DEFAULTS = {
 		remoteKey: 'avatars/default.svg',
 		contentType: 'image/svg+xml',
 	},
+	pagination: {
+		page: 1,
+		limit: 20,
+	},
 };
 
 export const CONSTRAINTS = {
@@ -52,9 +56,10 @@ export const EXAMPLES = {
 	usernameSearch: 'use',
 	elo: 1400,
 	totalGames: 20,
-	wins: 14,
-	losses: 2,
+	wins: 10,
+	losses: 7,
 	draws: 3,
 	isOnline: true,
 	lastSeen: '2024-01-15T14:30:00.000Z',
+	timeControl: '10+0',
 };

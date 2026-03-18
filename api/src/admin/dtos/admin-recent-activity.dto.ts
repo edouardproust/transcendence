@@ -1,27 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EXAMPLES } from '../../common/constants';
 
 export class AdminRecentActivityDto {
-	@ApiProperty({ example: 'uuid' })
+	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
+	// TODO: Remove:
 	@ApiProperty({
 		example: 'waiting',
 		enum: ['waiting', 'active', 'finished', 'cancelled'],
 	})
+	// TOSO: Replace by this:
+	//@ApiProperty({ example: GameStatus.waiting, enum: Object.values(GameStatus) })
 	status: string;
 
+	// TODO: Remove:
 	@ApiProperty({ example: 'online', enum: ['online', 'ai'] })
+	// TODO: Replace by this:
+	//@ApiProperty({ example: GameMode.online, enum: Object.values(GameMode) })
 	mode: string;
 
-	@ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
+	@ApiProperty({ example: EXAMPLES.date })
 	createdAt: Date;
 
-	@ApiProperty({ example: 'john' })
+	@ApiProperty({ example: EXAMPLES.username })
 	whiteUsername: string;
 
-	@ApiProperty({ example: 'jane', nullable: true })
+	@ApiProperty({ example: EXAMPLES.username2 })
 	blackUsername: string | null;
 
-	@ApiProperty({ example: 'john', nullable: true })
+	@ApiProperty({ example: EXAMPLES.username })
 	winnerUsername: string | null;
 }
