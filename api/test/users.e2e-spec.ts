@@ -45,7 +45,7 @@ describe('UserController (e2e)', () => {
 	};
 	const seedAdmin = async (email: string = 'admin@example.com') => {
 		return prisma.user.create({
-			data: { ...(await makeUser(email)), role: Role.admin },
+			data: { ...(await makeUser(email)), role: Role.ADMIN },
 		});
 	};
 	const login = async (email: string, password: string) => {
@@ -278,15 +278,15 @@ describe('UserController (e2e)', () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
-				role: Role.admin,
+				role: Role.ADMIN,
 			});
 			expect(response.status).toBe(HttpStatus.OK);
-			expect(response.body.role).toBe(Role.user); // Role should remain unchanged
+			expect(response.body.role).toBe(Role.USER); // Role should remain unchanged
 			// Verify that the role is actually unchanged in the database
 			const updatedUser = await prisma.user.findUnique({
 				where: { id: user.id },
 			});
-			expect(updatedUser!.role).toBe(Role.user);
+			expect(updatedUser!.role).toBe(Role.USER);
 		});
 
 		it('should ignore extra fields in the request body', async () => {
