@@ -73,10 +73,10 @@ describe('GameService', () => {
 					}),
 				}),
 			);
-			expect(result.status).toBe('waiting');
-			expect(result.mode).toBe('online');
-			expect(result.white_player_id).toBe(1);
-			expect(result.black_player_id).toBeNull();
+			expect(result.status).toBe('WAITING');
+			expect(result.mode).toBe('ONLINE');
+			expect(result.whiteId).toBe(1);
+			expect(result.blackId).toBeNull();
 		});
 
 		it('should create an AI game with blackId null', async () => {
@@ -101,8 +101,8 @@ describe('GameService', () => {
 					}),
 				}),
 			);
-			expect(result.mode).toBe('ai');
-			expect(result.black_player_id).toBeNull();
+			expect(result.mode).toBe('AI');
+			expect(result.blackId).toBeNull();
 		});
 	});
 
@@ -118,7 +118,7 @@ describe('GameService', () => {
 			const result = await service.getGame(1);
 
 			expect(result.id).toBe(1);
-			expect(result.status).toBe('waiting');
+			expect(result.status).toBe('WAITING');
 		});
 
 		it('should throw NotFoundException if game does not exist', async () => {
@@ -152,7 +152,7 @@ describe('GameService', () => {
 				}),
 			);
 			expect(result).toHaveLength(1);
-			expect(result[0].status).toBe('waiting');
+			expect(result[0].status).toBe('WAITING');
 		});
 	});
 
@@ -204,7 +204,7 @@ describe('GameService', () => {
 					}),
 				}),
 			);
-			expect(result.status).toBe('ongoing');
+			expect(result.status).toBe('ONGOING');
 		});
 
 		it('should return current game unchanged if already ongoing', async () => {
@@ -215,7 +215,7 @@ describe('GameService', () => {
 			const result = await service.startGame(1, 1);
 
 			expect(prisma.game.update).not.toHaveBeenCalled();
-			expect(result.status).toBe('ongoing');
+			expect(result.status).toBe('ONGOING');
 		});
 
 		it('should throw NotFoundException if game does not exist', async () => {
@@ -277,8 +277,8 @@ describe('GameService', () => {
 					}),
 				}),
 			);
-			expect(result.status).toBe('finished');
-			expect(result.winner_id).toBe(1);
+			expect(result.status).toBe('FINISHED');
+			expect(result.winnerId).toBe(1);
 		});
 
 		it('should return game unchanged if already finished', async () => {

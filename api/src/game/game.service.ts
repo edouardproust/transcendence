@@ -12,7 +12,6 @@ import {
 } from './dto/create-game.dto';
 import { Chess } from 'chess.js';
 import { GameStatus, GameMode } from '../prisma/generated/enums';
-import { serializeGame } from './game.serializer';
 
 @Injectable()
 export class GameService {
@@ -34,7 +33,7 @@ export class GameService {
 			},
 		});
 
-		return serializeGame(game);
+		return game;
 	}
 
 	// ------------------------------------------------------------------ //
@@ -51,7 +50,7 @@ export class GameService {
 			take: 20,
 		});
 
-		return games.map(serializeGame);
+		return games;
 	}
 
 	// ------------------------------------------------------------------ //
@@ -65,7 +64,7 @@ export class GameService {
 			orderBy: { createdAt: 'desc' },
 		});
 
-		return games.map(serializeGame);
+		return games;
 	}
 
 	// ------------------------------------------------------------------ //
@@ -78,7 +77,7 @@ export class GameService {
 			throw new NotFoundException('Game not found');
 		}
 
-		return serializeGame(game);
+		return game;
 	}
 
 	// ------------------------------------------------------------------ //
@@ -94,7 +93,7 @@ export class GameService {
 		}
 
 		if (game.status === GameStatus.ONGOING) {
-			return serializeGame(game);
+			return game;
 		}
 
 		if (game.status !== GameStatus.WAITING) {
@@ -116,7 +115,7 @@ export class GameService {
 			},
 		});
 
-		return serializeGame(updatedGame);
+		return updatedGame;
 	}
 
 	// ------------------------------------------------------------------ //
@@ -136,7 +135,7 @@ export class GameService {
 		}
 
 		if (game.status === GameStatus.FINISHED) {
-			return serializeGame(game);
+			return game;
 		}
 
 		const updatedGame = await this.prisma.game.update({
@@ -149,7 +148,7 @@ export class GameService {
 			},
 		});
 
-		return serializeGame(updatedGame);
+		return updatedGame;
 	}
 
 	// ------------------------------------------------------------------ //
@@ -223,6 +222,6 @@ export class GameService {
 			},
 		});
 
-		return serializeGame(updatedGame);
+		return updatedGame;
 	}
 }
