@@ -13,7 +13,7 @@ export const seedUsers = async (prisma: PrismaClient) => {
 			email: 'admin@example.com',
 			password: await bcrypt.hash(EXAMPLES.password, 10),
 			username: 'admin',
-			role: Role.admin,
+			role: Role.ADMIN,
 		},
 	});
 	result.push(user);
@@ -26,7 +26,7 @@ export const seedUsers = async (prisma: PrismaClient) => {
 				email: `test${i}@example.com`,
 				password: await bcrypt.hash(EXAMPLES.password, 10),
 				username: `test${i}`,
-				role: Role.user,
+				role: Role.USER,
 			},
 		});
 		result.push(user);

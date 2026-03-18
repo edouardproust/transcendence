@@ -8,7 +8,7 @@ export const usersFixture: any[] = [
 		id: '550e8400-e29b-41d4-a716-446655440001',
 		email: 'admin@example.com',
 		username: 'admin',
-		role: Role.admin,
+		role: Role.ADMIN,
 		elo: EXAMPLES.elo + 200,
 		avatarUrl: EXAMPLES.avatarUrl,
 		isOnline: !EXAMPLES.isOnline,

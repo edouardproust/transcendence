@@ -56,7 +56,7 @@ describe('AuthController', () => {
 		it('should call usersService.findOneById with user id', async () => {
 			const user: RequestUser = {
 				id: usersFixture[0].id,
-				role: Role.user,
+				role: Role.USER,
 			};
 			await controller.me(user);
 			expect(usersService.findOneById).toHaveBeenCalledWith(

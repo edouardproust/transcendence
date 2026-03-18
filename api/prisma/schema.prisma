@@ -15,8 +15,8 @@ datasource db {
 }
 
 enum Role {
-    user
-    admin
+    USER
+    ADMIN
 }
 
 model User {
@@ -24,7 +24,7 @@ model User {
     email     String    @unique
     password  String
     username  String    @unique
-    role      Role      @default(user)
+    role      Role      @default(USER)
     elo       Int       @default(1200)
     avatarUrl String?
     isOnline  Boolean   @default(false)

@@ -23,7 +23,7 @@ export const EXAMPLES = {
 	jwtToken:
 		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJyb2xlIjoidXNlciIsImlhdCI6MTcwNDAwMDAwMH0.signature',
 	date: '2024-01-01T00:00:00.000Z',
-	role: Role.user,
+	role: Role.USER,
 	id: '550e8400-e29b-41d4-a716-446655440000',
 	password: 'Password123!',
 	email: 'admin@example.com',
