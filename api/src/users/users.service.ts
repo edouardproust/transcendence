@@ -26,7 +26,7 @@ export class UsersService {
 		private readonly storageService: StorageService,
 	) {}
 
-	private mapUser(user: any): any {
+	mapUser(user: any): any {
 		const { avatarKey, ...rest } = user;
 		return {
 			...rest,

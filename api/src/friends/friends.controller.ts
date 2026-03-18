@@ -52,6 +52,10 @@ export class FriendsController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid input',
+	})
 	async sendRequest(
 		@CurrentUser() user: RequestUser,
 		@Body() dto: SendFriendRequestDto,
@@ -97,6 +101,10 @@ export class FriendsController {
 	@ApiResponse({
 		status: HttpStatus.FORBIDDEN,
 		description: 'Not the receiver of this request',
+	})
+	@ApiResponse({
+		status: HttpStatus.CONFLICT,
+		description: 'Already friends',
 	})
 	async acceptRequest(
 		@CurrentUser() user: RequestUser,
@@ -144,7 +152,7 @@ export class FriendsController {
 	})
 	async getFriends(
 		@CurrentUser() user: RequestUser,
-	): Promise<FriendshipResponseDto[]> {
+	): Promise<UserResponseDto[]> {
 		return this.friendsService.getFriends(user.id);
 	}
 

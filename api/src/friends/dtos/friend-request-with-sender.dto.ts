@@ -1,27 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EXAMPLES } from '../../common/constants';
 
 export class FriendRequestWithSenderDto {
-	@ApiProperty({ example: 'uuid' })
+	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
-	@ApiProperty({ example: 'uuid' })
+	@ApiProperty({ example: EXAMPLES.id2 })
 	senderId: string;
 
-	@ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
+	@ApiProperty({ example: EXAMPLES.date })
 	createdAt: Date;
 
-	@ApiProperty({ example: 'john' })
+	@ApiProperty({ example: EXAMPLES.username })
 	username: string;
 
-	@ApiProperty({ example: 1200 })
+	@ApiProperty({ example: EXAMPLES.elo })
 	elo: number;
 
-	@ApiProperty({ example: '/uploads/avatars/default.svg' })
+	@ApiProperty({ example: EXAMPLES.avatarUrl })
 	avatarUrl: string | null;
 
-	@ApiProperty({ example: false })
+	@ApiProperty({ example: EXAMPLES.isOnline })
 	isOnline: boolean;
 
-	@ApiProperty({ example: null, nullable: true })
+	@ApiProperty({ example: EXAMPLES.lastSeen })
 	lastSeen: Date | null;
 }

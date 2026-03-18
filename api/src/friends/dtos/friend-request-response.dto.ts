@@ -1,15 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EXAMPLES } from '../../common/constants';
 
 export class FriendRequestResponseDto {
-	@ApiProperty({ example: 'uuid' })
+	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
-	@ApiProperty({ example: 'uuid' })
+	@ApiProperty({ example: EXAMPLES.id2 })
 	senderId: string;
 
-	@ApiProperty({ example: 'uuid' })
+	@ApiProperty({ example: EXAMPLES.id3 })
 	receiverId: string;
 
-	@ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
+	@ApiProperty({ example: EXAMPLES.date })
 	createdAt: Date;
 }
