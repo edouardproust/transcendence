@@ -70,7 +70,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// GET /games/:id
 	// ------------------------------------------------------------------ //
-	async getGame(id: number) {
+	async getGame(id: string) {
 		const game = await this.prisma.game.findUnique({ where: { id } });
 
 		if (!game) {
@@ -83,7 +83,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games/:id/start
 	// ------------------------------------------------------------------ //
-	async startGame(gameId: number, userId: number) {
+	async startGame(gameId: string, userId: number) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -121,7 +121,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games/:id/finish
 	// ------------------------------------------------------------------ //
-	async finishGame(gameId: number, dto: FinishGameDto, userId: number) {
+	async finishGame(gameId: string, dto: FinishGameDto, userId: number) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -154,7 +154,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games/:id/move
 	// ------------------------------------------------------------------ //
-	async makeMove(gameId: number, dto: MakeMoveDto, userId: number) {
+	async makeMove(gameId: string, dto: MakeMoveDto, userId: number) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -193,7 +193,7 @@ export class GameService {
 			throw new BadRequestException('Illegal move');
 		}
 
-		let status = GameStatus.ONGOING;
+		let status: GameStatus = GameStatus.ONGOING;
 		let winnerId: number | null = null;
 
 		if (chess.isCheckmate()) {

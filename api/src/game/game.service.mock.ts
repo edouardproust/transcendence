@@ -1,7 +1,7 @@
 import { GameService } from './game.service';
 
 export const gameFixture = {
-	id: 1,
+	id: '11111111-1111-1111-1111-111111111111',
 	status: 'waiting',
 	mode: 'online',
 	white_player_id: 1,

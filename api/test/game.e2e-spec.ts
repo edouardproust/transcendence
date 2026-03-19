@@ -6,6 +6,8 @@ import { GameService } from '../src/game/game.service';
 import { GameServiceMock, gameFixture } from '../src/game/game.service.mock';
 import { JwtAuthGuard } from '../src/auth/guard/jwt-auth.guard';
 
+const GAME_ID = '11111111-1111-1111-1111-111111111111';
+
 const mockJwtGuard = {
 	canActivate: (ctx) => {
 		const req = ctx.switchToHttp().getRequest();
@@ -118,13 +120,13 @@ describe('Game (e2e)', () => {
 			(service.getGame as jest.Mock).mockResolvedValue(gameFixture);
 
 			const res = await request(app.getHttpServer())
-				.get('/games/1')
+				.get(`/games/${GAME_ID}`)
 				.expect(200);
 
 			expect(res.body.id).toBe(gameFixture.id);
 		});
 
-		it('should return 400 if id is not a number', async () => {
+		it('should return 400 if id is not a UUID', async () => {
 			await request(app.getHttpServer()).get('/games/abc').expect(400);
 		});
 	});
@@ -140,11 +142,11 @@ describe('Game (e2e)', () => {
 			});
 
 			const res = await request(app.getHttpServer())
-				.post('/games/1/start')
+				.post(`/games/${GAME_ID}/start`)
 				.expect(200);
 
 			expect(res.body.status).toBe('ongoing');
-			expect(service.startGame).toHaveBeenCalledWith(1, 1);
+			expect(service.startGame).toHaveBeenCalledWith(GAME_ID, 1);
 		});
 	});
 
@@ -159,7 +161,7 @@ describe('Game (e2e)', () => {
 			});
 
 			const res = await request(app.getHttpServer())
-				.post('/games/1/finish')
+				.post(`/games/${GAME_ID}/finish`)
 				.send({ winnerId: 1, currentFen: 'some-fen', pgn: '1. e4' })
 				.expect(200);
 
@@ -168,7 +170,7 @@ describe('Game (e2e)', () => {
 
 		it('should return 400 if body is invalid', async () => {
 			await request(app.getHttpServer())
-				.post('/games/1/finish')
+				.post(`/games/${GAME_ID}/finish`)
 				.send({ winnerId: 1 }) // manque currentFen et pgn
 				.expect(400);
 		});
@@ -182,17 +184,21 @@ describe('Game (e2e)', () => {
 			(service.makeMove as jest.Mock).mockResolvedValue(gameFixture);
 
 			const res = await request(app.getHttpServer())
-				.post('/games/1/move')
+				.post(`/games/${GAME_ID}/move`)
 				.send({ move: 'e4' })
 				.expect(200);
 
 			expect(res.body).toBeDefined();
-			expect(service.makeMove).toHaveBeenCalledWith(1, { move: 'e4' }, 1);
+			expect(service.makeMove).toHaveBeenCalledWith(
+				GAME_ID,
+				{ move: 'e4' },
+				1,
+			);
 		});
 
 		it('should return 400 if move is missing', async () => {
 			await request(app.getHttpServer())
-				.post('/games/1/move')
+				.post(`/games/${GAME_ID}/move`)
 				.send({})
 				.expect(400);
 		});

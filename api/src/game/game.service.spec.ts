@@ -9,9 +9,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PrismaServiceMock } from '../prisma/prisma.service.mock';
 import { GameStatus, GameMode } from '../prisma/generated/enums';
 
+const GAME_ID = '11111111-1111-1111-1111-111111111111';
+
 // Partie en base (format Prisma, avant sérialisation)
 const dbGameFixture = {
-	id: 1,
+	id: GAME_ID,
 	status: GameStatus.WAITING,
 	mode: GameMode.ONLINE,
 	whiteId: 1,
@@ -115,16 +117,16 @@ describe('GameService', () => {
 				dbGameFixture,
 			);
 
-			const result = await service.getGame(1);
+			const result = await service.getGame(GAME_ID);
 
-			expect(result.id).toBe(1);
+			expect(result.id).toBe(GAME_ID);
 			expect(result.status).toBe('WAITING');
 		});
 
 		it('should throw NotFoundException if game does not exist', async () => {
 			(prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
 
-			await expect(service.getGame(999)).rejects.toThrow(
+			await expect(service.getGame('missing-game-id')).rejects.toThrow(
 				NotFoundException,
 			);
 		});
@@ -195,7 +197,7 @@ describe('GameService', () => {
 			});
 			(prisma.game.update as jest.Mock).mockResolvedValue(startedGame);
 
-			const result = await service.startGame(1, 1);
+			const result = await service.startGame(GAME_ID, 1);
 
 			expect(prisma.game.update).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -212,7 +214,7 @@ describe('GameService', () => {
 				ongoingGameFixture,
 			);
 
-			const result = await service.startGame(1, 1);
+			const result = await service.startGame(GAME_ID, 1);
 
 			expect(prisma.game.update).not.toHaveBeenCalled();
 			expect(result.status).toBe('ONGOING');
@@ -221,9 +223,9 @@ describe('GameService', () => {
 		it('should throw NotFoundException if game does not exist', async () => {
 			(prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
 
-			await expect(service.startGame(999, 1)).rejects.toThrow(
-				NotFoundException,
-			);
+			await expect(
+				service.startGame('missing-game-id', 1),
+			).rejects.toThrow(NotFoundException);
 		});
 
 		it('should throw ForbiddenException if user is not a player', async () => {
@@ -231,7 +233,7 @@ describe('GameService', () => {
 				dbGameFixture,
 			);
 
-			await expect(service.startGame(1, 42)).rejects.toThrow(
+			await expect(service.startGame(GAME_ID, 42)).rejects.toThrow(
 				ForbiddenException,
 			);
 		});
@@ -242,7 +244,7 @@ describe('GameService', () => {
 				status: GameStatus.FINISHED,
 			});
 
-			await expect(service.startGame(1, 1)).rejects.toThrow(
+			await expect(service.startGame(GAME_ID, 1)).rejects.toThrow(
 				BadRequestException,
 			);
 		});
@@ -264,7 +266,7 @@ describe('GameService', () => {
 			(prisma.game.update as jest.Mock).mockResolvedValue(finishedGame);
 
 			const result = await service.finishGame(
-				1,
+				GAME_ID,
 				{ winnerId: 1, currentFen: 'some-fen', pgn: '1. e4' },
 				1,
 			);
@@ -291,7 +293,7 @@ describe('GameService', () => {
 			);
 
 			await service.finishGame(
-				1,
+				GAME_ID,
 				{ winnerId: null, currentFen: 'fen', pgn: '' },
 				1,
 			);
@@ -306,7 +308,7 @@ describe('GameService', () => {
 
 			await expect(
 				service.finishGame(
-					1,
+					GAME_ID,
 					{ winnerId: null, currentFen: 'fen', pgn: '' },
 					42,
 				),
@@ -329,7 +331,7 @@ describe('GameService', () => {
 			);
 			(prisma.game.update as jest.Mock).mockResolvedValue(updatedGame);
 
-			const result = await service.makeMove(1, { move: 'e4' }, 1);
+			const result = await service.makeMove(GAME_ID, { move: 'e4' }, 1);
 
 			expect(prisma.game.update).toHaveBeenCalled();
 			expect(result).toBeDefined();
@@ -339,7 +341,7 @@ describe('GameService', () => {
 			(prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
 
 			await expect(
-				service.makeMove(999, { move: 'e4' }, 1),
+				service.makeMove('missing-game-id', { move: 'e4' }, 1),
 			).rejects.toThrow(NotFoundException);
 		});
 
@@ -349,7 +351,7 @@ describe('GameService', () => {
 			); // WAITING
 
 			await expect(
-				service.makeMove(1, { move: 'e4' }, 1),
+				service.makeMove(GAME_ID, { move: 'e4' }, 1),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -359,7 +361,7 @@ describe('GameService', () => {
 			); // white turn
 
 			await expect(
-				service.makeMove(1, { move: 'e4' }, 2),
+				service.makeMove(GAME_ID, { move: 'e4' }, 2),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -369,7 +371,7 @@ describe('GameService', () => {
 			);
 
 			await expect(
-				service.makeMove(1, { move: 'e9' }, 1),
+				service.makeMove(GAME_ID, { move: 'e9' }, 1),
 			).rejects.toThrow(BadRequestException);
 		});
 	});

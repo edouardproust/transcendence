@@ -4,7 +4,7 @@ import {
 	Get,
 	HttpCode,
 	Param,
-	ParseIntPipe,
+	ParseUUIDPipe,
 	Post,
 	Req,
 	UseGuards,
@@ -45,7 +45,7 @@ export class GameController {
 	// GET /games/:id
 	@Get(':id')
 	@UseGuards(JwtAuthGuard)
-	async getGame(@Param('id', ParseIntPipe) id: number) {
+	async getGame(@Param('id', ParseUUIDPipe) id: string) {
 		return this.gameService.getGame(id);
 	}
 
@@ -53,7 +53,7 @@ export class GameController {
 	@Post(':id/start')
 	@HttpCode(200)
 	@UseGuards(JwtAuthGuard)
-	async startGame(@Param('id', ParseIntPipe) id: number, @Req() req) {
+	async startGame(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
 		return this.gameService.startGame(id, req.user.id);
 	}
 
@@ -62,7 +62,7 @@ export class GameController {
 	@HttpCode(200)
 	@UseGuards(JwtAuthGuard)
 	async finishGame(
-		@Param('id', ParseIntPipe) id: number,
+		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: FinishGameDto,
 		@Req() req,
 	) {
@@ -74,7 +74,7 @@ export class GameController {
 	@HttpCode(200)
 	@UseGuards(JwtAuthGuard)
 	async makeMove(
-		@Param('id', ParseIntPipe) id: number,
+		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: MakeMoveDto,
 		@Req() req,
 	) {

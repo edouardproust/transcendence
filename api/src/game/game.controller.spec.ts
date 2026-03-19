@@ -3,6 +3,8 @@ import { GameController } from './game.controller';
 import { GameService } from './game.service';
 import { GameServiceMock, gameFixture } from './game.service.mock';
 
+const GAME_ID = '11111111-1111-1111-1111-111111111111';
+
 describe('GameController', () => {
 	let controller: GameController;
 	let service: GameService;
@@ -84,9 +86,9 @@ describe('GameController', () => {
 		it('should call service.getGame with id', async () => {
 			(service.getGame as jest.Mock).mockResolvedValue(gameFixture);
 
-			const result = await controller.getGame(1);
+			const result = await controller.getGame(GAME_ID);
 
-			expect(service.getGame).toHaveBeenCalledWith(1);
+			expect(service.getGame).toHaveBeenCalledWith(GAME_ID);
 			expect(result).toEqual(gameFixture);
 		});
 	});
@@ -102,9 +104,9 @@ describe('GameController', () => {
 			});
 			const req = { user: { id: 1 } };
 
-			const result = await controller.startGame(1, req);
+			const result = await controller.startGame(GAME_ID, req);
 
-			expect(service.startGame).toHaveBeenCalledWith(1, 1);
+			expect(service.startGame).toHaveBeenCalledWith(GAME_ID, 1);
 			expect(result.status).toBe('ongoing');
 		});
 	});
@@ -121,9 +123,9 @@ describe('GameController', () => {
 			const req = { user: { id: 1 } };
 			const dto = { winnerId: 1, currentFen: 'some-fen', pgn: '1. e4' };
 
-			const result = await controller.finishGame(1, dto, req);
+			const result = await controller.finishGame(GAME_ID, dto, req);
 
-			expect(service.finishGame).toHaveBeenCalledWith(1, dto, 1);
+			expect(service.finishGame).toHaveBeenCalledWith(GAME_ID, dto, 1);
 			expect(result.status).toBe('finished');
 		});
 	});
@@ -136,9 +138,17 @@ describe('GameController', () => {
 			(service.makeMove as jest.Mock).mockResolvedValue(gameFixture);
 			const req = { user: { id: 1 } };
 
-			const result = await controller.makeMove(1, { move: 'e4' }, req);
+			const result = await controller.makeMove(
+				GAME_ID,
+				{ move: 'e4' },
+				req,
+			);
 
-			expect(service.makeMove).toHaveBeenCalledWith(1, { move: 'e4' }, 1);
+			expect(service.makeMove).toHaveBeenCalledWith(
+				GAME_ID,
+				{ move: 'e4' },
+				1,
+			);
 			expect(result).toEqual(gameFixture);
 		});
 	});
