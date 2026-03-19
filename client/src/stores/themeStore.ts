@@ -18,6 +18,7 @@ export const useThemeStore = create<ThemeState>()(
         set((state) => {
           const newTheme = state.theme === 'light' ? 'dark' : 'light';
           
+          // Actualizar clase en el HTML
           if (newTheme === 'dark') {
             document.documentElement.classList.add('dark');
           } else {
@@ -38,7 +39,7 @@ export const useThemeStore = create<ThemeState>()(
       },
     }),
     {
-      name: 'theme-storage',
+      name: 'theme-storage', // Nombre en localStorage
     }
   )
 );

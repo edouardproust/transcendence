@@ -22,6 +22,7 @@ export const RegisterPage: React.FC = () => {
     try {
       const { user, token } = await authService.register(username, email, password);
       
+      // Save in store
       login(user, token);
       
       navigate('/lobby');

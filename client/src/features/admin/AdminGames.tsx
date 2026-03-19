@@ -26,10 +26,10 @@ export const AdminGames: React.FC = () => {
       <Card className="mb-6">
         <CardBody>
           <div className="max-w-xs">
-   
           </div>
         </CardBody>
       </Card>
+
     </div>
   );
 };

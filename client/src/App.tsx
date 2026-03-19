@@ -7,9 +7,9 @@ function App() {
   const { theme, setTheme } = useThemeStore();
 
   useEffect(() => {
-    // Apply saved theme
     setTheme(theme);
   }, [theme, setTheme]);
+
 
   useEffect(() => {
     const nativeAlert = window.alert;

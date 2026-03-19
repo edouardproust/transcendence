@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 export const AdminDashboard: React.FC = () => {
-
+ 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-gray-100">
@@ -14,6 +14,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Usuarios</p>
+
             </div>
             <div className="text-4xl">👥</div>
           </div>
@@ -59,7 +60,6 @@ export const AdminDashboard: React.FC = () => {
                 <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Registrado</th>
               </tr>
             </thead>
-          
           </table>
         </div>
       </div>
@@ -69,7 +69,7 @@ export const AdminDashboard: React.FC = () => {
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
           📜 Actividad Reciente
         </h2>
-     
+
       </div>
     </div>
   );

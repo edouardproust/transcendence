@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
-//import { adminService, AdminUser } from '@/services/adminService';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
 export const AdminUsers: React.FC = () => {
-  //const [users, setUsers] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  // const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
-  // const [editElo, setEditElo] = useState('');
-  // const [editRole, setEditRole] = useState<'user' | 'admin'>('user');
+
 
   useEffect(() => {
     loadUsers();
@@ -19,8 +15,6 @@ export const AdminUsers: React.FC = () => {
   const loadUsers = async () => {
     setIsLoading(true);
   };
-
-
 
   if (isLoading) {
     return (
