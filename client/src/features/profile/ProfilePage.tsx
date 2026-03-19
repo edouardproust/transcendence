@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { UserProfile } from '@/types/user';
@@ -9,18 +9,18 @@ import { Input } from '@/components/ui/Input';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, token } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ username: '', email: '' });
   const [isLoading, setIsLoading] = useState(true);
+
   const isOwnProfile = !userId || userId === user?.id;
 
   useEffect(() => {
     loadProfile();
   }, [userId]);
-
-  
 
   const loadProfile = async () => {
     try {
@@ -34,7 +34,6 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-
   const handleUpdateProfile = async () => {
     try {
       const updated = await userService.updateProfile(editData);
@@ -45,7 +44,6 @@ export const ProfilePage: React.FC = () => {
       alert(error.response?.data?.message || 'Error actualizando perfil');
     }
   };
-
 
   if (isLoading) {
     return (
@@ -78,7 +76,7 @@ export const ProfilePage: React.FC = () => {
               {profile.username}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">{profile.email}</p>
-           
+
             <p className="text-sm text-gray-500 dark:text-gray-500">
               Miembro desde {new Date(profile.created_at).toLocaleDateString()}
             </p>
@@ -94,7 +92,7 @@ export const ProfilePage: React.FC = () => {
 
         {isOwnProfile && !isEditing && (
           <div className="flex gap-2">
-           
+
             <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>
           </div>
         )}
@@ -149,11 +147,7 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        
       </div>
-
-    
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { useAuthStore } from '@/features/auth/authStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { Button } from '../ui/Button';
 import { authService } from '@/services/authService';
+// import { disconnectSocket } from '@/engine/socket';
+// import { disconnectPresenceSocket } from '@/engine/presenceSocket';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +18,8 @@ export const Navbar: React.FC = () => {
     } catch (error) {
       console.error('Logout request failed:', error);
     } finally {
+      // disconnectSocket();
+      // disconnectPresenceSocket();
       logout();
       navigate('/login', { replace: true });
     }
@@ -49,6 +53,11 @@ export const Navbar: React.FC = () => {
               <span className="text-sm">
                 {user.username}
               </span>
+              {user.role === 'admin' && (
+                <Link to="/admin">
+                  <Button variant="primary">👑 Admin</Button>
+                </Link>
+              )}
               <Link to="/profile">
                 <Button variant="secondary">Mi Perfil</Button>
               </Link>

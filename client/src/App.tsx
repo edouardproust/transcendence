@@ -11,7 +11,6 @@ function App() {
     setTheme(theme);
   }, [theme, setTheme]);
 
-
   useEffect(() => {
     const nativeAlert = window.alert;
     window.alert = (message?: any) => {
