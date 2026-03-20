@@ -25,3 +25,19 @@ export interface RegisterCredentials {
   email: string;
   password: string;
 }
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  elo: number;
+  role?: 'user' | 'admin';
+  avatar_url?: string;
+  is_online?: boolean;
+  last_seen?: string | null;
+  created_at: string;
+  totalGames: number;
+  wins: number;
+  losses: number;
+  draws: number;
+}

@@ -1,19 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authService } from '@/services/authService';
+import { useAuthStore } from './authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
 export const LoginPage: React.FC = () => {
-
+  const navigate = useNavigate();
+  const { login } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
+    try {
+      const { user, token } = await authService.login(email, password);
+      
+      login(user, token);
+      
+      navigate('/lobby');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

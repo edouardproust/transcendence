@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authService } from '@/services/authService';
+import { useAuthStore } from './authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
 export const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { login } = useAuthStore();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,6 +18,20 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    try {
+      const { user, token } = await authService.register(username, email, password);
+      
+      // Save in store
+      login(user, token);
+      
+      navigate('/lobby');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al registrarse');
+      console.error('Register error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
