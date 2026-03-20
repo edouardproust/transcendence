@@ -18,7 +18,7 @@ async function bootstrap() {
 
 	// Enable CORS (to allow frontend to communicate with API)
 	app.enableCors({
-		origin: corsOrigins.length > 0 ? corsOrigins : true,
+		origin: corsOrigins.length > 0 ? corsOrigins : process.env.NODE_ENV !== 'production',
 		credentials: true,
 	});
 
