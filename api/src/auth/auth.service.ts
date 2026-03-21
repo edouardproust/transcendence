@@ -13,7 +13,7 @@ export class AuthService {
 		private readonly jwtService: JwtService,
 	) {}
 
-	private generateToken(user: { id: number; role: Role }) {
+	private generateToken(user: { id: string; role: Role }) {
 		return this.jwtService.sign({ sub: user.id, role: user.role });
 	}
 

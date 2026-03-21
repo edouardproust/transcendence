@@ -11,7 +11,7 @@ export class OwnerOrAdminGuard implements CanActivate {
 	canActivate(context: ExecutionContext): boolean {
 		const request = context.switchToHttp().getRequest();
 		const user = request.user;
-		const id = parseInt(request.params.id);
+		const id = request.params.id;
 
 		if (user.role === Role.ADMIN || user.id === id) return true;
 

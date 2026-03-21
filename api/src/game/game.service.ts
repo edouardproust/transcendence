@@ -20,7 +20,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games
 	// ------------------------------------------------------------------ //
-	async createGame(dto: CreateGameDto, userId: number) {
+	async createGame(dto: CreateGameDto, userId: string) {
 		const mode = dto.mode === 'ai' ? GameMode.AI : GameMode.ONLINE;
 
 		const game = await this.prisma.game.create({
@@ -56,7 +56,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// GET /games/user
 	// ------------------------------------------------------------------ //
-	async getUserGames(userId: number) {
+	async getUserGames(userId: string) {
 		const games = await this.prisma.game.findMany({
 			where: {
 				OR: [{ whiteId: userId }, { blackId: userId }],
@@ -83,7 +83,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games/:id/start
 	// ------------------------------------------------------------------ //
-	async startGame(gameId: string, userId: number) {
+	async startGame(gameId: string, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -121,7 +121,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games/:id/finish
 	// ------------------------------------------------------------------ //
-	async finishGame(gameId: string, dto: FinishGameDto, userId: number) {
+	async finishGame(gameId: string, dto: FinishGameDto, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -154,7 +154,7 @@ export class GameService {
 	// ------------------------------------------------------------------ //
 	// POST /games/:id/move
 	// ------------------------------------------------------------------ //
-	async makeMove(gameId: string, dto: MakeMoveDto, userId: number) {
+	async makeMove(gameId: string, dto: MakeMoveDto, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -194,7 +194,7 @@ export class GameService {
 		}
 
 		let status: GameStatus = GameStatus.ONGOING;
-		let winnerId: number | null = null;
+		let winnerId: string | null = null;
 
 		if (chess.isCheckmate()) {
 			status = GameStatus.FINISHED;

@@ -7,11 +7,12 @@ import { GameServiceMock, gameFixture } from '../src/game/game.service.mock';
 import { JwtAuthGuard } from '../src/auth/guard/jwt-auth.guard';
 
 const GAME_ID = '11111111-1111-1111-1111-111111111111';
+const USER_ID = '22222222-2222-2222-2222-222222222222';
 
 const mockJwtGuard = {
 	canActivate: (ctx) => {
 		const req = ctx.switchToHttp().getRequest();
-		req.user = { id: 1 };
+		req.user = { id: USER_ID };
 		return true;
 	},
 };
@@ -58,7 +59,7 @@ describe('Game (e2e)', () => {
 			expect(res.body.id).toBe(gameFixture.id);
 			expect(service.createGame).toHaveBeenCalledWith(
 				{ timeControl: '10+0', mode: 'online' },
-				1,
+				USER_ID,
 			);
 		});
 
@@ -108,7 +109,7 @@ describe('Game (e2e)', () => {
 				.expect(200);
 
 			expect(res.body).toHaveLength(1);
-			expect(service.getUserGames).toHaveBeenCalledWith(1);
+			expect(service.getUserGames).toHaveBeenCalledWith(USER_ID);
 		});
 	});
 
@@ -146,7 +147,7 @@ describe('Game (e2e)', () => {
 				.expect(200);
 
 			expect(res.body.status).toBe('ongoing');
-			expect(service.startGame).toHaveBeenCalledWith(GAME_ID, 1);
+			expect(service.startGame).toHaveBeenCalledWith(GAME_ID, USER_ID);
 		});
 	});
 
@@ -162,9 +163,11 @@ describe('Game (e2e)', () => {
 
 			const res = await request(app.getHttpServer())
 				.post(`/games/${GAME_ID}/finish`)
-				.send({ winnerId: 1, currentFen: 'some-fen', pgn: '1. e4' })
-				.expect(200);
-
+				.send({
+					winnerId: USER_ID,
+					currentFen: 'some-fen',
+					pgn: '1. e4',
+				});
 			expect(res.body.status).toBe('finished');
 		});
 
@@ -192,7 +195,7 @@ describe('Game (e2e)', () => {
 			expect(service.makeMove).toHaveBeenCalledWith(
 				GAME_ID,
 				{ move: 'e4' },
-				1,
+				USER_ID,
 			);
 		});
 

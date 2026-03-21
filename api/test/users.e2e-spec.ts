@@ -95,7 +95,10 @@ describe('UserController (e2e)', () => {
 		};
 
 		it('should return 401 if token is invalid', async () => {
-			const response = await getUser('1', 'invalidtoken');
+			const response = await getUser(
+				'00000000-0000-0000-0000-000000000001',
+				'invalidtoken',
+			);
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 
@@ -110,7 +113,8 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const response = await getUser('999', token); // Assuming 999 is a non-existent user ID
+			const nonExistentId = '00000000-0000-0000-0000-000000000099';
+			const response = await getUser(nonExistentId, token);
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
 			expect(response.body.message).toBe('User not found');
 		});
@@ -143,7 +147,10 @@ describe('UserController (e2e)', () => {
 		};
 
 		it('should return 401 if token is invalid', async () => {
-			const response = await deleteUser('1', 'invalidtoken');
+			const response = await deleteUser(
+				'00000000-0000-0000-0000-000000000001',
+				'invalidtoken',
+			);
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 
@@ -158,7 +165,8 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const response = await deleteUser('999', token); // Assuming 999 is a non-existent user ID
+			const nonExistentId = '00000000-0000-0000-0000-000000000099';
+			const response = await deleteUser(nonExistentId, token);
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
 			expect(response.body.message).toBe('User not found');
 		});
@@ -198,9 +206,13 @@ describe('UserController (e2e)', () => {
 		};
 
 		it('should return 401 if token is invalid', async () => {
-			const response = await updateUser('1', 'invalidtoken', {
-				username: 'newusername',
-			});
+			const response = await updateUser(
+				'00000000-0000-0000-0000-000000000001',
+				'invalidtoken',
+				{
+					username: 'newusername',
+				},
+			);
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 
@@ -217,7 +229,8 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const response = await updateUser('999', token, {
+			const nonExistentId = '00000000-0000-0000-0000-000000000099';
+			const response = await updateUser(nonExistentId, token, {
 				username: 'newusername',
 			});
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);

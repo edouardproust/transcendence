@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 
 export const usersFixture: Omit<User, 'password'>[] = [
 	{
-		id: 1,
+		id: '1',
 		email: 'admin@example.com',
 		username: 'admin',
 		role: Role.ADMIN,
@@ -12,7 +12,7 @@ export const usersFixture: Omit<User, 'password'>[] = [
 		updatedAt: new Date(),
 	},
 	{
-		id: 2,
+		id: '2',
 		email: 'user2@example.com',
 		username: 'user',
 		role: Role.USER,

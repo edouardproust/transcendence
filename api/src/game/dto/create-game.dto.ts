@@ -21,8 +21,8 @@ export class MakeMoveDto {
 // POST /games/:id/finish
 export class FinishGameDto {
 	@IsOptional()
-	@IsInt()
-	winnerId: number | null;
+	@IsString()
+	winnerId: string | null;
 
 	@IsString()
 	@IsNotEmpty()
