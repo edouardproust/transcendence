@@ -24,12 +24,12 @@ describe('AdminGuard', () => {
 
 	describe('canActivate', () => {
 		it('should return true when user is ADMIN', () => {
-			const result = guard.canActivate(mockContext(Role.ADMIN));
+			const result = guard.canActivate(mockContext(Role.admin));
 			expect(result).toBe(true);
 		});
 
 		it('should throw ForbiddenException when user is not ADMIN', () => {
-			expect(() => guard.canActivate(mockContext(Role.USER))).toThrow(
+			expect(() => guard.canActivate(mockContext(Role.user))).toThrow(
 				ForbiddenException,
 			);
 		});

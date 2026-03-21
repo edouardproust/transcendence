@@ -24,7 +24,6 @@ describe('AuthController (e2e)', () => {
 	});
 
 	beforeEach(async () => {
-		await prisma.game.deleteMany();
 		await prisma.user.deleteMany();
 	});
 
@@ -32,7 +31,7 @@ describe('AuthController (e2e)', () => {
 		await app.close();
 	});
 
-	const password = 'plainpassword';
+	const password = 'Password123#';
 	const email = 'test@example.com';
 	const username = 'testuser';
 
@@ -53,7 +52,7 @@ describe('AuthController (e2e)', () => {
 		it('should return 201 Created', async () => {
 			const response = await registerUser(email, username, password);
 			expect(response.status).toBe(HttpStatus.CREATED);
-			expect(response.body).toHaveProperty('access_token');
+			expect(response.body).toHaveProperty('token');
 			expect(response.body.user).toMatchObject({ email: email });
 			expect(response.body.user).not.toHaveProperty('password');
 		});
@@ -99,8 +98,26 @@ describe('AuthController (e2e)', () => {
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 
+		it('should return 400 Bad Request if username contains invalid characters', async () => {
+			const response = await registerUser(
+				email,
+				'invalid user!',
+				password,
+			);
+			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
 		it('should return 400 Bad Request if password is too short', async () => {
 			const response = await registerUser(email, username, '123');
+			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it('should return 400 Bad Request if password format is invalid', async () => {
+			const response = await registerUser(
+				email,
+				username,
+				'nouppercase1!',
+			);
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 	});
@@ -108,7 +125,7 @@ describe('AuthController (e2e)', () => {
 	describe('POST /login', () => {
 		const loginUser = async (email: string, password: string) =>
 			await request(app.getHttpServer()).post('/auth/login').send({
-				email,
+				emailOrUsername: email,
 				password,
 			});
 
@@ -120,11 +137,19 @@ describe('AuthController (e2e)', () => {
 			});
 		});
 
-		it('should return 200 OK and access token', async () => {
+		it('should return 200 OK and access token when logging in with email', async () => {
 			const response = await loginUser(email, password);
 			expect(response.status).toBe(HttpStatus.OK);
-			expect(response.body).toHaveProperty('access_token');
+			expect(response.body).toHaveProperty('token');
 			expect(response.body.user).toMatchObject({ email });
+			expect(response.body.user).not.toHaveProperty('password');
+		});
+
+		it('should return 200 OK and access token when logging in with username', async () => {
+			const response = await loginUser(username, password);
+			expect(response.status).toBe(HttpStatus.OK);
+			expect(response.body).toHaveProperty('token');
+			expect(response.body.user).toMatchObject({ username });
 			expect(response.body.user).not.toHaveProperty('password');
 		});
 
@@ -133,6 +158,11 @@ describe('AuthController (e2e)', () => {
 				'nonexistent@example.com',
 				password,
 			);
+			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
+		});
+
+		it('should return 401 Unauthorized if username is not registered', async () => {
+			const response = await loginUser('non-existent-username', password);
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 

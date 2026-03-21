@@ -12,7 +12,7 @@ export class AdminGuard implements CanActivate {
 		const request = context.switchToHttp().getRequest();
 		const user = request.user;
 
-		if (user.role === Role.ADMIN) return true;
+		if (user.role === Role.admin) return true;
 
 		throw new ForbiddenException(
 			"You don't have permission to access this resource",

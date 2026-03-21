@@ -21,7 +21,7 @@ To edit the API, open this folder in a `Dev Container`:
 To visualize all the databases from the host machine:
 
 1. Start containers with `make`
-2. Go to [http://localhost:8081](http://localhost:8081) and login:
+2. Go to [http://localhost:8081](http://localhost:8081) over plain HTTP and login:
     - System: `PostgresSQL`
     - Server: `postgres`
     - Username: the one you chose (default: `testuser`)

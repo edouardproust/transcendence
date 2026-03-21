@@ -1,4 +1,3 @@
-import { find } from 'rxjs';
 import { PrismaService } from './prisma.service';
 
 export const PrismaServiceMock = {

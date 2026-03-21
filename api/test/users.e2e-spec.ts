@@ -22,7 +22,6 @@ describe('UserController (e2e)', () => {
 	});
 
 	beforeEach(async () => {
-		await prisma.game.deleteMany();
 		await prisma.user.deleteMany();
 	});
 
@@ -30,11 +29,13 @@ describe('UserController (e2e)', () => {
 		await app.close();
 	});
 
-	const password = 'plainpassword';
+	const password = 'Password123$';
+	const nonExistentId = '00000000-0000-0000-0000-000000000000';
 	const makeUser = async (email: string = 'test@example.com') => {
 		return {
 			email,
 			password: await bcrypt.hash(password, 10),
+			username: email.split('@')[0],
 		};
 	};
 	const seedUser = async (email: string = 'test@example.com') => {
@@ -44,15 +45,15 @@ describe('UserController (e2e)', () => {
 	};
 	const seedAdmin = async (email: string = 'admin@example.com') => {
 		return prisma.user.create({
-			data: { ...(await makeUser(email)), role: Role.ADMIN },
+			data: { ...(await makeUser(email)), role: Role.admin },
 		});
 	};
 	const login = async (email: string, password: string) => {
 		const response = await request(app.getHttpServer())
 			.post('/auth/login')
-			.send({ email, password })
+			.send({ emailOrUsername: email, password })
 			.expect(200);
-		return response.body.access_token;
+		return response.body.token;
 	};
 
 	// E2E TESTS
@@ -95,10 +96,7 @@ describe('UserController (e2e)', () => {
 		};
 
 		it('should return 401 if token is invalid', async () => {
-			const response = await getUser(
-				'00000000-0000-0000-0000-000000000001',
-				'invalidtoken',
-			);
+			const response = await getUser('1', 'invalidtoken');
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 
@@ -113,7 +111,6 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const nonExistentId = '00000000-0000-0000-0000-000000000099';
 			const response = await getUser(nonExistentId, token);
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
 			expect(response.body.message).toBe('User not found');
@@ -147,10 +144,7 @@ describe('UserController (e2e)', () => {
 		};
 
 		it('should return 401 if token is invalid', async () => {
-			const response = await deleteUser(
-				'00000000-0000-0000-0000-000000000001',
-				'invalidtoken',
-			);
+			const response = await deleteUser('1', 'invalidtoken');
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 
@@ -165,8 +159,7 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const nonExistentId = '00000000-0000-0000-0000-000000000099';
-			const response = await deleteUser(nonExistentId, token);
+			const response = await deleteUser(nonExistentId, token); // Assuming 999 is a non-existent user ID
 			expect(response.status).toBe(HttpStatus.NOT_FOUND);
 			expect(response.body.message).toBe('User not found');
 		});
@@ -206,13 +199,9 @@ describe('UserController (e2e)', () => {
 		};
 
 		it('should return 401 if token is invalid', async () => {
-			const response = await updateUser(
-				'00000000-0000-0000-0000-000000000001',
-				'invalidtoken',
-				{
-					username: 'newusername',
-				},
-			);
+			const response = await updateUser('1', 'invalidtoken', {
+				username: 'newusername',
+			});
 			expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
 		});
 
@@ -229,7 +218,6 @@ describe('UserController (e2e)', () => {
 		it('should return 404 if user not found', async () => {
 			const admin = await seedAdmin();
 			const token = await login(admin.email, password);
-			const nonExistentId = '00000000-0000-0000-0000-000000000099';
 			const response = await updateUser(nonExistentId, token, {
 				username: 'newusername',
 			});
@@ -270,7 +258,7 @@ describe('UserController (e2e)', () => {
 		it('should hash password if password is updated', async () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
-			const newPassword = 'newplainpassword';
+			const newPassword = 'NewPassword123!';
 			const response = await updateUser(user.id.toString(), token, {
 				password: newPassword,
 			});
@@ -290,15 +278,15 @@ describe('UserController (e2e)', () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
-				role: Role.ADMIN,
+				role: Role.admin,
 			});
 			expect(response.status).toBe(HttpStatus.OK);
-			expect(response.body.role).toBe(Role.USER); // Role should remain unchanged
+			expect(response.body.role).toBe(Role.user); // Role should remain unchanged
 			// Verify that the role is actually unchanged in the database
 			const updatedUser = await prisma.user.findUnique({
 				where: { id: user.id },
 			});
-			expect(updatedUser!.role).toBe(Role.USER);
+			expect(updatedUser!.role).toBe(Role.user);
 		});
 
 		it('should ignore extra fields in the request body', async () => {
@@ -322,7 +310,7 @@ describe('UserController (e2e)', () => {
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 
-		it('should return 400 if password is too short', async () => {
+		it('should return 400 if password format is invalid', async () => {
 			const user = await seedUser();
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
@@ -336,6 +324,15 @@ describe('UserController (e2e)', () => {
 			const token = await login(user.email, password);
 			const response = await updateUser(user.id.toString(), token, {
 				email: 'invalidemail', // Invalid email format
+			});
+			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it('should return 400 if username contains invalid characters', async () => {
+			const user = await seedUser();
+			const token = await login(user.email, password);
+			const response = await updateUser(user.id.toString(), token, {
+				username: 'invalid username!', // spaces and special characters not allowed
 			});
 			expect(response.status).toBe(HttpStatus.BAD_REQUEST);
 		});

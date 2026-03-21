@@ -21,7 +21,7 @@ export class AuthService {
 	 * Create a new user in database, then and log him in by generating a JWT token.
 	 *
 	 * @param createUserDto POST user data
-	 * @returns Object containing JWT `access_token` & `user` data (password omitted for security)
+	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws {ConflictException} If email or username already exists
 	 */
 	async register(createUserDto: CreateUserDto) {
@@ -29,7 +29,7 @@ export class AuthService {
 			await this.usersService.createOne(createUserDto);
 		return {
 			user: userWithoutPassword,
-			access_token: this.generateToken(userWithoutPassword),
+			token: this.generateToken(userWithoutPassword),
 		};
 	}
 
@@ -37,7 +37,7 @@ export class AuthService {
 	 * Login a user by generating a JWT token.
 	 *
 	 * @param loginDto Post data for login
-	 * @returns Object containing JWT `access_token` & `user` data (password omitted for security)
+	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws UnauthorizedException if email or password is invalid
 	 *
 	 * @remarks
@@ -46,26 +46,23 @@ export class AuthService {
 	 * - `role`: required by `RolesGuard` to check for admin access
 	 */
 	async login(loginDto: LoginDto) {
-		const errorMsg = 'Invalid email or password'; // Vague to give no info to attackers
-		const user = await this.usersService.findOneByEmail(loginDto.email);
+		const errorMsg = 'Invalid email, username or password'; // Vague to give no info to attackers
+		const isEmail = /\S+@\S+\.\S+/.test(loginDto.emailOrUsername);
+
+		let user = isEmail
+			? await this.usersService.findOneByEmail(loginDto.emailOrUsername)
+			: await this.usersService.findOneByUsername(
+					loginDto.emailOrUsername,
+				);
 		if (!user) throw new UnauthorizedException(errorMsg);
+
 		if (!(await bcrypt.compare(loginDto.password, user.password)))
 			throw new UnauthorizedException(errorMsg);
 
 		const { password, ...userWithoutPassword } = user;
 		return {
 			user: userWithoutPassword,
-			access_token: this.generateToken(userWithoutPassword),
+			token: this.generateToken(userWithoutPassword),
 		};
 	}
-
-	/**
-	 * Logout a user.
-	 *
-	 * @remarks
-	 * No server-side logic needed for now. Since we use stateless JWT, logout is handled
-	 * client-side by deleting the token. A blacklist or refresh token strategy can be
-	 * implemented later if token revocation is required.
-	 */
-	logout() {}
 }
