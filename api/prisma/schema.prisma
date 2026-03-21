@@ -29,8 +29,49 @@ model User {
     avatarUrl String?
     isOnline  Boolean   @default(false)
     lastSeen  DateTime?
+    whiteGames Game[]   @relation("WhitePlayer")
+    blackGames Game[]   @relation("BlackPlayer")
+    wonGames   Game[]   @relation("Winner")
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
 
     @@map("users")
+}
+
+enum GameStatus {
+    WAITING
+    ONGOING
+    FINISHED
+    ABORTED
+}
+
+enum GameMode {
+    ONLINE
+    AI
+}
+
+model Game {
+    id String @id @default(uuid())
+
+    status GameStatus @default(WAITING)
+    mode   GameMode   @default(ONLINE)
+
+    whiteId String
+    blackId String?
+
+    white User  @relation("WhitePlayer", fields: [whiteId], references: [id])
+    black User? @relation("BlackPlayer", fields: [blackId], references: [id])
+
+    winnerId String?
+    winner   User?   @relation("Winner", fields: [winnerId], references: [id])
+
+    currentFen String?
+    pgn        String?
+
+    timeControl String @default("unlimited")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("games")
 }

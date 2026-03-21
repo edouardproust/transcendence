@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Game" ALTER COLUMN "currentFEN" SET DEFAULT '',
+ALTER COLUMN "movesPGN" SET DEFAULT '';

@@ -1,0 +1,53 @@
+### Register (all fields)
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+	"email": "test5@example.com",
+	"password": "12345678",
+	"username": "test5"
+}
+
+### Register (only mandatory fields)
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+	"username": "testuser",
+	"email": "test2@example.com",
+	"password": "test123456789"
+}
+
+### Register (invalid data)
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### Register (missing fields)
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+	"email": "test@example.com"
+}
+
+### Login (user + valid credentials)
+POST http://localhost:3001/auth/login
+Content-Type: application/json	
+
+{
+	"email": "test2@example.com",
+	"password": "test123456789"
+}
+
+### Login (admin + valid credentials)
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+	"email": "admin@example.com",
+	"password": "admin1234"
+}
