@@ -31,7 +31,8 @@ export class AuthService {
 	}
 
 	/**
-	 * Create a new user in database, then and log him in by generating a JWT token.
+	 * Create a new user in database, then log him in by generating a JWT token.
+	 * Sets the user as online and updates lastSeen on registration.
 	 *
 	 * @param createUserDto POST user data
 	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
@@ -40,6 +41,10 @@ export class AuthService {
 	async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
 		const userWithoutPassword =
 			await this.usersService.createOne(createUserDto);
+		await this.usersService.updateOneById(userWithoutPassword.id, {
+			lastSeen: new Date(),
+			isOnline: true,
+		});
 		return {
 			user: userWithoutPassword,
 			token: this.generateToken({

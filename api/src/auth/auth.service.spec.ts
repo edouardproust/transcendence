@@ -58,6 +58,20 @@ describe('AuthService', () => {
 				role: userInDb.role,
 			});
 		});
+
+		it('should set user as online and update lastSeen on registration', async () => {
+			jest.spyOn(usersService, 'createOne').mockResolvedValue(
+				userInDb as any,
+			);
+			await service.register(createUserDto);
+			expect(usersService.updateOneById).toHaveBeenCalledWith(
+				userInDb.id,
+				expect.objectContaining({
+					isOnline: true,
+					lastSeen: expect.any(Date),
+				}),
+			);
+		});
 	});
 
 	describe('login', () => {
