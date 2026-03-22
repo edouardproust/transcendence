@@ -23,8 +23,6 @@ read -p "DOMAIN_NAME (check.io): " domain_name
 domain_name=${domain_name:-"check.io"}
 read -p "POSTGRES_DB (checkio_prod): " postgres_db
 postgres_db=${postgres_db:-"checkio_prod"}
-<<<<<<< HEAD
-<<<<<<< HEAD
 postgres_user_default=$(openssl rand -hex 6)
 read -p "POSTGRES_USER (${postgres_user_default}): " postgres_user
 postgres_user=${postgres_user:-$postgres_user_default}
@@ -52,7 +50,6 @@ while true; do
     [ -n "$aws_access_key_id" ] && break
     error "Required"
 done
-
 while true; do
     read -sp "AWS_SECRET_ACCESS_KEY: " aws_secret_access_key
     echo
@@ -63,54 +60,6 @@ read -p "AWS_REGION (eu-west-3): " aws_region
 aws_region=${aws_region:-"eu-west-3"}
 read -p "S3_BUCKET (checkio-uploads): " s3_bucket
 s3_bucket=${s3_bucket:-"checkio-uploads"}
-=======
-read -p "POSTGRES_USER (admin): " postgres_user
-postgres_user=${postgres_user:-"admin"}
-=======
-postgres_user_default=$(openssl rand -hex 6)
-read -p "POSTGRES_USER (${postgres_user_default}): " postgres_user
-postgres_user=${postgres_user:-$postgres_user_default}
->>>>>>> 830784d (done avatar upload)
-while true; do
-    read -sp "POSTGRES_PASSWORD: " postgres_pswd
-    echo
-    if [ -z "$postgres_pswd" ]; then
-        error "Required"
-    elif [ ${#postgres_pswd} -lt 16 ]; then
-        error "Must be at least 16 characters long"
-    elif ! echo "$postgres_pswd" | grep -qP '[A-Z]'; then
-        error "Must contain at least one uppercase letter"
-    elif ! echo "$postgres_pswd" | grep -qP '[a-z]'; then
-        error "Must contain at least one lowercase letter"
-    elif ! echo "$postgres_pswd" | grep -qP '[0-9]'; then
-        error "Must contain at least one number"
-    elif ! echo "$postgres_pswd" | grep -qP '[^a-zA-Z0-9]'; then
-        error "Must contain at least one special character"
-    else
-        break
-    fi
-done
-while true; do
-    read -p "AWS_ACCESS_KEY_ID: " aws_access_key_id
-    [ -n "$aws_access_key_id" ] && break
-    error "Required"
-done
-
-while true; do
-    read -sp "AWS_SECRET_ACCESS_KEY: " aws_secret_access_key
-    echo
-    [ -n "$aws_secret_access_key" ] && break
-    error "Required"
-done
-read -p "AWS_REGION (eu-west-3): " aws_region
-aws_region=${aws_region:-"eu-west-3"}
-<<<<<<< HEAD
-read -p "S3_BUCKET: " s3_bucket
->>>>>>> 2917ba2 (added users avatars upload + minio docker container)
-=======
-read -p "S3_BUCKET (checkio-uploads): " s3_bucket
-s3_bucket=${s3_bucket:-"checkio-uploads"}
->>>>>>> 830784d (done avatar upload)
 
 # Generate JWT token (api auth)
 	jwt_secret=$(openssl rand -hex 64)
@@ -124,14 +73,7 @@ printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAM
 # Secure the file (only owner can read/write)
 chmod 600 "$env_file"
 success "$env_file file created and secured (permissions: 600)"
-<<<<<<< HEAD
-<<<<<<< HEAD
 echo
-=======
->>>>>>> 2917ba2 (added users avatars upload + minio docker container)
-=======
-echo
->>>>>>> 830784d (done avatar upload)
 
 if [ -f "$ssl_generator" ]; then
 	source "$ssl_generator" # launch as source to export vars
@@ -152,7 +94,6 @@ fi
 		echo
 	fi
 
-# Remind about backup strategy
 success "Production setup completed successfully!"
 echo
 
@@ -168,19 +109,4 @@ echo "  3. Review security configurations"
 echo "  4. Set up SSL certificates (Let's Encrypt recommended)"
 echo "  5. Configure firewall rules"
 echo "  6. Review resource limits in docker-compose.prod.yml"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-echo
-
-success "Production setup completed successfully!"
-echo
-
-echo "Next steps:"
-echo "  1. Review $env_file"
-echo "  2. Run: docker compose -f docker/docker-compose.prod.yml up -d"
-echo "  3. Check logs: docker compose -f docker/docker-compose.prod.yml logs -f"
->>>>>>> 2917ba2 (added users avatars upload + minio docker container)
-=======
->>>>>>> 830784d (done avatar upload)
 echo

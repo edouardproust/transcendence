@@ -6,7 +6,6 @@ env_file="./docker/.env"
 SSL_DIR="./docker/nginx/ssl"
 ssl_generator="./docker/nginx/generate-ssl.sh"
 required_vars=(PROJECT_NAME POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET CORS_ORIGIN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION S3_BUCKET S3_ENDPOINT S3_PUBLIC_URL)
-<<<<<<< HEAD
 
 project_name=${project_name:-"Checkio"}
 postgres_db=${postgres_db:-"checkio"}
@@ -23,28 +22,6 @@ dev_https_origin="https://localhost:8443"
 dev_cors_origin="${dev_http_origin},${dev_https_origin}"
 
 info() { echo -e "\033[1;33m$*\033[0m"; }
-=======
-
-project_name=${project_name:-"Checkio"}
-postgres_db=${postgres_db:-"checkio"}
-postgres_user=${postgres_user:-"testuser"}
-postgres_pswd=${postgres_pswd:-"testuser123"}
-aws_access_key_id="minioadmin"
-aws_secret_access_key="minioadmin123"
-aws_region="eu-west-3"
-s3_bucket="checkio-uploads"
-s3_endpoint="http://minio:9000" # Used by minIO SDK to upload into Docker container
-s3_public_url="http://localhost:9000" # Used to build the file public URL (accessible by frontend)
-dev_http_origin="http://localhost:8080"
-dev_https_origin="https://localhost:8443"
-dev_cors_origin="${dev_http_origin},${dev_https_origin}"
-
-<<<<<<< HEAD
-title() { echo -e "\033[1;33m$*\033[0m"; }
->>>>>>> 2917ba2 (added users avatars upload + minio docker container)
-=======
-info() { echo -e "\033[1;33m$*\033[0m"; }
->>>>>>> 830784d (done avatar upload)
 success() { echo -e "\033[0;32m$*\033[0m"; }
 error() { echo -e "\033[0;31m$*\033[0m"; }
 
