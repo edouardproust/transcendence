@@ -1,23 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { EXAMPLES } from '../../common/constants';
+import { GameMode, GameStatus } from '../../prisma/generated/enums';
 
 export class AdminRecentActivityDto {
 	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
-	// TODO: Remove:
 	@ApiProperty({
-		example: 'waiting',
-		enum: ['waiting', 'active', 'finished', 'cancelled'],
+		example: GameStatus.WAITING,
+		enum: Object.values(GameStatus),
 	})
-	// TOSO: Replace by this:
-	//@ApiProperty({ example: GameStatus.waiting, enum: Object.values(GameStatus) })
 	status: string;
 
-	// TODO: Remove:
-	@ApiProperty({ example: 'online', enum: ['online', 'ai'] })
-	// TODO: Replace by this:
-	//@ApiProperty({ example: GameMode.online, enum: Object.values(GameMode) })
+	@ApiProperty({ example: GameMode.AI, enum: Object.values(GameMode) })
 	mode: string;
 
 	@ApiProperty({ example: EXAMPLES.date })

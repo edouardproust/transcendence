@@ -17,9 +17,6 @@ import { GameStatus, GameMode } from '../prisma/generated/enums';
 export class GameService {
 	constructor(private prisma: PrismaService) {}
 
-	// ------------------------------------------------------------------ //
-	// POST /games
-	// ------------------------------------------------------------------ //
 	async createGame(dto: CreateGameDto, userId: string) {
 		const mode = dto.mode === 'ai' ? GameMode.AI : GameMode.ONLINE;
 
@@ -36,9 +33,6 @@ export class GameService {
 		return game;
 	}
 
-	// ------------------------------------------------------------------ //
-	// GET /games/active  — parties en attente rejoignables (lobby)
-	// ------------------------------------------------------------------ //
 	async getActiveGames() {
 		const games = await this.prisma.game.findMany({
 			where: {
@@ -53,9 +47,6 @@ export class GameService {
 		return games;
 	}
 
-	// ------------------------------------------------------------------ //
-	// GET /games/user
-	// ------------------------------------------------------------------ //
 	async getUserGames(userId: string) {
 		const games = await this.prisma.game.findMany({
 			where: {
@@ -67,9 +58,6 @@ export class GameService {
 		return games;
 	}
 
-	// ------------------------------------------------------------------ //
-	// GET /games/:id
-	// ------------------------------------------------------------------ //
 	async getGame(id: string) {
 		const game = await this.prisma.game.findUnique({ where: { id } });
 
@@ -80,9 +68,6 @@ export class GameService {
 		return game;
 	}
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/start
-	// ------------------------------------------------------------------ //
 	async startGame(gameId: string, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
@@ -118,9 +103,6 @@ export class GameService {
 		return updatedGame;
 	}
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/finish
-	// ------------------------------------------------------------------ //
 	async finishGame(gameId: string, dto: FinishGameDto, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
@@ -134,8 +116,8 @@ export class GameService {
 			throw new ForbiddenException('You are not a player in this game');
 		}
 
-		if (game.status === GameStatus.FINISHED) {
-			return game;
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
 		}
 
 		const updatedGame = await this.prisma.game.update({
@@ -151,9 +133,6 @@ export class GameService {
 		return updatedGame;
 	}
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/move
-	// ------------------------------------------------------------------ //
 	async makeMove(gameId: string, dto: MakeMoveDto, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },

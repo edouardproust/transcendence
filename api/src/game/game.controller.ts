@@ -3,10 +3,10 @@ import {
 	Controller,
 	Get,
 	HttpCode,
+	HttpStatus,
 	Param,
 	ParseUUIDPipe,
 	Post,
-	Req,
 	UseGuards,
 } from '@nestjs/common';
 import { GameService } from './game.service';
@@ -16,68 +16,145 @@ import {
 	FinishGameDto,
 } from './dto/create-game.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags,
+} from '@nestjs/swagger';
+import { RequestUser } from '../auth/interfaces/request-user.interface';
 
 @Controller('games')
+@UseGuards(JwtAuthGuard)
+@ApiTags('games')
+@ApiBearerAuth()
 export class GameController {
 	constructor(private readonly gameService: GameService) {}
 
-	// POST /games
 	@Post()
-	@UseGuards(JwtAuthGuard)
-	async createGame(@Body() dto: CreateGameDto, @Req() req) {
-		return this.gameService.createGame(dto, req.user.id);
+	@ApiOperation({ summary: 'Create a new game' })
+	@ApiResponse({ status: HttpStatus.CREATED, description: 'Game created' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async createGame(
+		@Body() dto: CreateGameDto,
+		@CurrentUser() user: RequestUser,
+	) {
+		return this.gameService.createGame(dto, user.id);
 	}
 
-	// GET /games/active — doit être AVANT /:id pour ne pas être capturé par ParseIntPipe
 	@Get('active')
-	@UseGuards(JwtAuthGuard)
+	@ApiOperation({ summary: 'Get active games available to join' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'Returns active games' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
 	async getActiveGames() {
 		return this.gameService.getActiveGames();
 	}
 
-	// GET /games/user — idem, avant /:id
 	@Get('user')
-	@UseGuards(JwtAuthGuard)
-	async getUserGames(@Req() req) {
-		return this.gameService.getUserGames(req.user.id);
+	@ApiOperation({ summary: 'Get games for current user' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'Returns user games' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async getUserGames(@CurrentUser() user: RequestUser) {
+		return this.gameService.getUserGames(user.id);
 	}
 
-	// GET /games/:id
 	@Get(':id')
-	@UseGuards(JwtAuthGuard)
+	@ApiOperation({ summary: 'Get game by id' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'Returns game' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
 	async getGame(@Param('id', ParseUUIDPipe) id: string) {
 		return this.gameService.getGame(id);
 	}
 
-	// POST /games/:id/start
 	@Post(':id/start')
-	@HttpCode(200)
-	@UseGuards(JwtAuthGuard)
-	async startGame(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
-		return this.gameService.startGame(id, req.user.id);
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Start a game' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'Game started' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Not a player in this game',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Game cannot be started',
+	})
+	async startGame(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: RequestUser,
+	) {
+		return this.gameService.startGame(id, user.id);
 	}
 
-	// POST /games/:id/finish
 	@Post(':id/finish')
-	@HttpCode(200)
-	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Finish a game' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'Game finished' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Not a player in this game',
+	})
 	async finishGame(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: FinishGameDto,
-		@Req() req,
+		@CurrentUser() user: RequestUser,
 	) {
-		return this.gameService.finishGame(id, dto, req.user.id);
+		return this.gameService.finishGame(id, dto, user.id);
 	}
 
-	// POST /games/:id/move
 	@Post(':id/move')
-	@HttpCode(200)
-	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Make a move in a game' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'Move applied' })
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid or illegal move',
+	})
 	async makeMove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: MakeMoveDto,
-		@Req() req,
+		@CurrentUser() user: RequestUser,
 	) {
-		return this.gameService.makeMove(id, dto, req.user.id);
+		return this.gameService.makeMove(id, dto, user.id);
 	}
 }
