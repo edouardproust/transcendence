@@ -289,13 +289,31 @@ export class UsersService {
 		});
 		if (!user) throw new NotFoundException('User not found');
 
-		// TODO: replace with real queries once games module is implemented
+		const [totalGames, wins, draws] = await Promise.all([
+			this.prismaService.game.count({
+				where: {
+					OR: [{ whiteId: id }, { blackId: id }],
+					status: GameStatus.FINISHED,
+				},
+			}),
+			this.prismaService.game.count({
+				where: { winnerId: id },
+			}),
+			this.prismaService.game.count({
+				where: {
+					OR: [{ whiteId: id }, { blackId: id }],
+					status: GameStatus.FINISHED,
+					winnerId: null,
+				},
+			}),
+		]);
+
 		return {
-			...user,
-			totalGames: 0,
-			wins: 0,
-			losses: 0,
-			draws: 0,
+			...this.mapUser(user),
+			totalGames,
+			wins,
+			losses: totalGames - wins - draws,
+			draws,
 		};
 	}
 
@@ -306,7 +324,7 @@ export class UsersService {
 	 * @returns List of matching users, password and email omitted for privacy.
 	 */
 	async search(query: string) {
-		return this.prismaService.user.findMany({
+		const users = await this.prismaService.user.findMany({
 			where: {
 				username: {
 					contains: query,
@@ -315,33 +333,43 @@ export class UsersService {
 			},
 			omit: { password: true, email: true },
 		});
+		return users.map((u) => this.mapUser(u));
 	}
 
+	/**
+	 * Upload and replace the avatar of a user.
+	 * The old avatar is deleted from S3 unless it is the default avatar.
+	 * The new avatar key is stored in the database.
+	 *
+	 * @param id User id
+	 * @param file Uploaded image file (validated by UploadedImage decorator)
+	 * @returns The public URL of the new avatar
+	 * @throws {NotFoundException} If user not found
+	 */
 	async uploadAvatar(
 		id: string,
 		file: Express.Multer.File,
-	): Promise<{ message: string; avatarUrl: string }> {
+	): Promise<{ avatarUrl: string }> {
 		const user = await this.prismaService.user.findUnique({
 			where: { id },
 		});
 		if (!user) throw new NotFoundException('User not found');
 
 		// Delete old avatar if not default
-		if (user.avatarUrl) {
-			const oldKey = user.avatarUrl.split(`${process.env.S3_BUCKET}/`)[1];
-			if (oldKey) await this.storageService.delete(oldKey);
+		if (user.avatarKey && user.avatarKey !== DEFAULTS.avatar.remoteKey) {
+			await this.storageService.delete(user.avatarKey);
 		}
 
 		const ext = file.mimetype.split('/')[1].replace('svg+xml', 'svg');
 		const key = `avatars/${id}-${Date.now()}.${ext}`;
-		const avatarUrl = await this.storageService.upload(key, file);
+		await this.storageService.uploadFile(key, file.buffer, file.mimetype);
 
 		await this.prismaService.user.update({
 			where: { id },
-			data: { avatarUrl },
+			data: { avatarKey: key },
 			omit: { password: true },
 		});
 
-		return { message: 'Avatar updated successfully', avatarUrl };
+		return { avatarUrl: this.storageService.getUrl(key) };
 	}
 }
