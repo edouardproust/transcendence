@@ -68,6 +68,9 @@ describe('AuthService', () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
 				userWithPassword as any,
 			);
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(
+				userInDb as any,
+			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			const result = await service.login({
@@ -87,6 +90,9 @@ describe('AuthService', () => {
 		it('should return user without password and access token when username is valid', async () => {
 			jest.spyOn(usersService, 'findOneByUsername').mockResolvedValue(
 				userWithPassword as any,
+			);
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(
+				userInDb as any,
 			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
