@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Role } from '../prisma/generated/enums';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { AuthResponseDto } from './dtos/auth-response.dto';
+import { CONSTRAINTS } from '../common/constants';
 
 @Injectable()
 export class AuthService {
@@ -57,7 +58,9 @@ export class AuthService {
 	 */
 	async login(loginDto: LoginDto): Promise<AuthResponseDto> {
 		const errorMsg = 'Invalid email, username or password'; // Vague to give no info to attackers
-		const isEmail = /\S+@\S+\.\S+/.test(loginDto.emailOrUsername);
+		const isEmail = CONSTRAINTS.user.email.regex.test(
+			loginDto.emailOrUsername,
+		);
 
 		let user = isEmail
 			? await this.usersService.findOneByEmail(loginDto.emailOrUsername)
@@ -69,20 +72,16 @@ export class AuthService {
 		if (!(await bcrypt.compare(loginDto.password, user.password)))
 			throw new UnauthorizedException(errorMsg);
 
-		const { password, ...userWithoutPassword } = user;
-
-		// update user
-		await this.usersService.updateOneById(userWithoutPassword.id, {
+		const mappedUser = await this.usersService.findOneById(user.id);
+		if (!mappedUser) throw new UnauthorizedException(errorMsg);
+		await this.usersService.updateOneById(user.id, {
 			lastSeen: new Date(),
 			isOnline: true,
 		});
 
 		return {
-			user: userWithoutPassword,
-			token: this.generateToken({
-				sub: userWithoutPassword.id,
-				role: userWithoutPassword.role,
-			}),
+			user: mappedUser,
+			token: this.generateToken({ sub: user.id, role: user.role }),
 		};
 	}
 }

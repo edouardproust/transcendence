@@ -1,8 +1,18 @@
-import { minLength } from 'class-validator';
 import { Role } from '../prisma/generated/enums';
+
+export const DEFAULTS = {
+	avatar: {
+		localPath: 'src/storage/assets/default-avatar.svg',
+		remoteKey: 'avatars/default.svg',
+		contentType: 'image/svg+xml',
+	},
+};
 
 export const CONSTRAINTS = {
 	user: {
+		email: {
+			regex: /\S+@\S+\.\S+/,
+		},
 		password: {
 			regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>/?\\|[\]~`]).*$/,
 			minLength: 12,
@@ -22,6 +32,10 @@ export const CONSTRAINTS = {
 		search: {
 			minLength: 2,
 		},
+		avatar: {
+			fileType: /image\/(jpeg|png|webp|svg\+xml)/,
+			maxSize: 1024 * 1024,
+		},
 	},
 };
 
@@ -34,7 +48,7 @@ export const EXAMPLES = {
 	password: 'Password123!',
 	email: 'user1@example.com',
 	username: 'user1',
-	avatarUrl: '/uploads/avatars/default.svg', // TODO update this
+	avatarUrl: `https://example.com/${DEFAULTS.avatar.remoteKey}`,
 	usernameSearch: 'use',
 	elo: 1400,
 	totalGames: 20,

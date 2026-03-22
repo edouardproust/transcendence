@@ -15,11 +15,11 @@ CREATE TABLE "users" (
     "username" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'USER',
     "elo" INTEGER NOT NULL DEFAULT 1200,
-    "avatarUrl" TEXT,
+    "avatarKey" TEXT NOT NULL DEFAULT 'avatars/default.svg',
     "isOnline" BOOLEAN NOT NULL DEFAULT false,
     "lastSeen" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );

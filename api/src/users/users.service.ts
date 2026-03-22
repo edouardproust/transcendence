@@ -12,10 +12,11 @@ import {
 } from '../prisma/prisma.error';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { Prisma } from '../prisma/generated/client';
+import { GameStatus, Prisma } from '../prisma/generated/client';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { UpdateUserSystemDto } from './dtos/update-user-system.dto';
 import { StorageService } from '../storage/storage.service';
+import { DEFAULTS } from '../common/constants';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +25,14 @@ export class UsersService {
 		private readonly storageService: StorageService,
 	) {}
 
+	private mapUser(user: any): any {
+		const { avatarKey, ...rest } = user;
+		return {
+			...rest,
+			avatarUrl: this.storageService.getUrl(user.avatarKey),
+		};
+	}
+
 	/**
 	 * Returns all the registered users.
 	 * Endpoint accessible by role ADMIN only.
@@ -31,9 +40,10 @@ export class UsersService {
 	 * @returnsArray of all the registered users. Passwords are omitted for security.
 	 */
 	async findAll() {
-		return this.prismaService.user.findMany({
+		const users = await this.prismaService.user.findMany({
 			omit: { password: true },
 		});
+		return users.map((u) => this.mapUser(u));
 	}
 
 	/**
@@ -43,10 +53,11 @@ export class UsersService {
 	 * @returns The found user or null, password omitted for security.
 	 */
 	async findOneById(id: string) {
-		return this.prismaService.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { id },
 			omit: { password: true },
 		});
+		return user ? this.mapUser(user) : null;
 	}
 
 	/**
@@ -83,7 +94,7 @@ export class UsersService {
 	async createOne(createUserDto: CreateUserDto) {
 		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-		return this.prismaService.user
+		const user = await this.prismaService.user
 			.create({
 				data: { ...createUserDto, password: hashedPassword },
 				omit: { password: true },
@@ -96,6 +107,7 @@ export class UsersService {
 				}
 				throw error;
 			});
+		return this.mapUser(user);
 	}
 
 	/**
@@ -104,7 +116,7 @@ export class UsersService {
 	 * @return The deleted user, password omitted for security.
 	 */
 	async deleteOneById(id: string) {
-		return this.prismaService.user
+		const user = await this.prismaService.user
 			.delete({ where: { id }, omit: { password: true } })
 			.catch((error) => {
 				if (isPrismaError(error, PrismaErrorCode.NOT_FOUND)) {
@@ -112,6 +124,7 @@ export class UsersService {
 				}
 				throw error;
 			});
+		return this.mapUser(user);
 	}
 
 	/**
@@ -133,7 +146,7 @@ export class UsersService {
 					}
 				: updateUserDto;
 
-		return this.prismaService.user
+		const user = await this.prismaService.user
 			.update({
 				where: { id },
 				data,
@@ -150,6 +163,7 @@ export class UsersService {
 				}
 				throw error;
 			});
+		return this.mapUser(user);
 	}
 
 	/**
@@ -169,13 +183,31 @@ export class UsersService {
 		});
 		if (!user) throw new NotFoundException('User not found');
 
-		// TODO: replace with real queries once games module is implemented
+		const [totalGames, wins, draws] = await Promise.all([
+			this.prismaService.game.count({
+				where: {
+					OR: [{ whiteId: id }, { blackId: id }],
+					status: GameStatus.FINISHED,
+				},
+			}),
+			this.prismaService.game.count({
+				where: { winnerId: id },
+			}),
+			this.prismaService.game.count({
+				where: {
+					OR: [{ whiteId: id }, { blackId: id }],
+					status: GameStatus.FINISHED,
+					winnerId: null,
+				},
+			}),
+		]);
+
 		return {
-			...user,
-			totalGames: 0,
-			wins: 0,
-			losses: 0,
-			draws: 0,
+			...this.mapUser(user),
+			totalGames,
+			wins,
+			losses: totalGames - wins - draws,
+			draws,
 		};
 	}
 
@@ -186,7 +218,7 @@ export class UsersService {
 	 * @returns List of matching users, password and email omitted for privacy.
 	 */
 	async search(query: string) {
-		return this.prismaService.user.findMany({
+		const users = await this.prismaService.user.findMany({
 			where: {
 				username: {
 					contains: query,
@@ -195,33 +227,43 @@ export class UsersService {
 			},
 			omit: { password: true, email: true },
 		});
+		return users.map((u) => this.mapUser(u));
 	}
 
+	/**
+	 * Upload and replace the avatar of a user.
+	 * The old avatar is deleted from S3 unless it is the default avatar.
+	 * The new avatar key is stored in the database.
+	 *
+	 * @param id User id
+	 * @param file Uploaded image file (validated by UploadedImage decorator)
+	 * @returns The public URL of the new avatar
+	 * @throws {NotFoundException} If user not found
+	 */
 	async uploadAvatar(
 		id: string,
 		file: Express.Multer.File,
-	): Promise<{ message: string; avatarUrl: string }> {
+	): Promise<{ avatarUrl: string }> {
 		const user = await this.prismaService.user.findUnique({
 			where: { id },
 		});
 		if (!user) throw new NotFoundException('User not found');
 
 		// Delete old avatar if not default
-		if (user.avatarUrl) {
-			const oldKey = user.avatarUrl.split(`${process.env.S3_BUCKET}/`)[1];
-			if (oldKey) await this.storageService.delete(oldKey);
+		if (user.avatarKey && user.avatarKey !== DEFAULTS.avatar.remoteKey) {
+			await this.storageService.delete(user.avatarKey);
 		}
 
 		const ext = file.mimetype.split('/')[1].replace('svg+xml', 'svg');
 		const key = `avatars/${id}-${Date.now()}.${ext}`;
-		const avatarUrl = await this.storageService.upload(key, file);
+		await this.storageService.uploadFile(key, file.buffer, file.mimetype);
 
 		await this.prismaService.user.update({
 			where: { id },
-			data: { avatarUrl },
+			data: { avatarKey: key },
 			omit: { password: true },
 		});
 
-		return { message: 'Avatar updated successfully', avatarUrl };
+		return { avatarUrl: this.storageService.getUrl(key) };
 	}
 }

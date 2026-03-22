@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
 import { buildSwaggerConfig } from './config/swagger.config';
+import { StorageService } from './storage/storage.service';
 
 async function bootstrap() {
 	const isDev = process.env.NODE_ENV !== 'production';
@@ -36,6 +37,10 @@ async function bootstrap() {
 	// Listen for requests
 	const port = parseInt(process.env.PORT || '3000', 10);
 	await app.listen(port);
+
+	// Ensure default avatar exists in S3/MinIO
+	const storageService = app.get(StorageService);
+	await storageService.ensureDefaultAssets();
 
 	// Development logs
 	if (isDev) {

@@ -2,18 +2,14 @@ import {
 	Body,
 	Controller,
 	Delete,
-	FileTypeValidator,
 	Get,
 	HttpCode,
 	HttpStatus,
-	MaxFileSizeValidator,
 	NotFoundException,
 	Param,
-	ParseFilePipe,
 	ParseUUIDPipe,
 	Patch,
 	Query,
-	UploadedFile,
 	UseGuards,
 	UseInterceptors,
 } from '@nestjs/common';
@@ -39,6 +35,7 @@ import { UserPublicResponseDto } from './dtos/user-public-response.dto';
 import { UserPublicProfileResponseDto } from './dtos/user-public-profile-response.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadedAvatar } from './decorators/uploaded-avatar.decorator';
 
 @Controller('users')
 @ApiTags('users')
@@ -185,18 +182,8 @@ export class UsersController {
 	})
 	async uploadAvatar(
 		@CurrentUser() user: RequestUser,
-		@UploadedFile(
-			new ParseFilePipe({
-				validators: [
-					new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }),
-					new FileTypeValidator({
-						fileType: /image\/(jpeg|png|webp|svg\+xml)/,
-					}),
-				],
-			}),
-		)
-		file: Express.Multer.File,
-	): Promise<{ message: string; avatarUrl: string }> {
+		@UploadedAvatar() file: Express.Multer.File,
+	): Promise<{ avatarUrl: string }> {
 		return this.usersService.uploadAvatar(user.id, file);
 	}
 
