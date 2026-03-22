@@ -11,15 +11,9 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { LoginDto } from './dtos/login.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-<<<<<<< HEAD
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
-=======
-import { AuthResponseDto } from './dto/auth-response.dto';
-import { JwtAuthGuard } from './guard/jwt-auth.guard';
-import { UserResponseDto } from '../users/dto/user-response.dto';
->>>>>>> f130ac0 (add: users/profile endpoints except PATH users/avatar)
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RequestUser } from './interfaces/request-user.interface';
 import { UsersService } from '../users/users.service';

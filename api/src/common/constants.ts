@@ -52,6 +52,7 @@ export const EXAMPLES = {
 	password: 'Password123!',
 	email: 'user1@example.com',
 	username: 'user1',
+	username2: 'user2',
 	avatarUrl: `https://example.com/${DEFAULTS.avatar.remoteKey}`,
 	usernameSearch: 'use',
 	elo: 1400,
