@@ -7,7 +7,7 @@ export class LoginDto {
 	@IsNotEmpty()
 	@ApiProperty({
 		oneOf: [
-			{ type: 'string', format: 'email', example: EXAMPLES.email },
+			{ type: 'string', format: 'email', example: EXAMPLES.username },
 			{ type: 'string', example: EXAMPLES.username },
 		],
 		description: 'Email or username',

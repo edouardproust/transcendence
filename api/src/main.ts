@@ -5,6 +5,8 @@ import { SwaggerModule } from '@nestjs/swagger';
 import { buildSwaggerConfig } from './config/swagger.config';
 
 async function bootstrap() {
+	const isDev = process.env.NODE_ENV !== 'production';
+
 	// Init NestJS
 	const app = await NestFactory.create(AppModule);
 	const corsOrigins = (process.env.CORS_ORIGIN || '')
@@ -18,12 +20,12 @@ async function bootstrap() {
 
 	// Enable CORS (to allow frontend to communicate with API)
 	app.enableCors({
-		origin: corsOrigins.length > 0 ? corsOrigins : process.env.NODE_ENV !== 'production',
+		origin: corsOrigins.length > 0 ? corsOrigins : isDev,
 		credentials: true,
 	});
 
 	// Config Swagger (only in dev)
-	if (process.env.NODE_ENV !== 'production') {
+	if (isDev) {
 		const document = SwaggerModule.createDocument(
 			app,
 			buildSwaggerConfig(),
@@ -36,7 +38,7 @@ async function bootstrap() {
 	await app.listen(port);
 
 	// Development logs
-	if (process.env.NODE_ENV !== 'production') {
+	if (isDev) {
 		console.log(`
 Links:
 - View app: https://localhost:8443

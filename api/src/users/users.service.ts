@@ -15,10 +15,14 @@ import * as bcrypt from 'bcrypt';
 import { Prisma } from '../prisma/generated/client';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { UpdateUserSystemDto } from './dtos/update-user-system.dto';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UsersService {
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly storageService: StorageService,
+	) {}
 
 	/**
 	 * Returns all the registered users.
@@ -191,5 +195,33 @@ export class UsersService {
 			},
 			omit: { password: true, email: true },
 		});
+	}
+
+	async uploadAvatar(
+		id: string,
+		file: Express.Multer.File,
+	): Promise<{ message: string; avatarUrl: string }> {
+		const user = await this.prismaService.user.findUnique({
+			where: { id },
+		});
+		if (!user) throw new NotFoundException('User not found');
+
+		// Delete old avatar if not default
+		if (user.avatarUrl) {
+			const oldKey = user.avatarUrl.split(`${process.env.S3_BUCKET}/`)[1];
+			if (oldKey) await this.storageService.delete(oldKey);
+		}
+
+		const ext = file.mimetype.split('/')[1].replace('svg+xml', 'svg');
+		const key = `avatars/${id}-${Date.now()}.${ext}`;
+		const avatarUrl = await this.storageService.upload(key, file);
+
+		await this.prismaService.user.update({
+			where: { id },
+			data: { avatarUrl },
+			omit: { password: true },
+		});
+
+		return { message: 'Avatar updated successfully', avatarUrl };
 	}
 }

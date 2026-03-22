@@ -1,20 +1,26 @@
+import { minLength } from 'class-validator';
 import { Role } from '../prisma/generated/enums';
 
 export const CONSTRAINTS = {
-	password: {
-		regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>/?\\|[\]~`]).*$/,
-		minLength: 12,
-		maxLength: 128,
-		message: {
-			regex: 'Password must contain uppercase, lowercase, a number and a special character',
+	user: {
+		password: {
+			regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>/?\\|[\]~`]).*$/,
+			minLength: 12,
+			maxLength: 128,
+			message: {
+				regex: 'Password must contain uppercase, lowercase, a number and a special character',
+			},
 		},
-	},
-	username: {
-		regex: /^[a-zA-Z0-9_-]+$/,
-		minLength: 3,
-		maxLength: 30,
-		message: {
-			regex: 'Username can only contain letters, numbers, underscores and hyphens',
+		username: {
+			regex: /^[a-zA-Z0-9_-]+$/,
+			minLength: 3,
+			maxLength: 30,
+			message: {
+				regex: 'Username can only contain letters, numbers, underscores and hyphens',
+			},
+		},
+		search: {
+			minLength: 2,
 		},
 	},
 };
@@ -26,10 +32,10 @@ export const EXAMPLES = {
 	role: Role.USER,
 	id: '550e8400-e29b-41d4-a716-446655440000',
 	password: 'Password123!',
-	email: 'admin@example.com',
-	username: 'admin',
-	avatarUrl: '/uploads/avatars/default.svg',
-	usernameSearch: 'adm',
+	email: 'user1@example.com',
+	username: 'user1',
+	avatarUrl: '/uploads/avatars/default.svg', // TODO update this
+	usernameSearch: 'use',
 	elo: 1400,
 	totalGames: 20,
 	wins: 14,

@@ -2,15 +2,20 @@ import {
 	Body,
 	Controller,
 	Delete,
+	FileTypeValidator,
 	Get,
 	HttpCode,
 	HttpStatus,
+	MaxFileSizeValidator,
 	NotFoundException,
 	Param,
+	ParseFilePipe,
 	ParseUUIDPipe,
 	Patch,
 	Query,
+	UploadedFile,
 	UseGuards,
+	UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -19,6 +24,8 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { AdminGuard } from '../auth/guard/admin.guard';
 import {
 	ApiBearerAuth,
+	ApiBody,
+	ApiConsumes,
 	ApiOperation,
 	ApiResponse,
 	ApiTags,
@@ -31,6 +38,7 @@ import { SearchUsersDto } from './dtos/search-users.dto';
 import { UserPublicResponseDto } from './dtos/user-public-response.dto';
 import { UserPublicProfileResponseDto } from './dtos/user-public-profile-response.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 @ApiTags('users')
@@ -146,6 +154,50 @@ export class UsersController {
 		@Body() dto: UpdateProfileDto,
 	): Promise<UserResponseDto> {
 		return this.usersService.updateOneById(user.id, dto);
+	}
+
+	// user avatar
+
+	@Patch('avatar')
+	@UseGuards(JwtAuthGuard)
+	@UseInterceptors(FileInterceptor('avatar'))
+	@ApiConsumes('multipart/form-data')
+	@ApiOperation({ summary: 'Upload avatar for current user' })
+	@ApiBody({
+		schema: {
+			type: 'object',
+			properties: {
+				avatar: { type: 'string', format: 'binary' },
+			},
+		},
+	})
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Avatar updated successfully',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid file',
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async uploadAvatar(
+		@CurrentUser() user: RequestUser,
+		@UploadedFile(
+			new ParseFilePipe({
+				validators: [
+					new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }),
+					new FileTypeValidator({
+						fileType: /image\/(jpeg|png|webp|svg\+xml)/,
+					}),
+				],
+			}),
+		)
+		file: Express.Multer.File,
+	): Promise<{ message: string; avatarUrl: string }> {
+		return this.usersService.uploadAvatar(user.id, file);
 	}
 
 	// user standard crud

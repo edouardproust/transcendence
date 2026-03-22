@@ -20,25 +20,20 @@ enum Role {
 }
 
 model User {
-    id        String    @id @default(uuid())
-    email     String    @unique
-    password  String
-    username  String    @unique
-    role      Role      @default(USER)
-    elo       Int       @default(1200)
-    avatarUrl String?
-    isOnline  Boolean   @default(false)
-    lastSeen  DateTime?
-    whiteGames Game[]   @relation("WhitePlayer")
-    blackGames Game[]   @relation("BlackPlayer")
-    wonGames   Game[]   @relation("Winner")
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-
-    // TODO: add game relations once Game model is implemented by games module
-    // gamesAsWhite Game[] @relation("WhitePlayer")
-    // gamesAsBlack Game[] @relation("BlackPlayer")
-    // gamesWon     Game[] @relation("Winner")
+    id         String    @id @default(uuid())
+    email      String    @unique
+    password   String
+    username   String    @unique
+    role       Role      @default(USER)
+    elo        Int       @default(1200)
+    avatarUrl  String?
+    isOnline   Boolean   @default(false)
+    lastSeen   DateTime?
+    whiteGames Game[]    @relation("WhitePlayer")
+    blackGames Game[]    @relation("BlackPlayer")
+    wonGames   Game[]    @relation("Winner")
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
 
     @@map("users")
 }

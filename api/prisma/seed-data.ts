@@ -20,12 +20,12 @@ export const seedUsers = async (prisma: PrismaClient) => {
 
 	for (let i = 1; i <= 20; i++) {
 		const user = await prisma.user.upsert({
-			where: { email: `test${i}@example.com` },
+			where: { email: `user${i}@example.com` },
 			update: {},
 			create: {
-				email: `test${i}@example.com`,
+				email: `user${i}@example.com`,
 				password: await bcrypt.hash(EXAMPLES.password, 10),
-				username: `test${i}`,
+				username: `user${i}`,
 				role: Role.USER,
 			},
 		});

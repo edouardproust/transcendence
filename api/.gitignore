@@ -2,7 +2,7 @@
 # .GITIGNORE - API ONLY
 # =========================
 
-# compiled output
+# Compiled output
 /dist
 /node_modules
 /build
