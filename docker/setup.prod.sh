@@ -23,6 +23,7 @@ read -p "DOMAIN_NAME (check.io): " domain_name
 domain_name=${domain_name:-"check.io"}
 read -p "POSTGRES_DB (checkio_prod): " postgres_db
 postgres_db=${postgres_db:-"checkio_prod"}
+<<<<<<< HEAD
 postgres_user_default=$(openssl rand -hex 6)
 read -p "POSTGRES_USER (${postgres_user_default}): " postgres_user
 postgres_user=${postgres_user:-$postgres_user_default}
@@ -61,6 +62,29 @@ read -p "AWS_REGION (eu-west-3): " aws_region
 aws_region=${aws_region:-"eu-west-3"}
 read -p "S3_BUCKET (checkio-uploads): " s3_bucket
 s3_bucket=${s3_bucket:-"checkio-uploads"}
+=======
+read -p "POSTGRES_USER (admin): " postgres_user
+postgres_user=${postgres_user:-"admin"}
+while true; do
+	read -sp "POSTGRES_PASSWORD: " postgres_pswd
+	echo
+	# Validation: not empty and at least 12 characters
+	if [ -z "$postgres_pswd" ]; then
+		error "Required"
+	elif [ ${#postgres_pswd} -lt 12 ]; then
+		error "Must be at least 12 characters long"
+	else
+		break # Password is valid, exit loop
+	fi
+done
+echo
+read -p "AWS_ACCESS_KEY_ID: " aws_access_key_id
+read -sp "AWS_SECRET_ACCESS_KEY: " aws_secret_access_key
+echo
+read -p "AWS_REGION (eu-west-3): " aws_region
+aws_region=${aws_region:-"eu-west-3"}
+read -p "S3_BUCKET: " s3_bucket
+>>>>>>> 2917ba2 (added users avatars upload + minio docker container)
 
 # Generate JWT token (api auth)
 	jwt_secret=$(openssl rand -hex 64)
@@ -74,7 +98,10 @@ printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAM
 # Secure the file (only owner can read/write)
 chmod 600 "$env_file"
 success "$env_file file created and secured (permissions: 600)"
+<<<<<<< HEAD
 echo
+=======
+>>>>>>> 2917ba2 (added users avatars upload + minio docker container)
 
 if [ -f "$ssl_generator" ]; then
 	source "$ssl_generator" # launch as source to export vars
@@ -111,4 +138,16 @@ echo "  3. Review security configurations"
 echo "  4. Set up SSL certificates (Let's Encrypt recommended)"
 echo "  5. Configure firewall rules"
 echo "  6. Review resource limits in docker-compose.prod.yml"
+<<<<<<< HEAD
+=======
+echo
+
+success "Production setup completed successfully!"
+echo
+
+echo "Next steps:"
+echo "  1. Review $env_file"
+echo "  2. Run: docker compose -f docker/docker-compose.prod.yml up -d"
+echo "  3. Check logs: docker compose -f docker/docker-compose.prod.yml logs -f"
+>>>>>>> 2917ba2 (added users avatars upload + minio docker container)
 echo

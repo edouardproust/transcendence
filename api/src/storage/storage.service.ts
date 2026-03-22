@@ -6,7 +6,6 @@ import {
 } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import { DEFAULTS } from '../common/constants';
 
 /**

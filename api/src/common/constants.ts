@@ -1,3 +1,4 @@
+import { minLength } from 'class-validator';
 import { Role } from '../prisma/generated/enums';
 
 export const DEFAULTS = {
