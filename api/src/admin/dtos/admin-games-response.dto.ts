@@ -7,7 +7,6 @@ export class AdminGameDto {
 	@ApiProperty({ example: EXAMPLES.id })
 	id: string;
 
-	// TODO: remove:
 	@ApiProperty({
 		example: GameStatus.WAITING,
 		enum: Object.values(GameStatus),
