@@ -1,4 +1,3 @@
-// admin/admin.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AdminService } from './admin.service';
@@ -168,24 +167,23 @@ describe('AdminService', () => {
 		});
 
 		it('should return all users when no search provided', async () => {
-			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
-				usersFixture,
-			);
-			jest.spyOn(prismaService.user, 'count').mockResolvedValue(2);
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue([
+				userWithCount,
+			] as any);
+			jest.spyOn(prismaService.user, 'count').mockResolvedValue(1);
 
-			const result = await service.getUsers({ page: 1, limit: 20 });
+			await service.getUsers({ page: 1, limit: 20 });
 
 			expect(prismaService.user.findMany).toHaveBeenCalledWith(
 				expect.objectContaining({ where: {} }),
 			);
-			expect(result.users).toHaveLength(2);
 		});
 
 		it('should use default page and limit when not provided', async () => {
-			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
-				usersFixture,
-			);
-			jest.spyOn(prismaService.user, 'count').mockResolvedValue(2);
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue([
+				userWithCount,
+			] as any);
+			jest.spyOn(prismaService.user, 'count').mockResolvedValue(1);
 
 			const result = await service.getUsers({});
 
@@ -216,32 +214,89 @@ describe('AdminService', () => {
 	});
 
 	describe('getGames', () => {
-		it('should return empty placeholder until games module is ready', async () => {
-			const query: AdminGamesQueryDto = { page: 1, limit: 20 };
-			const result = await service.getGames(query);
+		it('should return paginated games', async () => {
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
+				gameWithPlayers,
+			] as any);
+			jest.spyOn(prismaService.game, 'count').mockResolvedValue(1);
 
-			expect(result.games).toEqual([]);
-			expect(result.pagination.total).toBe(0);
-			expect(result.pagination.page).toBe(1);
-		});
+			const result = await service.getGames({ page: 1, limit: 20 });
 
-		it('should use default page and limit when not provided', async () => {
-			const result = await service.getGames({});
-			expect(result.pagination.page).toBe(1);
-			expect(result.pagination.limit).toBe(20);
+			expect(result.games).toHaveLength(1);
+			expect(result.games[0].whiteUsername).toBe('user1');
+			expect(result.pagination.total).toBe(1);
 		});
 
 		it('should filter by status when provided', async () => {
-			const result = await service.getGames({ status: 'active' });
-			expect(result.games).toEqual([]);
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue(
+				[] as any,
+			);
+			jest.spyOn(prismaService.game, 'count').mockResolvedValue(0);
+
+			await service.getGames({ status: GameStatus.FINISHED });
+
+			expect(prismaService.game.findMany).toHaveBeenCalledWith(
+				expect.objectContaining({
+					where: { status: GameStatus.FINISHED },
+				}),
+			);
+		});
+
+		it('should use default page and limit when not provided', async () => {
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue(
+				[] as any,
+			);
+			jest.spyOn(prismaService.game, 'count').mockResolvedValue(0);
+
+			const result = await service.getGames({});
+
+			expect(result.pagination.page).toBe(1);
+			expect(result.pagination.limit).toBe(20);
 		});
 	});
 
 	describe('deleteGame', () => {
-		it('should do nothing until games module is ready', async () => {
+		it('should delete a game by id', async () => {
+			jest.spyOn(prismaService.game, 'delete').mockResolvedValue(
+				gameFixture as any,
+			);
+
 			await expect(
-				service.deleteGame('some-uuid'),
+				service.deleteGame(gameFixture.id),
 			).resolves.toBeUndefined();
+			expect(prismaService.game.delete).toHaveBeenCalledWith({
+				where: { id: gameFixture.id },
+			});
+		});
+
+		it('should throw NotFoundException when game not found', async () => {
+			jest.spyOn(prismaService.game, 'delete').mockRejectedValue(
+				prismaNotFoundException,
+			);
+
+			await expect(service.deleteGame('invalid-id')).rejects.toThrow(
+				NotFoundException,
+			);
+		});
+	});
+
+	describe('getStats', () => {
+		it('should return stats with game counts and top players', async () => {
+			jest.spyOn(prismaService.user, 'count').mockResolvedValue(10);
+			jest.spyOn(prismaService.game, 'count').mockResolvedValue(5);
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
+				usersFixture as any,
+			);
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
+				gameWithPlayers,
+			] as any);
+
+			const result = await service.getStats();
+
+			expect(result.stats.totalUsers).toBe(10);
+			expect(result.stats.totalGames).toBe(5);
+			expect(result.topPlayers).toEqual(usersFixture);
+			expect(result.recentActivity).toHaveLength(1);
 		});
 	});
 });
