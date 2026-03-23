@@ -5,7 +5,7 @@ import { UsersService } from './users.service';
 
 export const usersFixture: any[] = [
 	{
-		id: '550e8400-e29b-41d4-a716-446655440001',
+		id: EXAMPLES.id,
 		email: 'admin@example.com',
 		username: 'admin',
 		role: Role.ADMIN,
@@ -17,7 +17,7 @@ export const usersFixture: any[] = [
 		updatedAt: EXAMPLES.date,
 	},
 	{
-		id: EXAMPLES.id,
+		id: EXAMPLES.id2,
 		email: EXAMPLES.email,
 		username: EXAMPLES.username,
 		role: EXAMPLES.role,
@@ -33,6 +33,7 @@ export const usersFixture: any[] = [
 export const UsersServiceMock = {
 	provide: UsersService,
 	useValue: {
+		mapUser: jest.fn((u) => ({ id: u.id, username: u.username })),
 		findAll: jest.fn(),
 		findOneById: jest.fn(),
 		findOneByEmail: jest.fn(),

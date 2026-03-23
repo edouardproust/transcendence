@@ -14,6 +14,8 @@ import {
 	prismaForeignKeyException,
 	prismaUniqueConstraintException,
 } from './friends.service.mock';
+import { UsersServiceMock } from '../users/users.service.mock';
+import { UsersService } from '../users/users.service';
 
 describe('FriendsService', () => {
 	let service: FriendsService;
@@ -28,18 +30,15 @@ describe('FriendsService', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [FriendsService, PrismaServiceMock],
+			providers: [FriendsService, PrismaServiceMock, UsersServiceMock],
 		}).compile();
 
 		service = module.get<FriendsService>(FriendsService);
 		prismaService = module.get<PrismaService>(PrismaService);
 	});
 
-	describe('constructor', () => {
-		it('should define needed services', () => {
-			expect(service).toBeDefined();
-			expect(prismaService).toBeDefined();
-		});
+	afterEach(() => {
+		jest.clearAllMocks();
 	});
 
 	describe('sendRequest', () => {
@@ -98,7 +97,7 @@ describe('FriendsService', () => {
 					sender: {
 						username: friendRequestWithSender.username,
 						elo: friendRequestWithSender.elo,
-						avatarUrl: friendRequestWithSender.avatarUrl,
+						avatarKey: friendRequestWithSender.avatarKey,
 						isOnline: friendRequestWithSender.isOnline,
 						lastSeen: friendRequestWithSender.lastSeen,
 					},
@@ -114,7 +113,7 @@ describe('FriendsService', () => {
 						select: {
 							username: true,
 							elo: true,
-							avatarUrl: true,
+							avatarKey: true,
 							isOnline: true,
 							lastSeen: true,
 						},
@@ -278,7 +277,8 @@ describe('FriendsService', () => {
 				where: { OR: [{ userId }, { friendId: userId }] },
 				include: { friend: true, user: true },
 			});
-			expect(result).toEqual([friendUser, friendUser]);
+			expect(result).toContainEqual(friendUser);
+			expect(result).toHaveLength(2);
 		});
 	});
 

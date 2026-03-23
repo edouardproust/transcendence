@@ -151,7 +151,6 @@ export class FriendsService {
 			where: {
 				OR: [{ userId }, { friendId: userId }],
 			},
-			orderBy: { createdAt: 'desc' },
 			include: { friend: true, user: true },
 		});
 

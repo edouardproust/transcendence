@@ -12,13 +12,12 @@ import {
 } from '../prisma/prisma.error';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { GameStatus, Prisma, User } from '../prisma/generated/client';
+import { GameStatus, Prisma } from '../prisma/generated/client';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { UpdateUserSystemDto } from './dtos/update-user-system.dto';
 import { StorageService } from '../storage/storage.service';
 import { DEFAULTS } from '../common/constants';
 import { UpdateUserAdminDto } from './dtos/update-user-admin.dto';
-import { UserPublicResponseDto } from './dtos/user-public-response.dto';
 
 @Injectable()
 export class UsersService {

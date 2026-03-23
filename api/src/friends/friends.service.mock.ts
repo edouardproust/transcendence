@@ -1,4 +1,4 @@
-import { EXAMPLES } from '../common/constants';
+import { DEFAULTS, EXAMPLES } from '../common/constants';
 import { Prisma } from '../prisma/generated/client';
 import { PrismaErrorCode } from '../prisma/prisma.error';
 import { FriendsService } from './friends.service';
@@ -18,7 +18,7 @@ export const friendsFixture = {
 		createdAt: EXAMPLES.date,
 		username: EXAMPLES.username,
 		elo: EXAMPLES.elo,
-		avatarUrl: EXAMPLES.avatarUrl,
+		avatarKey: DEFAULTS.avatar.remoteKey,
 		isOnline: EXAMPLES.isOnline,
 		lastSeen: EXAMPLES.lastSeen,
 	},
