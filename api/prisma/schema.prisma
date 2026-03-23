@@ -37,12 +37,10 @@ model User {
     wonGames   Game[]   @relation("Winner")
     createdAt  DateTime @default(now())
 
-    // TODO: add game relations once Game model is implemented by games module
-    // gamesAsWhite Game[] @relation("WhitePlayer")
-    // gamesAsBlack Game[] @relation("BlackPlayer")
-    // gamesWon     Game[] @relation("Winner")
-    friendRequests FriendRequest[]
-    friendships    Friendship[]
+    sentRequests     FriendRequest[] @relation("SentRequests")
+    receivedRequests FriendRequest[] @relation("ReceivedRequests")
+    friendships      Friendship[]    @relation("UserFriendships")
+    friendOf         Friendship[]    @relation("FriendFriendships")
 
     @@map("users")
 }
@@ -91,10 +89,8 @@ model FriendRequest {
     receiverId String
     createdAt  DateTime @default(now())
 
-    sender   User    @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
-    receiver User    @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
-    user     User?   @relation(fields: [userId], references: [id])
-    userId   String?
+    sender   User @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+    receiver User @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
 
     @@unique([senderId, receiverId])
     @@map("friend_requests")
@@ -108,7 +104,6 @@ model Friendship {
 
     user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
     friend User @relation("FriendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
-    user   User @relation(fields: [userId], references: [id])
 
     @@unique([userId, friendId])
     @@map("friendships")
