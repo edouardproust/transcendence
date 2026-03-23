@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaServiceMock } from '../prisma/prisma.service.mock';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import {
 	genericError,
 	genericErrorMsg,
@@ -14,6 +14,9 @@ import {
 	userInDb,
 	usersFixture,
 } from './users.service.mock';
+import { StorageServiceMock } from '../storage/storage.service.mock';
+import { DEFAULTS } from '../common/constants';
+import { StorageService } from '../storage/storage.service';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn().mockResolvedValue('hashedPassword'),
@@ -23,10 +26,11 @@ jest.mock('bcrypt', () => ({
 describe('UsersService', () => {
 	let service: UsersService;
 	let prismaService: PrismaService;
+	let module: TestingModule;
 
 	beforeEach(async () => {
-		const module: TestingModule = await Test.createTestingModule({
-			providers: [UsersService, PrismaServiceMock],
+		module = await Test.createTestingModule({
+			providers: [UsersService, PrismaServiceMock, StorageServiceMock],
 		}).compile();
 		service = module.get<UsersService>(UsersService);
 		prismaService = module.get<PrismaService>(PrismaService);
@@ -146,7 +150,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'delete').mockResolvedValue(
 				userInDb,
 			);
-			await service.deleteOne(userInDb.id);
+			await service.deleteOneById(userInDb.id);
 			expect(prismaService.user.delete).toHaveBeenCalledWith({
 				where: { id: userInDb.id },
 				omit: { password: true },
@@ -157,7 +161,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'delete').mockRejectedValue(
 				prismaNotFoundException,
 			);
-			await expect(service.deleteOne('invalid-uuid')).rejects.toThrow(
+			await expect(service.deleteOneById('invalid-uuid')).rejects.toThrow(
 				NotFoundException,
 			);
 		});
@@ -166,7 +170,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'delete').mockRejectedValue(
 				genericError,
 			);
-			await expect(service.deleteOne('invalid-uuid')).rejects.toThrow(
+			await expect(service.deleteOneById('invalid-uuid')).rejects.toThrow(
 				genericErrorMsg,
 			);
 		});
@@ -252,6 +256,145 @@ describe('UsersService', () => {
 			await expect(
 				service.updateOneById('invalid-uuid', updateUserDto),
 			).rejects.toThrow(genericErrorMsg);
+		});
+	});
+	describe('findProfileById', () => {
+		it('should return user profile with game stats', async () => {
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userInDb,
+			);
+			jest.spyOn(prismaService.game, 'count')
+				.mockResolvedValueOnce(10) // totalGames
+				.mockResolvedValueOnce(6) // wins
+				.mockResolvedValueOnce(2); // draws
+
+			const result = await service.findProfileById(userInDb.id);
+
+			expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+				where: { id: userInDb.id },
+				omit: { password: true, email: true },
+			});
+			expect(result).toMatchObject({
+				totalGames: 10,
+				wins: 6,
+				losses: 2,
+				draws: 2,
+			});
+		});
+
+		it('should include email when includeEmail is true', async () => {
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userInDb,
+			);
+			jest.spyOn(prismaService.game, 'count').mockResolvedValue(0);
+
+			await service.findProfileById(userInDb.id, true);
+
+			expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+				where: { id: userInDb.id },
+				omit: { password: true },
+			});
+		});
+
+		it('should throw NotFoundException when user not found', async () => {
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				null,
+			);
+			await expect(
+				service.findProfileById('invalid-uuid'),
+			).rejects.toThrow(NotFoundException);
+		});
+	});
+
+	describe('search', () => {
+		it('should return matching users with password and email omitted', async () => {
+			jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(
+				usersFixture,
+			);
+
+			const result = await service.search('user');
+
+			expect(prismaService.user.findMany).toHaveBeenCalledWith({
+				where: {
+					username: {
+						contains: 'user',
+						mode: 'insensitive',
+					},
+				},
+				omit: { password: true, email: true },
+			});
+			expect(result).toBeDefined();
+		});
+	});
+
+	describe('uploadAvatar', () => {
+		afterEach(() => {
+			jest.clearAllMocks();
+		});
+
+		const file = {
+			buffer: Buffer.from('test'),
+			mimetype: 'image/jpeg',
+		} as Express.Multer.File;
+
+		it('should upload avatar and return avatarUrl', async () => {
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userInDb,
+			);
+			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
+				userInDb,
+			);
+
+			const result = await service.uploadAvatar(userInDb.id, file);
+
+			expect(result).toHaveProperty('avatarUrl');
+		});
+
+		it('should delete old avatar if not default', async () => {
+			const userWithAvatar = {
+				...userInDb,
+				avatarKey: 'avatars/old.jpg',
+			};
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userWithAvatar as any,
+			);
+			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
+				userInDb,
+			);
+
+			await service.uploadAvatar(userInDb.id, file);
+
+			const storageService = module.get(StorageService);
+			expect(storageService.delete).toHaveBeenCalledWith(
+				'avatars/old.jpg',
+			);
+		});
+
+		it('should not delete avatar if it is the default', async () => {
+			const userWithDefault = {
+				...userInDb,
+				avatarKey: DEFAULTS.avatar.remoteKey,
+			};
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				userWithDefault as any,
+			);
+			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
+				userInDb,
+			);
+
+			await service.uploadAvatar(userInDb.id, file);
+
+			const storageService = module.get(StorageService);
+			expect(storageService.delete).not.toHaveBeenCalled();
+		});
+
+		it('should throw NotFoundException when user not found', async () => {
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				null,
+			);
+			await expect(
+				service.uploadAvatar('invalid-uuid', file),
+			).rejects.toThrow(NotFoundException);
 		});
 	});
 });

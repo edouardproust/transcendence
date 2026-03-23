@@ -5,6 +5,8 @@ volumes:
     name: tr-api-node-modules
   postgres-data:
     name: tr-postgres
+  minio-data:
+    name: tr-minio
 
 networks:
   main:
@@ -99,6 +101,25 @@ services:
     container_name: tr-adminer
     ports:
       - "8081:8080"
+    networks:
+      - main
+    restart: unless-stopped
+
+  minio:
+    image: tr-minio:1.0
+    container_name: tr-minio
+    build:
+      context: ..
+      dockerfile: docker/minio/Dockerfile
+    ports:
+      - "9000:9000"   # API S3
+      - "9001:9001"   # Console web
+    env_file: .env
+    environment:
+      - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
+      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - minio-data:/data
     networks:
       - main
     restart: unless-stopped

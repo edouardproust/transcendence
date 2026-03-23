@@ -10,7 +10,7 @@ import {
 import { JwtServiceMock } from './auth.service.mock';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn().mockResolvedValue('hashedPassword'),
@@ -58,6 +58,20 @@ describe('AuthService', () => {
 				role: userInDb.role,
 			});
 		});
+
+		it('should set user as online and update lastSeen on registration', async () => {
+			jest.spyOn(usersService, 'createOne').mockResolvedValue(
+				userInDb as any,
+			);
+			await service.register(createUserDto);
+			expect(usersService.updateOneById).toHaveBeenCalledWith(
+				userInDb.id,
+				expect.objectContaining({
+					isOnline: true,
+					lastSeen: expect.any(Date),
+				}),
+			);
+		});
 	});
 
 	describe('login', () => {
@@ -67,6 +81,9 @@ describe('AuthService', () => {
 		it('should return user without password and access token when credentials are valid', async () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
 				userWithPassword as any,
+			);
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(
+				userInDb as any,
 			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
@@ -87,6 +104,9 @@ describe('AuthService', () => {
 		it('should return user without password and access token when username is valid', async () => {
 			jest.spyOn(usersService, 'findOneByUsername').mockResolvedValue(
 				userWithPassword as any,
+			);
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(
+				userInDb as any,
 			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 

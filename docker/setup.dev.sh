@@ -2,74 +2,69 @@
 set -e # for security
 
 # Variables
-ENV_FILE="./docker/.env"
+env_file="./docker/.env"
 SSL_DIR="./docker/nginx/ssl"
-SSL_GENERATOR="./docker/nginx/generate-ssl.sh"
-REQUIRED_VARS=(PROJECT_NAME POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET CORS_ORIGIN)
-DEV_HTTP_ORIGIN="http://localhost:8080"
-DEV_HTTPS_ORIGIN="https://localhost:8443"
-DEV_CORS_ORIGIN="${DEV_HTTP_ORIGIN},${DEV_HTTPS_ORIGIN}"
+ssl_generator="./docker/nginx/generate-ssl.sh"
+required_vars=(PROJECT_NAME POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET CORS_ORIGIN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION S3_BUCKET S3_ENDPOINT S3_PUBLIC_URL)
 
-title() { echo -e "\033[1;33m$*\033[0m"; }
-action() { echo -e "\033[1;34m$*\033[0m"; }
+project_name=${project_name:-"Checkio"}
+postgres_db=${postgres_db:-"checkio"}
+postgres_user=${postgres_user:-"testuser"}
+postgres_pswd=${postgres_pswd:-"testuser123"}
+aws_access_key_id="minioadmin"
+aws_secret_access_key="minioadmin123"
+aws_region="eu-west-3"
+s3_bucket="checkio-uploads"
+s3_endpoint="http://minio:9000" # Used by minIO SDK to upload into Docker container
+s3_public_url="http://localhost:9000" # Used to build the file public URL (accessible by frontend)
+dev_http_origin="http://localhost:8080"
+dev_https_origin="https://localhost:8443"
+dev_cors_origin="${dev_http_origin},${dev_https_origin}"
+
+info() { echo -e "\033[1;33m$*\033[0m"; }
 success() { echo -e "\033[0;32m$*\033[0m"; }
 error() { echo -e "\033[0;31m$*\033[0m"; }
 
 env_is_complete() {
-    [ -f "$ENV_FILE" ] || return 1
-    for var in "${REQUIRED_VARS[@]}"; do
-        grep -q "^${var}=" "$ENV_FILE" || return 1
+    [ -f "$env_file" ] || return 1
+    for var in "${required_vars[@]}"; do
+        grep -q "^${var}=" "$env_file" || return 1
     done
     return 0
 }
 
 sync_dev_cors_origin() {
-	[ -f "$ENV_FILE" ] || return 0
+	[ -f "$env_file" ] || return 0
 
-	current_cors_origin=$(grep '^CORS_ORIGIN=' "$ENV_FILE" | head -n 1 | cut -d= -f2- | tr -d '"')
-	if [ "$current_cors_origin" != "$DEV_CORS_ORIGIN" ]; then
-		action "Updating CORS_ORIGIN in $ENV_FILE..."
-		sed -i "s#^CORS_ORIGIN=.*#CORS_ORIGIN=\"${DEV_CORS_ORIGIN}\"#" "$ENV_FILE"
-		success "CORS_ORIGIN updated to support ${DEV_HTTP_ORIGIN} and ${DEV_HTTPS_ORIGIN}"
+	current_cors_origin=$(grep '^CORS_ORIGIN=' "$env_file" | head -n 1 | cut -d= -f2- | tr -d '"')
+	if [ "$current_cors_origin" != "$dev_cors_origin" ]; then
+		sed -i "s#^CORS_ORIGIN=.*#CORS_ORIGIN=\"${dev_cors_origin}\"#" "$env_file"
+		success "CORS_ORIGIN updated to support ${dev_http_origin} and ${dev_https_origin}"
 	fi
 }
 
 # ----
 
-title "DOCKER SETUP - DEV ENVIRONMENT"
+info "DOCKER SETUP - DEV ENVIRONMENT"
 echo
 
-# Root .env file
 if env_is_complete; then
-	success "$ENV_FILE file already exists, skipping creation..."
+	success "$env_file file already exists, skipping creation..."
 	sync_dev_cors_origin
 else
-	# Create .env
-		action "Creating $ENV_FILE..."
-		# prompts
-		read -p		"PROJECT_NAME (Check.io): " project_name
-		read -p		"POSTGRES_DB (check.io): " postgres_db
-		read -p		"POSTGRES_USER (testuser): " postgres_user
-		read -sp	"POSTGRES_PASSWORD (testuser123): " postgres_pswd
-		echo
-		# Validate fields
-			# Default values
-			project_name=${project_name:-"Check.io"}
-			postgres_db=${postgres_db:-"check.io"}
-			postgres_user=${postgres_user:-"testuser"}
-			postgres_pswd=${postgres_pswd:-"testuser123"}
-		# Generate JWT secret (api auth)
-			JWT_SECRET=$(openssl rand -hex 64)
-		# Write file
-			printf 'PROJECT_NAME="%s"\nPOSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nJWT_SECRET="%s"\nCORS_ORIGIN="%s"\n' \
-				"$project_name" "$postgres_db" "$postgres_user" "$postgres_pswd" "$JWT_SECRET" "$DEV_CORS_ORIGIN" \
-				> $ENV_FILE
-		success "$ENV_FILE file created"
+	jwt_secret=$(openssl rand -hex 64)
+
+	printf 'PROJECT_NAME="%s"\nPOSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nJWT_SECRET="%s"\nCORS_ORIGIN="%s"\nAWS_ACCESS_KEY_ID="%s"\nAWS_SECRET_ACCESS_KEY="%s"\nAWS_REGION="%s"\nS3_BUCKET="%s"\nS3_ENDPOINT="%s"\nS3_PUBLIC_URL="%s"\n' \
+		"$project_name" "$postgres_db" "$postgres_user" "$postgres_pswd" "$jwt_secret" "$dev_cors_origin" \
+		"$aws_access_key_id" "$aws_secret_access_key" "$aws_region" "$s3_bucket" "$s3_endpoint" "$s3_public_url" \
+		> $env_file
+
+	success "$env_file file created"
 fi
 echo
 
-if [ -f "$SSL_GENERATOR" ]; then
-	source $SSL_GENERATOR # launch as source to export vars
+if [ -f "$ssl_generator" ]; then
+	source $ssl_generator # launch as source to export vars
 else
 	error "Certificate generation script not found, aborting..." >&2
 	exit 1

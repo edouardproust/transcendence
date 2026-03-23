@@ -15,25 +15,27 @@ datasource db {
 }
 
 enum Role {
-    user
-    admin
+    USER
+    ADMIN
 }
 
 model User {
-    id        String    @id @default(uuid())
-    email     String    @unique
+    id        String @id @default(uuid())
+    email     String @unique
     password  String
-    username  String    @unique
-    role      Role      @default(user)
-    elo       Int       @default(1200)
-    avatarUrl String?
+    username  String @unique
+    role      Role   @default(USER)
+    elo       Int    @default(1200)
+    avatarKey String @default("avatars/default.svg")
+
     isOnline  Boolean   @default(false)
     lastSeen  DateTime?
+    updatedAt DateTime  @updatedAt
+
     whiteGames Game[]   @relation("WhitePlayer")
     blackGames Game[]   @relation("BlackPlayer")
     wonGames   Game[]   @relation("Winner")
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+    createdAt  DateTime @default(now())
 
     @@map("users")
 }

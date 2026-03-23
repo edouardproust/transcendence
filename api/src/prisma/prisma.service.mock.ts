@@ -16,6 +16,7 @@ export const PrismaServiceMock = {
 			create: jest.fn(),
 			update: jest.fn(),
 			delete: jest.fn(),
+			count: jest.fn(),
 		},
 	},
 };
