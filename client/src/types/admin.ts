@@ -30,7 +30,7 @@ export interface AdminUser {
   username: string;
   email: string;
   elo: number;
-  role: 'user' | 'admin';
+  role: 'USER' | 'ADMIN';
   created_at: string;
   total_games: number;
 }

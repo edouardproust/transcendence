@@ -77,11 +77,11 @@ export const AdminUsers: React.FC = () => {
                   </td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      user.role === 'admin' 
+                      user.role === 'ADMIN'
                         ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                     }`}>
-                      {user.role === 'admin' ? '👑 Admin' : '👤 User'}
+                      {user.role === 'ADMIN' ? '👑 Admin' : '👤 User'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400">

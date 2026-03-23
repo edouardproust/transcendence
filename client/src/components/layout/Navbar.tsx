@@ -53,7 +53,7 @@ export const Navbar: React.FC = () => {
               <span className="text-sm">
                 {user.username}
               </span>
-              {user.role === 'admin' && (
+              {user.role === 'ADMIN' && (
                 <Link to="/admin">
                   <Button variant="primary">👑 Admin</Button>
                 </Link>

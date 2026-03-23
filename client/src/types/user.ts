@@ -3,7 +3,7 @@ export interface User {
   username: string;
   email: string;
   elo: number;
-  role: 'user' | 'admin';
+  role: 'USER' | 'ADMIN';
   avatar_url?: string;
   is_online?: boolean;
   last_seen?: string | null;
@@ -31,7 +31,7 @@ export interface UserProfile {
   username: string;
   email: string;
   elo: number;
-  role?: 'user' | 'admin';
+  role?: 'USER' | 'ADMIN';
   avatar_url?: string;
   is_online?: boolean;
   last_seen?: string | null;
