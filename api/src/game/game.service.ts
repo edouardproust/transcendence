@@ -86,7 +86,7 @@ export class GameService {
 	 * @returns The game
 	 * @throws {NotFoundException} If game not found
 	 */
-	async getGame(id: string) {
+	async findOneById(id: string) {
 		const game = await this.prisma.game.findUnique({ where: { id } });
 
 		if (!game) {

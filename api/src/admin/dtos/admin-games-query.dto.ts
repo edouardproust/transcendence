@@ -4,7 +4,6 @@ import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
 import { DEFAULTS } from '../../common/constants';
 import { GameStatus } from '../../prisma/generated/enums';
 
-// TODO: check for duplication with GamesQueryDto once games module is implemented
 export class AdminGamesQueryDto {
 	@ApiPropertyOptional({ example: DEFAULTS.pagination.page })
 	@IsOptional()
