@@ -67,6 +67,21 @@ Tips:
 - Test `API` requests: use `curl` in the terminal or the `REST Client` extension (already installed in the `devcontainer`)
 - As we use `Dev Containers` for development, `node_modules` are installed in the containers only. As a consequence, `api/node_modules` ans `client/node_modules` are empty on the host machine.
 
+## CI/CD
+
+The project uses GitHub Actions for continuous integration. On every push and pull request toward `develop` or `main`, two jobs run automatically:
+
+- **Unit tests** — runs Jest with coverage threshold (70% minimum)
+- **End-to-end tests** — spins up a PostgreSQL database and a MinIO instance, applies Prisma migrations, then runs the e2e test suite
+
+To run the CI pipeline locally, use [act](https://github.com/nektos/act):
+
+```bash
+act
+```
+
+A `.actrc` file at the project root configures `act` to automatically remove its containers after each run (`--rm`).
+
 ## Resources
 
 // TODO: List references related to the topic (documentation, articles, tutorials, etc.), as well as a description of how AI was used (tasks and parts of the project).
