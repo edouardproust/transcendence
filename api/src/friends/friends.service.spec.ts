@@ -15,7 +15,6 @@ import {
 	prismaUniqueConstraintException,
 } from './friends.service.mock';
 import { UsersServiceMock } from '../users/users.service.mock';
-import { UsersService } from '../users/users.service';
 
 describe('FriendsService', () => {
 	let service: FriendsService;
