@@ -13,10 +13,20 @@ import {
 import { Chess } from 'chess.js';
 import { GameStatus, GameMode } from '../prisma/generated/enums';
 
+/**
+ * Service handling chess game lifecycle and move validation.
+ */
 @Injectable()
 export class GameService {
 	constructor(private prisma: PrismaService) {}
 
+	/**
+	 * Create a new game (online or AI).
+	 *
+	 * @param dto Game creation parameters (mode, timeControl)
+	 * @param userId Id of the user creating the game (assigned as white player)
+	 * @returns The created game
+	 */
 	async createGame(dto: CreateGameDto, userId: string) {
 		const mode = dto.mode === 'ai' ? GameMode.AI : GameMode.ONLINE;
 
@@ -33,6 +43,11 @@ export class GameService {
 		return game;
 	}
 
+	/**
+	 * Get online games waiting for a second player.
+	 *
+	 * @returns List of up to 20 waiting online games, ordered by most recent
+	 */
 	async getActiveGames() {
 		const games = await this.prisma.game.findMany({
 			where: {
@@ -47,6 +62,12 @@ export class GameService {
 		return games;
 	}
 
+	/**
+	 * Get all games where the user is a player.
+	 *
+	 * @param userId User id
+	 * @returns List of games ordered by most recent
+	 */
 	async getUserGames(userId: string) {
 		const games = await this.prisma.game.findMany({
 			where: {
@@ -58,6 +79,13 @@ export class GameService {
 		return games;
 	}
 
+	/**
+	 * Get a game by id.
+	 *
+	 * @param id Game id
+	 * @returns The game
+	 * @throws {NotFoundException} If game not found
+	 */
 	async getGame(id: string) {
 		const game = await this.prisma.game.findUnique({ where: { id } });
 
@@ -68,6 +96,17 @@ export class GameService {
 		return game;
 	}
 
+	/**
+	 * Start a waiting game.
+	 * Returns the game unchanged if already ongoing.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user starting the game
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {BadRequestException} If game is not in WAITING status
+	 * @throws {ForbiddenException} If user is not a player in this game
+	 */
 	async startGame(gameId: string, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
@@ -103,6 +142,17 @@ export class GameService {
 		return updatedGame;
 	}
 
+	/**
+	 * Finish an ongoing game.
+	 *
+	 * @param gameId Game id
+	 * @param dto Finish game data (winnerId, currentFen, pgn)
+	 * @param userId Id of the user finishing the game
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {ForbiddenException} If user is not a player in this game
+	 * @throws {BadRequestException} If game is not ongoing
+	 */
 	async finishGame(gameId: string, dto: FinishGameDto, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
@@ -133,6 +183,18 @@ export class GameService {
 		return updatedGame;
 	}
 
+	/**
+	 * Apply a move to an ongoing game.
+	 * Automatically detects checkmate, draw, stalemate and updates game status.
+	 * Uses optimistic concurrency control on currentFen to prevent race conditions.
+	 *
+	 * @param gameId Game id
+	 * @param dto Move data (move string in UCI or SAN notation)
+	 * @param userId Id of the user making the move
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {BadRequestException} If game is not ongoing, not the player's turn, or move is illegal
+	 */
 	async makeMove(gameId: string, dto: MakeMoveDto, userId: string) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },

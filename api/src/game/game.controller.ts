@@ -119,6 +119,10 @@ export class GameController {
 		description: 'Invalid token',
 	})
 	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Game is not ongoing',
+	})
+	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
 		description: 'Game not found',
 	})
