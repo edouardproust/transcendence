@@ -1,31 +1,32 @@
+import { EXAMPLES } from '../common/constants';
 import { Prisma, Role } from '../prisma/generated/client';
 import { PrismaErrorCode } from '../prisma/prisma.error';
 import { UsersService } from './users.service';
 
 export const usersFixture: any[] = [
 	{
-		id: '550e8400-e29b-41d4-a716-446655440000',
+		id: '550e8400-e29b-41d4-a716-446655440001',
 		email: 'admin@example.com',
 		username: 'admin',
-		role: Role.admin,
-		elo: 1200,
-		avatarUrl: null,
-		isOnline: false,
-		lastSeen: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		role: Role.ADMIN,
+		elo: EXAMPLES.elo + 200,
+		avatarUrl: EXAMPLES.avatarUrl,
+		isOnline: !EXAMPLES.isOnline,
+		lastSeen: EXAMPLES.date,
+		createdAt: EXAMPLES.date,
+		updatedAt: EXAMPLES.date,
 	},
 	{
-		id: '550e8400-e29b-41d4-a716-446655440001',
-		email: 'user2@example.com',
-		username: 'user',
-		role: Role.user,
-		elo: 1200,
-		avatarUrl: null,
-		isOnline: false,
-		lastSeen: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		id: EXAMPLES.id,
+		email: EXAMPLES.email,
+		username: EXAMPLES.username,
+		role: EXAMPLES.role,
+		elo: EXAMPLES.elo,
+		avatarUrl: EXAMPLES.avatarUrl,
+		isOnline: EXAMPLES.isOnline,
+		lastSeen: EXAMPLES.lastSeen,
+		createdAt: EXAMPLES.date,
+		updatedAt: EXAMPLES.date,
 	},
 ];
 
@@ -37,13 +38,15 @@ export const UsersServiceMock = {
 		findOneByEmail: jest.fn(),
 		findOneByUsername: jest.fn(),
 		createOne: jest.fn(),
-		deleteOne: jest.fn(),
+		deleteOneById: jest.fn(),
 		updateOneById: jest.fn(),
+		findProfileById: jest.fn(),
+		search: jest.fn(),
 	},
 };
 
 export const adminInDb: any = usersFixture[0];
-export const userInDb: any = usersFixture[0];
+export const userInDb: any = usersFixture[1];
 export const genericErrorMsg: string = 'Error!';
 export const genericError = new Error(genericErrorMsg);
 export const prismaUniqueConstraintException =

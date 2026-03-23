@@ -21,9 +21,9 @@ To edit the API, open this folder in a `Dev Container`:
 - Additionnal IDE extensions can be set in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json), then restart the docker container.
 - Commits and PRs must follow the [Git workflow](../docs/GIT-WORKFLOW.md).
 
-## Navigate databases
+### Navigate databases
 
-### Using adminer
+#### Using adminer
 
 To visualize all the databases from the host machine:
 
@@ -35,11 +35,11 @@ To visualize all the databases from the host machine:
     - Password: the one you chose (default: `testuser123`)
     - Database: leave empty
 
-### Using Prisma Studio
+#### Using Prisma Studio
 
 When developing inside the `tr-api` container, it is easier to use Prisma Studio directly: `npx prisma studio`.
 
-## Useful commands
+## Usefull commands
 
 **These commands must be used inside the `tr-api` container (via the terminal inside the corresponding `Dev Container` or using `docker exec tr-api sh -c "<command>"`)**
 
@@ -102,7 +102,44 @@ Compodoc is an open-source documentation tool that generates interactive technic
 | `npm run doc`       | Build compodoc and view it in browser |
 | `npm run doc:serve` | View compodoc in browser              |
 
-## Links
+## Technical Notes
 
-- Decode JWT token: https://www.jwt.io/
-- Deployment: https://docs.nestjs.com/deployment
+### JWT Authentication Flow
+
+When a request hits a route protected by `@UseGuards(JwtAuthGuard)`, the following happens automatically:
+
+1. `JwtAuthGuard` intercepts the request
+2. Extracts the token from the `Authorization: Bearer <token>` header
+3. Verifies the token signature using `JWT_SECRET`
+4. Decodes the payload → `{ sub: 'uuid', role: 'USER' }`
+5. Calls `validate(payload)` in `jwt.strategy.ts`
+6. `validate()` returns `{ id: 'uuid', role: 'USER' }`
+7. Passport automatically assigns the return value to `request.user`
+8. The controller executes with `request.user` available
+
+#### Why `sub` → `id` in `validate()`?
+
+`sub` (subject) is the standard JWT field name for the user identifier. We remap it to `id` in `validate()` so the rest of the application uses a more readable `request.user.id` instead of `request.user.sub`.
+
+#### Why store `id` and `role` in the token?
+
+The JWT payload acts as a transport layer for data needed by guards:
+
+- `id` (`sub`): used by `OwnerOrAdminGuard` to verify the requester owns the resource
+- `role`: used by `AdminGuard` to verify admin access
+
+This avoids a database query on every request — the guards have everything they need directly from the token (stateless authentication).
+
+#### Token structure
+
+A JWT is three base64-encoded parts separated by dots:
+
+```
+header.payload.signature
+```
+
+- **header**: signing algorithm
+- **payload**: your data (`sub`, `role`, and standard fields like `exp`, `iat`)
+- **signature**: computed with `JWT_SECRET` — any tampering invalidates it
+
+You can inspect any token at [jwt.io](https://jwt.io).

@@ -1,10 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { LoginDto } from './dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '../prisma/generated/enums';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { AuthResponseDto } from './dtos/auth-response.dto';
+import { CONSTRAINTS } from '../common/constants';
 
 @Injectable()
 export class AuthService {
@@ -13,23 +16,41 @@ export class AuthService {
 		private readonly jwtService: JwtService,
 	) {}
 
-	private generateToken(user: { id: string; role: Role }) {
-		return this.jwtService.sign({ sub: user.id, role: user.role });
+	/**
+	 * Generate a JWT token for the given user.
+	 *
+	 * The payload contains only 2 fields to keep the token minimal:
+	 * - `id` (user id): required by `OwnerOrAdminGuard` to compare with `params.id`
+	 * - `role` (user role): required by `AdminGuard` to check for admin access
+	 */
+	private generateToken(payload: JwtPayload): string {
+		return this.jwtService.sign({
+			sub: payload.sub,
+			role: payload.role,
+		});
 	}
 
 	/**
-	 * Create a new user in database, then and log him in by generating a JWT token.
+	 * Create a new user in database, then log him in by generating a JWT token.
+	 * Sets the user as online and updates lastSeen on registration.
 	 *
 	 * @param createUserDto POST user data
 	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws {ConflictException} If email or username already exists
 	 */
-	async register(createUserDto: CreateUserDto) {
+	async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
 		const userWithoutPassword =
 			await this.usersService.createOne(createUserDto);
+		await this.usersService.updateOneById(userWithoutPassword.id, {
+			lastSeen: new Date(),
+			isOnline: true,
+		});
 		return {
 			user: userWithoutPassword,
-			token: this.generateToken(userWithoutPassword),
+			token: this.generateToken({
+				sub: userWithoutPassword.id,
+				role: userWithoutPassword.role,
+			}),
 		};
 	}
 
@@ -39,15 +60,12 @@ export class AuthService {
 	 * @param loginDto Post data for login
 	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
 	 * @throws UnauthorizedException if email or password is invalid
-	 *
-	 * @remarks
-	 * The JWT payload contains only 3 fields to keep the token minimal:
-	 * - `sub` (user id): required by `OwnerOrAdminGuard` to compare with `params.id`
-	 * - `role`: required by `RolesGuard` to check for admin access
 	 */
-	async login(loginDto: LoginDto) {
+	async login(loginDto: LoginDto): Promise<AuthResponseDto> {
 		const errorMsg = 'Invalid email, username or password'; // Vague to give no info to attackers
-		const isEmail = /\S+@\S+\.\S+/.test(loginDto.emailOrUsername);
+		const isEmail = CONSTRAINTS.user.email.regex.test(
+			loginDto.emailOrUsername,
+		);
 
 		let user = isEmail
 			? await this.usersService.findOneByEmail(loginDto.emailOrUsername)
@@ -59,10 +77,16 @@ export class AuthService {
 		if (!(await bcrypt.compare(loginDto.password, user.password)))
 			throw new UnauthorizedException(errorMsg);
 
-		const { password, ...userWithoutPassword } = user;
+		const mappedUser = await this.usersService.findOneById(user.id);
+		if (!mappedUser) throw new UnauthorizedException(errorMsg);
+		await this.usersService.updateOneById(user.id, {
+			lastSeen: new Date(),
+			isOnline: true,
+		});
+
 		return {
-			user: userWithoutPassword,
-			token: this.generateToken(userWithoutPassword),
+			user: mappedUser,
+			token: this.generateToken({ sub: user.id, role: user.role }),
 		};
 	}
 }
