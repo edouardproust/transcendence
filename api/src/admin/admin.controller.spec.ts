@@ -7,8 +7,8 @@ import { UsersServiceMock, usersFixture } from '../users/users.service.mock';
 import { AdminServiceMock } from './admin.service.mock';
 import { AdminUsersQueryDto } from './dtos/admin-users-query.dto';
 import { AdminGamesQueryDto } from './dtos/admin-games-query.dto';
-import { UpdateUserAdminDto } from '../users/dto/update-user-admin.dto';
 import { Role } from '../prisma/generated/client';
+import { UpdateUserAdminDto } from '../users/dtos/update-user-admin.dto';
 
 describe('AdminController', () => {
 	let controller: AdminController;
@@ -40,7 +40,7 @@ describe('AdminController', () => {
 
 	describe('updateUser', () => {
 		it('should call usersService.updateOneById with correct id and dto', async () => {
-			const dto: UpdateUserAdminDto = { elo: 1400, role: Role.admin };
+			const dto: UpdateUserAdminDto = { elo: 1400, role: Role.ADMIN };
 			await controller.updateUser(userFixture.id, dto);
 			expect(usersService.updateOneById).toHaveBeenCalledWith(
 				userFixture.id,

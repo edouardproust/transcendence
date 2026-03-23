@@ -64,4 +64,5 @@ export const EXAMPLES = {
 	isOnline: true,
 	lastSeen: '2024-01-15T14:30:00.000Z',
 	timeControl: '10+0',
+	gameId: '11111111-1111-1111-1111-111111111111',
 };

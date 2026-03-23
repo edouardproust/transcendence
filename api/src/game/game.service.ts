@@ -5,13 +5,11 @@ import {
 	ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-	CreateGameDto,
-	MakeMoveDto,
-	FinishGameDto,
-} from './dto/create-game.dto';
+import { CreateGameDto } from './dto/create-game.dto';
 import { Chess } from 'chess.js';
 import { GameStatus, GameMode } from '../prisma/generated/enums';
+import { FinishGameDto } from './dto/finish-game.dto';
+import { MakeMoveDto } from './dto/make-move.dto';
 
 /**
  * Service handling chess game lifecycle and move validation.
@@ -28,14 +26,12 @@ export class GameService {
 	 * @returns The created game
 	 */
 	async createGame(dto: CreateGameDto, userId: string) {
-		const mode = dto.mode === 'ai' ? GameMode.AI : GameMode.ONLINE;
-
 		const game = await this.prisma.game.create({
 			data: {
 				whiteId: userId,
 				blackId: null,
 				status: GameStatus.WAITING,
-				mode,
+				mode: dto.mode,
 				timeControl: dto.timeControl,
 			},
 		});
@@ -86,7 +82,7 @@ export class GameService {
 	 * @returns The game
 	 * @throws {NotFoundException} If game not found
 	 */
-	async findOneById(id: string) {
+	async getGame(id: string) {
 		const game = await this.prisma.game.findUnique({ where: { id } });
 
 		if (!game) {

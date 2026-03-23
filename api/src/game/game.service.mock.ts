@@ -1,17 +1,27 @@
+import { GameMode, GameStatus } from '../prisma/generated/enums';
 import { GameService } from './game.service';
+import { EXAMPLES } from '../common/constants';
 
 export const gameFixture = {
-	id: '11111111-1111-1111-1111-111111111111',
-	status: 'waiting',
-	mode: 'online',
-	white_player_id: 1,
-	black_player_id: null,
-	winner_id: null,
-	current_fen: null,
+	id: EXAMPLES.gameId,
+	status: GameStatus.WAITING,
+	mode: GameMode.ONLINE,
+	whiteId: EXAMPLES.id,
+	blackId: null,
+	winnerId: null,
+	currentFen: null,
 	pgn: null,
-	time_control: '10+0',
-	created_at: new Date('2024-01-01T00:00:00.000Z'),
-	updated_at: new Date('2024-01-01T00:00:00.000Z'),
+	timeControl: EXAMPLES.timeControl,
+	createdAt: new Date(EXAMPLES.date),
+	updatedAt: new Date(EXAMPLES.date),
+};
+
+export const ongoingGameFixture = {
+	...gameFixture,
+	status: GameStatus.ONGOING,
+	blackId: EXAMPLES.id2,
+	currentFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+	pgn: '',
 };
 
 export const GameServiceMock = {

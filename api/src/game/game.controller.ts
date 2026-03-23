@@ -10,11 +10,7 @@ import {
 	UseGuards,
 } from '@nestjs/common';
 import { GameService } from './game.service';
-import {
-	CreateGameDto,
-	MakeMoveDto,
-	FinishGameDto,
-} from './dto/create-game.dto';
+import { CreateGameDto } from './dto/create-game.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import {
@@ -25,6 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { RequestUser } from '../auth/interfaces/request-user.interface';
 import { GameResponseDto } from './dto/game-response.dto';
+import { FinishGameDto } from './dto/finish-game.dto';
+import { MakeMoveDto } from './dto/make-move.dto';
 
 @Controller('games')
 @UseGuards(JwtAuthGuard)
@@ -101,7 +99,7 @@ export class GameController {
 	async getGame(
 		@Param('id', ParseUUIDPipe) id: string,
 	): Promise<GameResponseDto> {
-		return this.gameService.findOneById(id);
+		return this.gameService.getGame(id);
 	}
 
 	@Post(':id/start')

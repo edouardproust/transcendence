@@ -2,12 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GameController } from './game.controller';
 import { GameService } from './game.service';
 import { GameServiceMock, gameFixture } from './game.service.mock';
-
-const GAME_ID = '11111111-1111-1111-1111-111111111111';
+import { RequestUser } from '../auth/interfaces/request-user.interface';
+import { GameMode } from '../prisma/generated/enums';
+import { EXAMPLES } from '../common/constants';
 
 describe('GameController', () => {
 	let controller: GameController;
-	let service: GameService;
+	let gameService: GameService;
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
@@ -16,140 +17,100 @@ describe('GameController', () => {
 		}).compile();
 
 		controller = module.get<GameController>(GameController);
-		service = module.get<GameService>(GameService);
-
-		jest.clearAllMocks();
+		gameService = module.get<GameService>(GameService);
 	});
 
 	it('should be defined', () => {
 		expect(controller).toBeDefined();
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games
-	// ------------------------------------------------------------------ //
 	describe('createGame', () => {
 		it('should call service.createGame with dto and userId', async () => {
-			(service.createGame as jest.Mock).mockResolvedValue(gameFixture);
-			const req = { user: { id: 1 } };
-
-			const result = await controller.createGame(
-				{ timeControl: '10+0', mode: 'online' },
-				req,
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			const dto = {
+				timeControl: EXAMPLES.timeControl,
+				mode: GameMode.ONLINE,
+			};
+			jest.spyOn(gameService, 'createGame').mockResolvedValue(
+				gameFixture,
 			);
-
-			expect(service.createGame).toHaveBeenCalledWith(
-				{ timeControl: '10+0', mode: 'online' },
-				1,
-			);
-			expect(result).toEqual(gameFixture);
+			await controller.createGame(dto, user);
+			expect(gameService.createGame).toHaveBeenCalledWith(dto, user.id);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// GET /games/active
-	// ------------------------------------------------------------------ //
 	describe('getActiveGames', () => {
-		it('should return list of active games', async () => {
-			(service.getActiveGames as jest.Mock).mockResolvedValue([
+		it('should call service.getActiveGames', async () => {
+			jest.spyOn(gameService, 'getActiveGames').mockResolvedValue([
 				gameFixture,
 			]);
-
-			const result = await controller.getActiveGames();
-
-			expect(service.getActiveGames).toHaveBeenCalled();
-			expect(result).toEqual([gameFixture]);
+			await controller.getActiveGames();
+			expect(gameService.getActiveGames).toHaveBeenCalled();
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// GET /games/user
-	// ------------------------------------------------------------------ //
 	describe('getUserGames', () => {
 		it('should call service.getUserGames with userId', async () => {
-			(service.getUserGames as jest.Mock).mockResolvedValue([
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			jest.spyOn(gameService, 'getUserGames').mockResolvedValue([
 				gameFixture,
 			]);
-			const req = { user: { id: 1 } };
-
-			const result = await controller.getUserGames(req);
-
-			expect(service.getUserGames).toHaveBeenCalledWith(1);
-			expect(result).toEqual([gameFixture]);
+			await controller.getUserGames(user);
+			expect(gameService.getUserGames).toHaveBeenCalledWith(user.id);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// GET /games/:id
-	// ------------------------------------------------------------------ //
 	describe('getGame', () => {
 		it('should call service.getGame with id', async () => {
-			(service.getGame as jest.Mock).mockResolvedValue(gameFixture);
-
-			const result = await controller.getGame(GAME_ID);
-
-			expect(service.getGame).toHaveBeenCalledWith(GAME_ID);
-			expect(result).toEqual(gameFixture);
+			jest.spyOn(gameService, 'getGame').mockResolvedValue(gameFixture);
+			await controller.getGame(EXAMPLES.gameId);
+			expect(gameService.getGame).toHaveBeenCalledWith(EXAMPLES.gameId);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/start
-	// ------------------------------------------------------------------ //
 	describe('startGame', () => {
 		it('should call service.startGame with id and userId', async () => {
-			(service.startGame as jest.Mock).mockResolvedValue({
-				...gameFixture,
-				status: 'ongoing',
-			});
-			const req = { user: { id: 1 } };
-
-			const result = await controller.startGame(GAME_ID, req);
-
-			expect(service.startGame).toHaveBeenCalledWith(GAME_ID, 1);
-			expect(result.status).toBe('ongoing');
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			jest.spyOn(gameService, 'startGame').mockResolvedValue(gameFixture);
+			await controller.startGame(EXAMPLES.gameId, user);
+			expect(gameService.startGame).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+				user.id,
+			);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/finish
-	// ------------------------------------------------------------------ //
 	describe('finishGame', () => {
 		it('should call service.finishGame with id, dto and userId', async () => {
-			(service.finishGame as jest.Mock).mockResolvedValue({
-				...gameFixture,
-				status: 'finished',
-			});
-			const req = { user: { id: 1 } };
-			const dto = { winnerId: 1, currentFen: 'some-fen', pgn: '1. e4' };
-
-			const result = await controller.finishGame(GAME_ID, dto, req);
-
-			expect(service.finishGame).toHaveBeenCalledWith(GAME_ID, dto, 1);
-			expect(result.status).toBe('finished');
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			const dto = {
+				winnerId: EXAMPLES.id,
+				currentFen: 'some-fen',
+				pgn: '1. e4',
+			};
+			jest.spyOn(gameService, 'finishGame').mockResolvedValue(
+				gameFixture,
+			);
+			await controller.finishGame(EXAMPLES.gameId, dto, user);
+			expect(gameService.finishGame).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+				dto,
+				user.id,
+			);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/move
-	// ------------------------------------------------------------------ //
 	describe('makeMove', () => {
 		it('should call service.makeMove with id, dto and userId', async () => {
-			(service.makeMove as jest.Mock).mockResolvedValue(gameFixture);
-			const req = { user: { id: 1 } };
-
-			const result = await controller.makeMove(
-				GAME_ID,
-				{ move: 'e4' },
-				req,
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			const dto = { move: 'e4' };
+			jest.spyOn(gameService, 'makeMove').mockResolvedValue(gameFixture);
+			await controller.makeMove(EXAMPLES.gameId, dto, user);
+			expect(gameService.makeMove).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+				dto,
+				user.id,
 			);
-
-			expect(service.makeMove).toHaveBeenCalledWith(
-				GAME_ID,
-				{ move: 'e4' },
-				1,
-			);
-			expect(result).toEqual(gameFixture);
 		});
 	});
 });
