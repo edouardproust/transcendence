@@ -1,14 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { gameService } from '@/services/gameService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { Game } from '@/types/game';
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [games, setGames] = useState<Game[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+
+  const handleCreateAIGame = async () => {
+    setIsLoading(true);
+    try {
+      const game = await gameService.createGame({
+        timeControl: '10+0',
+        mode: 'ai',
+      });
+      navigate(`/game/${game.id}`);
+    } catch (error) {
+      console.error('Error creating game:', error);
+      alert('Error al crear la partida');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -44,6 +65,7 @@ export const LobbyPage: React.FC = () => {
                 Practica contra Stockfish (motor de ajedrez)
               </p>
               <Button 
+                onClick={handleCreateAIGame}
                 disabled={isLoading}
               >
                 {isLoading ? 'Creando...' : 'Jugar vs IA'}
@@ -79,6 +101,7 @@ export const LobbyPage: React.FC = () => {
           </Button>
           
           <Button 
+            onClick={handleCreateAIGame} 
             disabled={isLoading} 
             className="w-full"
           >
