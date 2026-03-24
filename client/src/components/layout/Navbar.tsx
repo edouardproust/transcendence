@@ -1,13 +1,29 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/features/auth/authStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { Button } from '../ui/Button';
-
+import { authService } from '@/services/authService';
+// import { disconnectSocket } from '@/engine/socket';
+// import { disconnectPresenceSocket } from '@/engine/presenceSocket';
 
 export const Navbar: React.FC = () => {
-
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      // disconnectSocket();
+      // disconnectPresenceSocket();
+      logout();
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <nav className="bg-gray-800 dark:bg-gray-950 text-white p-4 border-b border-gray-700 dark:border-gray-800">
@@ -31,6 +47,28 @@ export const Navbar: React.FC = () => {
           >
             {theme === 'light' ? '🌙' : '☀️'}
           </button>
+
+          {user ? (
+            <>
+              <span className="text-sm">
+                {user.username}
+              </span>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin">
+                  <Button variant="primary">👑 Admin</Button>
+                </Link>
+              )}
+              <Link to="/profile">
+                <Button variant="secondary">Mi Perfil</Button>
+              </Link>
+              <Link to="/lobby">
+                <Button variant="secondary">Lobby</Button>
+              </Link>
+              <Button variant="danger" onClick={() => void handleLogout()}>
+                Salir
+              </Button>
+            </>
+          ) : (
             <>
               <Link to="/login">
                 <Button variant="secondary">Iniciar Sesión</Button>
@@ -39,6 +77,7 @@ export const Navbar: React.FC = () => {
                 <Button variant="primary">Registrarse</Button>
               </Link>
             </>
+          )}
         </div>
       </div>
     </nav>

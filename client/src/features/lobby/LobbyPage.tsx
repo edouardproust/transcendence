@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/features/auth/authStore';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 
 export const LobbyPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -51,6 +55,7 @@ export const LobbyPage: React.FC = () => {
             <h3 className="font-bold text-blue-900 mb-2 ">💡 Cómo jugar online:</h3>
             <ol className="text-sm text-blue-800 space-y-1">
               <li>1. Crea una partida online</li>
+              {/* <li>2. Comparte el link con tu oponente</li> */}
               <li>2. Espera a que se una</li>
               <li>3. ¡A jugar!</li>
             </ol>

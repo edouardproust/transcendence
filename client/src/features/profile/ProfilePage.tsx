@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { UserProfile } from '@/types/user';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-
+import { Avatar } from '@/components/ui/Avatar';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, token } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ username: '', email: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
   const isOwnProfile = !userId || userId === user?.id;
 
   useEffect(() => {
     loadProfile();
   }, [userId]);
-
-  
 
   const loadProfile = async () => {
     try {
@@ -34,7 +36,6 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-
   const handleUpdateProfile = async () => {
     try {
       const updated = await userService.updateProfile(editData);
@@ -46,6 +47,18 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    try {
+      setIsUploadingAvatar(true);
+      const result = await userService.uploadAvatar(file);
+      setProfile((prev) => (prev ? { ...prev, avatar_url: result.avatar_url } : prev));
+      alert('Avatar actualizado');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error subiendo avatar');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -73,12 +86,12 @@ export const ProfilePage: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-start gap-4">
+            <Avatar src={profile.avatar_url} alt="Avatar" size="lg" />
             <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {profile.username}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">{profile.email}</p>
-           
             <p className="text-sm text-gray-500 dark:text-gray-500">
               Miembro desde {new Date(profile.created_at).toLocaleDateString()}
             </p>
@@ -94,7 +107,18 @@ export const ProfilePage: React.FC = () => {
 
         {isOwnProfile && !isEditing && (
           <div className="flex gap-2">
-           
+            <label className="px-4 py-2 rounded-lg font-medium transition bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white cursor-pointer">
+              {isUploadingAvatar ? 'Subiendo...' : 'Subir Avatar'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleAvatarUpload(file);
+                }}
+              />
+            </label>
             <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>
           </div>
         )}
@@ -150,10 +174,22 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        
+        {/* Buscar Usuarios */}
+        {isOwnProfile && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold mb-4">🔍 Buscar Usuarios</h2>
+            <div className="flex gap-2 mb-4">
+              <Input
+                placeholder="Buscar por nombre..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button 
+                >Buscar</Button>
+            </div>
+          </div>
+        )}
       </div>
-
-    
     </div>
   );
 };

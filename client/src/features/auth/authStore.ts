@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     if (token && userStr) {
       try {
-        const user = JSON.parse(userStr);
+        const user = JSON.parse(userStr) as User;
         set({ user, token, isAuthenticated: true });
         return;
       } catch (error) {

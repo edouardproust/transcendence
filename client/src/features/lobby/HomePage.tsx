@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/features/auth/authStore';
 import { Button } from '@/components/ui/Button';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   return (
     <div className="dark:bg-gray-800 max-w-4xl mx-auto text-center mt-20">
@@ -13,6 +15,11 @@ export const HomePage: React.FC = () => {
       </p>
 
       <div className="flex justify-center gap-4 mb-12">
+        {user ? (
+          <Button onClick={() => navigate('/lobby')} className="text-lg px-8 py-3">
+            Ir al Lobby
+          </Button>
+        ) : (
           <>
             <Button onClick={() => navigate('/register')} className="text-lg px-8 py-3">
               Comenzar
@@ -25,6 +32,7 @@ export const HomePage: React.FC = () => {
               Iniciar Sesión
             </Button>
           </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
