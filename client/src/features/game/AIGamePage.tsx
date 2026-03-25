@@ -28,11 +28,9 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     initGame,
     makeMove,
     gameId: storeGameId,
-    mode,
     playerColor,
     fen,
     turn,
-    moves,
     status,
     endGame,
     reset,
@@ -43,7 +41,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [aiLevel, setAiLevel] = useState<number>(10);
   const [selectedPlayerColor, setSelectedPlayerColor] = useState<PlayerColor>('white');
-  const [untimedMode, setUntimedMode] = useState<boolean>(true);
+  const [untimedMode] = useState<boolean>(true);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const persistedResultRef = useRef(false);
   const pendingAiMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

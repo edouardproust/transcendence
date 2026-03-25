@@ -8,7 +8,7 @@ interface BoardProps {
 }
 
 export const Board: React.FC<BoardProps> = ({ onMove }) => {
-  const { gameId, fen, playerColor, mode, turn, status, boardView, board2DTheme, board3DTheme, chess, lastMove } =
+  const { gameId, fen, playerColor, mode, turn, status, boardView, board3DTheme, chess, lastMove } =
     useGameStore();
   const validPromotionPieces = new Set(['q', 'r', 'b', 'n']);
   const pendingPromotionRef = React.useRef<string | undefined>(undefined);

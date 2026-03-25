@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gameService } from '@/services/gameService';
-import { useAuthStore } from '@/features/auth/authStore';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Game } from '@/types/game';
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const [games, setGames] = useState<Game[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,9 +50,9 @@ export const LobbyPage: React.FC = () => {
                 Crea una partida y espera a que otro jugador se una
               </p>
               <Button 
-                disabled={isLoading}
+                disabled
               >
-                {isLoading ? 'Creando...' : 'Crear Partida Online'}
+                Proximamente
               </Button>
             </div>
             <div className="p-4 border rounded">
@@ -94,10 +90,10 @@ export const LobbyPage: React.FC = () => {
           <p className="text-gray-700 dark:text-gray-400">Selecciona el modo de juego:</p>
           
           <Button 
-            disabled={isLoading} 
+            disabled
             className="w-full"
           >
-            🎮 Partida Online
+            🎮 Partida Online (Pronto)
           </Button>
           
           <Button 

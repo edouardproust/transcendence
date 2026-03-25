@@ -15,7 +15,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
   onMove, 
   children,
   gameFinished = false,
-  clockEnabled = true,
 }) => {
   return (
     <div className="max-w-7xl mx-auto px-4">
