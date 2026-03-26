@@ -9,6 +9,7 @@ import { AdminUsersQueryDto } from './dtos/admin-users-query.dto';
 import { AdminGamesQueryDto } from './dtos/admin-games-query.dto';
 import { Role } from '../prisma/generated/client';
 import { UpdateUserAdminDto } from '../users/dtos/update-user-admin.dto';
+import { ForbiddenException } from '@nestjs/common';
 
 describe('AdminController', () => {
 	let controller: AdminController;
@@ -51,10 +52,22 @@ describe('AdminController', () => {
 
 	describe('deleteUser', () => {
 		it('should call usersService.deleteOneById with correct id', async () => {
-			await controller.deleteUser(userFixture.id);
+			await controller.deleteUser(userFixture.id, {
+				id: 'other-id',
+				role: Role.ADMIN,
+			});
 			expect(usersService.deleteOneById).toHaveBeenCalledWith(
 				userFixture.id,
 			);
+		});
+
+		it('should throw ForbiddenException when admin tries to delete themselves', async () => {
+			await expect(
+				controller.deleteUser(userFixture.id, {
+					id: userFixture.id,
+					role: Role.ADMIN,
+				}),
+			).rejects.toThrow(ForbiddenException);
 		});
 	});
 

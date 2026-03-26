@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	Delete,
+	ForbiddenException,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -28,6 +29,9 @@ import { AdminGamesQueryDto } from './dtos/admin-games-query.dto';
 import { AdminGamesResponseDto } from './dtos/admin-games-response.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { UpdateUserAdminDto } from '../users/dtos/update-user-admin.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { RequestUser } from '../auth/interfaces/request-user.interface';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -109,13 +113,22 @@ export class AdminController {
 	})
 	@ApiResponse({
 		status: HttpStatus.FORBIDDEN,
-		description: 'Admin role required',
+		description:
+			'Admin role required | Admin cannot delete their own account',
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
 		description: 'User not found',
 	})
-	async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+	async deleteUser(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() currentUser: RequestUser,
+	): Promise<void> {
+		if (currentUser.id === id) {
+			throw new ForbiddenException(
+				'Admin cannot delete their own account',
+			);
+		}
 		await this.usersService.deleteOneById(id);
 	}
 
