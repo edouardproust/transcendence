@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { UserProfile } from '@/types/user';
@@ -9,8 +9,7 @@ import { Avatar } from '@/components/ui/Avatar';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
-  const navigate = useNavigate();
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ username: '', email: '' });
@@ -28,7 +27,7 @@ export const ProfilePage: React.FC = () => {
     try {
       const data = await userService.getProfile(userId);
       setProfile(data);
-      setEditData({ username: data.username, email: data.email });
+      setEditData({ username: data.username, email: data.email ?? '' });
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
@@ -91,7 +90,9 @@ export const ProfilePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {profile.username}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">{profile.email}</p>
+            {profile.email && (
+              <p className="text-gray-600 dark:text-gray-400">{profile.email}</p>
+            )}
             <p className="text-sm text-gray-500 dark:text-gray-500">
               Miembro desde {new Date(profile.created_at).toLocaleDateString()}
             </p>

@@ -4,7 +4,7 @@ export interface User {
   email: string;
   elo: number;
   role: 'USER' | 'ADMIN';
-  avatar_url?: string;
+  avatar_url?: string | null;
   is_online?: boolean;
   last_seen?: string | null;
   created_at: string;
@@ -29,10 +29,10 @@ export interface RegisterCredentials {
 export interface UserProfile {
   id: string;
   username: string;
-  email: string;
+  email?: string;
   elo: number;
   role?: 'USER' | 'ADMIN';
-  avatar_url?: string;
+  avatar_url?: string | null;
   is_online?: boolean;
   last_seen?: string | null;
   created_at: string;

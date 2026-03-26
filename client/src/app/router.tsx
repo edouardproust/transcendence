@@ -5,6 +5,7 @@ import { HomePage } from '@/features/lobby/HomePage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { LobbyPage } from '@/features/lobby/LobbyPage';
+import { GamePage } from '@/features/game/GamePage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { PrivacyPolicyPage } from '@/features/legal/PrivacyPolicyPage';
 import { AdminLayout } from '@/features/admin/AdminLayout';
@@ -56,6 +57,14 @@ export const AppRouter: React.FC = () => {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/game/:gameId"
+            element={
+              <ProtectedRoute>
+                <GamePage />
               </ProtectedRoute>
             }
           />

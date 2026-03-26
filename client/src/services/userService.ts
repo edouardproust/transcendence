@@ -1,37 +1,50 @@
 import { api } from './api';
-import { UserProfile } from '@/types/user';
+import { User, UserProfile } from '@/types/user';
+
+const mapUserFromApi = (apiUser: any): User => ({
+  id: apiUser.id,
+  username: apiUser.username,
+  email: apiUser.email ?? '',
+  elo: apiUser.elo ?? 0,
+  role: apiUser.role === 'ADMIN' ? 'ADMIN' : 'USER',
+  avatar_url: apiUser.avatarUrl ?? apiUser.avatar_url ?? null,
+  is_online: apiUser.isOnline ?? apiUser.is_online ?? false,
+  last_seen: apiUser.lastSeen ?? apiUser.last_seen ?? null,
+  created_at: apiUser.createdAt ?? apiUser.created_at ?? '',
+});
+
+const mapUserProfileFromApi = (apiUser: any): UserProfile => ({
+  ...mapUserFromApi(apiUser),
+  email: apiUser.email,
+  totalGames: apiUser.totalGames ?? apiUser.total_games ?? 0,
+  wins: apiUser.wins ?? 0,
+  losses: apiUser.losses ?? 0,
+  draws: apiUser.draws ?? 0,
+});
 
 export const userService = {
   async getProfile(userId?: string): Promise<UserProfile> {
-    const url = userId ? `/users/${userId}` : `/users/${getUserIdFromToken()}`;
+    const url = userId ? `/users/profile/${userId}` : '/users/profile';
     const response = await api.get<UserProfile>(url);
-    return response.data;
+    return mapUserProfileFromApi(response.data);
   },
 
   async updateProfile(data: { username?: string; email?: string }): Promise<UserProfile> {
-    const userId = getUserIdFromToken();
-    const response = await api.patch<UserProfile>(`/users/${userId}`, data);
-    return response.data;
+    await api.patch('/users/profile', data);
+    return userService.getProfile();
   },
 
   async uploadAvatar(file: File): Promise<{ message: string; avatar_url: string }> {
     const formData = new FormData();
     formData.append('avatar', file);
-    const userId = getUserIdFromToken();
 
-    const response = await api.patch(`/users/${userId}/avatar`, formData, {
+    const response = await api.patch('/users/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    return response.data;
+    return {
+      message: response.data?.message ?? 'Avatar actualizado',
+      avatar_url: response.data?.avatarUrl ?? response.data?.avatar_url ?? '',
+    };
   },
 };
-
-function getUserIdFromToken(): string {
-  const userStr = localStorage.getItem('user');
-  if (!userStr) {
-    throw new Error('No user data found');
-  }
-  const user = JSON.parse(userStr);
-  return user.id;
-}

@@ -8,6 +8,7 @@ const TOKEN_AUTH_MESSAGES = new Set([
   'Invalid token',
   'User not found',
   'Authentication failed',
+  'Unauthorized',
 ]);
 
 export const api = axios.create({
@@ -37,7 +38,7 @@ api.interceptors.response.use(
     const message = error.response?.data?.message;
     const isAuthFreePath = AUTH_FREE_PATHS.some((path) => requestUrl.includes(path));
     const isTokenErrorMessage =
-      typeof message === 'string' && TOKEN_AUTH_MESSAGES.has(message);
+      typeof message !== 'string' || TOKEN_AUTH_MESSAGES.has(message);
 
     if (status === 401 && token && !isAuthFreePath && isTokenErrorMessage) {
       localStorage.removeItem('token');

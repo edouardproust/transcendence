@@ -1,20 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AdminUser } from '@/types/admin';
 
 export const AdminUsers: React.FC = () => {
+  const [users] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [search, setSearch] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-
-
-  useEffect(() => {
-    loadUsers();
-  }, [pagination.page, search]);
-
-  const loadUsers = async () => {
-    setIsLoading(true);
-  };
+  const [isLoading] = useState(false);
 
   if (isLoading) {
     return (
@@ -59,6 +52,16 @@ export const AdminUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody>
+              {users.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="py-6 px-4 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    No hay datos de administración conectados todavía en esta rama.
+                  </td>
+                </tr>
+              )}
               {users.map((user) => (
                 <tr 
                   key={user.id}

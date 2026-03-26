@@ -1,14 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/features/auth/authStore';
+import { gameService } from '@/services/gameService';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+
+  const handleCreateAIGame = async () => {
+    setIsLoading(true);
+    try {
+      const game = await gameService.createGame({
+        timeControl: '10+0',
+        mode: 'ai',
+      });
+      navigate(`/game/${game.id}`);
+    } catch (error) {
+      console.error('Error creating game:', error);
+      alert('Error al crear la partida');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -33,9 +50,9 @@ export const LobbyPage: React.FC = () => {
                 Crea una partida y espera a que otro jugador se una
               </p>
               <Button 
-                disabled={isLoading}
+                disabled
               >
-                {isLoading ? 'Creando...' : 'Crear Partida Online'}
+                Proximamente
               </Button>
             </div>
             <div className="p-4 border rounded">
@@ -44,6 +61,7 @@ export const LobbyPage: React.FC = () => {
                 Practica contra Stockfish (motor de ajedrez)
               </p>
               <Button 
+                onClick={handleCreateAIGame}
                 disabled={isLoading}
               >
                 {isLoading ? 'Creando...' : 'Jugar vs IA'}
@@ -72,13 +90,14 @@ export const LobbyPage: React.FC = () => {
           <p className="text-gray-700 dark:text-gray-400">Selecciona el modo de juego:</p>
           
           <Button 
-            disabled={isLoading} 
+            disabled
             className="w-full"
           >
-            🎮 Partida Online
+            🎮 Partida Online (Pronto)
           </Button>
           
           <Button 
+            onClick={handleCreateAIGame} 
             disabled={isLoading} 
             className="w-full"
           >

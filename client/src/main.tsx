@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ToastProvider } from '@/components/ui/ToastProvider';
+import { useAuthStore } from '@/features/auth/authStore';
 
+useAuthStore.getState().loadFromStorage();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ToastProvider>
