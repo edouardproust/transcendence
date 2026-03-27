@@ -1,18 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { GameController } from '../src/game/game.controller';
 import { GameService } from '../src/game/game.service';
 import { GameServiceMock, gameFixture } from '../src/game/game.service.mock';
 import { JwtAuthGuard } from '../src/auth/guard/jwt-auth.guard';
-
-const GAME_ID = '11111111-1111-1111-1111-111111111111';
-const USER_ID = '22222222-2222-2222-2222-222222222222';
+import { EXAMPLES } from '../src/common/constants';
+import { GameMode, GameStatus } from '../src/prisma/generated/enums';
 
 const mockJwtGuard = {
 	canActivate: (ctx) => {
 		const req = ctx.switchToHttp().getRequest();
-		req.user = { id: USER_ID };
+		req.user = { id: EXAMPLES.id };
 		return true;
 	},
 };
@@ -44,43 +43,43 @@ describe('Game (e2e)', () => {
 		await app.close();
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games
-	// ------------------------------------------------------------------ //
 	describe('POST /games', () => {
 		it('should return 201 and the created game', async () => {
 			(service.createGame as jest.Mock).mockResolvedValue(gameFixture);
 
 			const res = await request(app.getHttpServer())
 				.post('/games')
-				.send({ timeControl: '10+0', mode: 'online' })
+				.send({
+					timeControl: EXAMPLES.timeControl,
+					mode: GameMode.ONLINE,
+				})
 				.expect(201);
 
 			expect(res.body.id).toBe(gameFixture.id);
 			expect(service.createGame).toHaveBeenCalledWith(
-				{ timeControl: '10+0', mode: 'online' },
-				USER_ID,
+				{ timeControl: EXAMPLES.timeControl, mode: GameMode.ONLINE },
+				EXAMPLES.id,
 			);
 		});
 
 		it('should return 400 if mode is invalid', async () => {
 			await request(app.getHttpServer())
 				.post('/games')
-				.send({ timeControl: '10+0', mode: 'invalid' })
-				.expect(400);
+				.send({
+					timeControl: EXAMPLES.timeControl,
+					mode: 'invalid-mode',
+				})
+				.expect(HttpStatus.BAD_REQUEST);
 		});
 
 		it('should return 400 if timeControl is missing', async () => {
 			await request(app.getHttpServer())
 				.post('/games')
-				.send({ mode: 'online' })
-				.expect(400);
+				.send({ mode: GameMode.ONLINE })
+				.expect(HttpStatus.BAD_REQUEST);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// GET /games/active
-	// ------------------------------------------------------------------ //
 	describe('GET /games/active', () => {
 		it('should return 200 and a list of games', async () => {
 			(service.getActiveGames as jest.Mock).mockResolvedValue([
@@ -89,15 +88,12 @@ describe('Game (e2e)', () => {
 
 			const res = await request(app.getHttpServer())
 				.get('/games/active')
-				.expect(200);
+				.expect(HttpStatus.OK);
 
 			expect(res.body).toHaveLength(1);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// GET /games/user
-	// ------------------------------------------------------------------ //
 	describe('GET /games/user', () => {
 		it('should return 200 and user games', async () => {
 			(service.getUserGames as jest.Mock).mockResolvedValue([
@@ -106,54 +102,50 @@ describe('Game (e2e)', () => {
 
 			const res = await request(app.getHttpServer())
 				.get('/games/user')
-				.expect(200);
+				.expect(HttpStatus.OK);
 
 			expect(res.body).toHaveLength(1);
-			expect(service.getUserGames).toHaveBeenCalledWith(USER_ID);
+			expect(service.getUserGames).toHaveBeenCalledWith(EXAMPLES.id);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// GET /games/:id
-	// ------------------------------------------------------------------ //
 	describe('GET /games/:id', () => {
 		it('should return 200 and the game', async () => {
 			(service.getGame as jest.Mock).mockResolvedValue(gameFixture);
 
 			const res = await request(app.getHttpServer())
-				.get(`/games/${GAME_ID}`)
-				.expect(200);
+				.get(`/games/${EXAMPLES.gameId}`)
+				.expect(HttpStatus.OK);
 
 			expect(res.body.id).toBe(gameFixture.id);
 		});
 
 		it('should return 400 if id is not a UUID', async () => {
-			await request(app.getHttpServer()).get('/games/abc').expect(400);
+			await request(app.getHttpServer())
+				.get('/games/abc')
+				.expect(HttpStatus.BAD_REQUEST);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/start
-	// ------------------------------------------------------------------ //
 	describe('POST /games/:id/start', () => {
 		it('should return 200 and the started game', async () => {
 			(service.startGame as jest.Mock).mockResolvedValue({
 				...gameFixture,
-				status: 'ongoing',
+				status: GameStatus.ONGOING,
 			});
 
 			const res = await request(app.getHttpServer())
-				.post(`/games/${GAME_ID}/start`)
-				.expect(200);
+				.post(`/games/${EXAMPLES.gameId}/start`)
+				.expect(HttpStatus.OK);
 
-			expect(res.body.status).toBe('ongoing');
-			expect(service.startGame).toHaveBeenCalledWith(GAME_ID, USER_ID);
+			expect(res.body.status).toBe(GameStatus.ONGOING);
+			expect(service.startGame).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+				EXAMPLES.id,
+			);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/finish
-	// ------------------------------------------------------------------ //
 	describe('POST /games/:id/finish', () => {
 		it('should return 200 when finishing a game', async () => {
 			(service.finishGame as jest.Mock).mockResolvedValue({
@@ -162,9 +154,9 @@ describe('Game (e2e)', () => {
 			});
 
 			const res = await request(app.getHttpServer())
-				.post(`/games/${GAME_ID}/finish`)
+				.post(`/games/${EXAMPLES.gameId}/finish`)
 				.send({
-					winnerId: USER_ID,
+					winnerId: EXAMPLES.id,
 					currentFen: 'some-fen',
 					pgn: '1. e4',
 				});
@@ -173,37 +165,34 @@ describe('Game (e2e)', () => {
 
 		it('should return 400 if body is invalid', async () => {
 			await request(app.getHttpServer())
-				.post(`/games/${GAME_ID}/finish`)
-				.send({ winnerId: 1 }) // manque currentFen et pgn
-				.expect(400);
+				.post(`/games/${EXAMPLES.gameId}/finish`)
+				.send({ winnerId: 1 }) // currentFen and pgn are missing
+				.expect(HttpStatus.BAD_REQUEST);
 		});
 	});
 
-	// ------------------------------------------------------------------ //
-	// POST /games/:id/move
-	// ------------------------------------------------------------------ //
 	describe('POST /games/:id/move', () => {
 		it('should return 200 and the updated game', async () => {
 			(service.makeMove as jest.Mock).mockResolvedValue(gameFixture);
 
 			const res = await request(app.getHttpServer())
-				.post(`/games/${GAME_ID}/move`)
+				.post(`/games/${EXAMPLES.gameId}/move`)
 				.send({ move: 'e4' })
-				.expect(200);
+				.expect(HttpStatus.OK);
 
 			expect(res.body).toBeDefined();
 			expect(service.makeMove).toHaveBeenCalledWith(
-				GAME_ID,
+				EXAMPLES.gameId,
 				{ move: 'e4' },
-				USER_ID,
+				EXAMPLES.id,
 			);
 		});
 
 		it('should return 400 if move is missing', async () => {
 			await request(app.getHttpServer())
-				.post(`/games/${GAME_ID}/move`)
+				.post(`/games/${EXAMPLES.gameId}/move`)
 				.send({})
-				.expect(400);
+				.expect(HttpStatus.BAD_REQUEST);
 		});
 	});
 });

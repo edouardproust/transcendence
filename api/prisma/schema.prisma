@@ -37,6 +37,11 @@ model User {
     wonGames   Game[]   @relation("Winner")
     createdAt  DateTime @default(now())
 
+    // TODO: add game relations once Game model is implemented by games module
+    // gamesAsWhite Game[] @relation("WhitePlayer")
+    // gamesAsBlack Game[] @relation("BlackPlayer")
+    // gamesWon     Game[] @relation("Winner")
+
     @@map("users")
 }
 

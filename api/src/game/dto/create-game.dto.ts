@@ -1,34 +1,18 @@
-import { IsString, IsNotEmpty, IsIn, IsOptional, IsInt } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsIn } from 'class-validator';
+import { EXAMPLES } from '../../common/constants';
 
-// POST /games
 export class CreateGameDto {
+	@ApiProperty({
+		example: EXAMPLES.timeControl,
+		description: 'Time control (e.g. "10+0", "5+3", "unlimited")',
+	})
 	@IsString()
 	@IsNotEmpty()
 	timeControl: string; // ex: "10+0", "5+3", "unlimited"
 
+	@ApiProperty({ enum: ['ONLINE', 'AI'], example: 'ONLINE' })
 	@IsString()
-	@IsIn(['online', 'ai'])
-	mode: 'online' | 'ai';
-}
-
-// POST /games/:id/move
-export class MakeMoveDto {
-	@IsString()
-	@IsNotEmpty()
-	move: string;
-}
-
-// POST /games/:id/finish
-export class FinishGameDto {
-	@IsOptional()
-	@IsString()
-	winnerId: string | null;
-
-	@IsString()
-	@IsNotEmpty()
-	currentFen: string;
-
-	@IsString()
-	@IsNotEmpty()
-	pgn: string;
+	@IsIn(['ONLINE', 'AI'])
+	mode: 'ONLINE' | 'AI';
 }

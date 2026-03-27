@@ -50,7 +50,6 @@ while true; do
     [ -n "$aws_access_key_id" ] && break
     error "Required"
 done
-
 while true; do
     read -sp "AWS_SECRET_ACCESS_KEY: " aws_secret_access_key
     echo
@@ -95,7 +94,6 @@ fi
 		echo
 	fi
 
-# Remind about backup strategy
 success "Production setup completed successfully!"
 echo
 

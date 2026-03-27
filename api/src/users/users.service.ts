@@ -17,6 +17,7 @@ import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { UpdateUserSystemDto } from './dtos/update-user-system.dto';
 import { StorageService } from '../storage/storage.service';
 import { DEFAULTS } from '../common/constants';
+import { UpdateUserAdminDto } from './dtos/update-user-admin.dto';
 
 @Injectable()
 export class UsersService {
@@ -136,7 +137,11 @@ export class UsersService {
 	 */
 	async updateOneById(
 		id: string,
-		updateUserDto: UpdateUserDto | UpdateProfileDto | UpdateUserSystemDto,
+		updateUserDto:
+			| UpdateUserDto
+			| UpdateProfileDto
+			| UpdateUserAdminDto
+			| UpdateUserSystemDto,
 	) {
 		const data =
 			'password' in updateUserDto && updateUserDto.password
