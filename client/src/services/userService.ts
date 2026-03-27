@@ -1,4 +1,5 @@
 import { api } from './api';
+import { Friend } from '@/types/friends';
 import { User, UserProfile } from '@/types/user';
 
 const mapUserFromApi = (apiUser: any): User => ({
@@ -20,6 +21,17 @@ const mapUserProfileFromApi = (apiUser: any): UserProfile => ({
   wins: apiUser.wins ?? 0,
   losses: apiUser.losses ?? 0,
   draws: apiUser.draws ?? 0,
+});
+
+const mapFriendFromApi = (apiUser: any): Friend => ({
+  id: apiUser.id,
+  username: apiUser.username,
+  email: apiUser.email ?? undefined,
+  elo: apiUser.elo ?? 0,
+  avatar_url: apiUser.avatarUrl ?? apiUser.avatar_url ?? null,
+  is_online: apiUser.isOnline ?? apiUser.is_online ?? false,
+  last_seen: apiUser.lastSeen ?? apiUser.last_seen ?? null,
+  created_at: apiUser.createdAt ?? apiUser.created_at ?? '',
 });
 
 export const userService = {
@@ -46,5 +58,12 @@ export const userService = {
       message: response.data?.message ?? 'Avatar actualizado',
       avatar_url: response.data?.avatarUrl ?? response.data?.avatar_url ?? '',
     };
+  },
+
+  async searchUsers(query: string): Promise<Friend[]> {
+    const response = await api.get<Friend[]>('/users/search', {
+      params: { query },
+    });
+    return response.data.map(mapFriendFromApi);
   },
 };

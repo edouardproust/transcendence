@@ -1,13 +1,77 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { adminService } from '@/services/adminService';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AdminUser } from '@/types/admin';
 
 export const AdminUsers: React.FC = () => {
-  const [users] = useState<AdminUser[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [search, setSearch] = useState('');
-  const [isLoading] = useState(false);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editElo, setEditElo] = useState('');
+  const [editRole, setEditRole] = useState<'USER' | 'ADMIN'>('USER');
+
+  useEffect(() => {
+    void loadUsers();
+  }, [pagination.page, appliedSearch]);
+
+  const loadUsers = async () => {
+    setIsLoading(true);
+    try {
+      const data = await adminService.getUsers(pagination.page, appliedSearch);
+      setUsers(data.users);
+      setPagination(data.pagination);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      alert('Error cargando usuarios');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    setPagination((current) => ({ ...current, page: 1 }));
+    setAppliedSearch(search);
+  };
+
+  const handleEdit = (user: AdminUser) => {
+    setEditingUser(user);
+    setEditElo(String(user.elo));
+    setEditRole(user.role);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingUser) return;
+
+    try {
+      await adminService.updateUser(editingUser.id, {
+        elo: Number.parseInt(editElo, 10),
+        role: editRole,
+      });
+      alert('Usuario actualizado');
+      setEditingUser(null);
+      void loadUsers();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error actualizando usuario');
+    }
+  };
+
+  const handleDelete = async (userId: string, username: string) => {
+    if (!confirm(`¿Eliminar usuario ${username}? Esta acción es irreversible.`)) {
+      return;
+    }
+
+    try {
+      await adminService.deleteUser(userId);
+      alert('Usuario eliminado');
+      void loadUsers();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error eliminando usuario');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -30,9 +94,11 @@ export const AdminUsers: React.FC = () => {
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
           />
-          <Button 
-          >Buscar</Button>
+          <Button onClick={handleSearch}>Buscar</Button>
         </div>
       </div>
 
@@ -97,11 +163,13 @@ export const AdminUsers: React.FC = () => {
                     <div className="flex gap-2">
                       <Button
                         variant="secondary"
+                        onClick={() => handleEdit(user)}
                       >
                         Editar
                       </Button>
                       <Button
                         variant="danger"
+                        onClick={() => void handleDelete(user.id, user.username)}
                       >
                         Eliminar
                       </Button>
@@ -122,7 +190,9 @@ export const AdminUsers: React.FC = () => {
             <Button
               variant="secondary"
               disabled={pagination.page === 1}
-              onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+              onClick={() =>
+                setPagination((current) => ({ ...current, page: current.page - 1 }))
+              }
             >
               Anterior
             </Button>
@@ -132,13 +202,65 @@ export const AdminUsers: React.FC = () => {
             <Button
               variant="secondary"
               disabled={pagination.page === pagination.totalPages}
-              onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+              onClick={() =>
+                setPagination((current) => ({ ...current, page: current.page + 1 }))
+              }
             >
               Siguiente
             </Button>
           </div>
         </div>
       </div>
+
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+              Editar Usuario: {editingUser.username}
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  ELO Rating
+                </label>
+                <input
+                  type="number"
+                  value={editElo}
+                  onChange={(e) => setEditElo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Rol
+                </label>
+                <select
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value as 'USER' | 'ADMIN')}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="USER">Usuario</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button onClick={() => void handleSaveEdit()}>
+                Guardar Cambios
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setEditingUser(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

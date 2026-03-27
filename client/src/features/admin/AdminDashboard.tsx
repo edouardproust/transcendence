@@ -1,7 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { adminService } from '@/services/adminService';
+import { AdminStats } from '@/types/admin';
 
 export const AdminDashboard: React.FC = () => {
- 
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    void loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const data = await adminService.getStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      alert('Error cargando estadísticas');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">Cargando dashboard...</div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl text-red-600">Error cargando estadísticas</div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-gray-100">
@@ -14,33 +50,45 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Usuarios</p>
-
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {stats.stats.total_users}
+              </p>
             </div>
             <div className="text-4xl">👥</div>
           </div>
-
+          <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+            +{stats.stats.new_users_week} esta semana
+          </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Partidas</p>
-
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {stats.stats.total_games}
+              </p>
             </div>
             <div className="text-4xl">♟️</div>
           </div>
-
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+            {stats.stats.active_games} activas ahora
+          </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Partidas 24h</p>
-
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {stats.stats.games_last_24h}
+              </p>
             </div>
             <div className="text-4xl">📊</div>
           </div>
-
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+            {stats.stats.finished_games} finalizadas en total
+          </p>
         </div>
       </div>
 
@@ -60,6 +108,35 @@ export const AdminDashboard: React.FC = () => {
                 <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Registrado</th>
               </tr>
             </thead>
+            <tbody>
+              {stats.topPlayers.map((player, index) => (
+                <tr
+                  key={player.id}
+                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <td className="py-3 px-4">
+                    {index === 0 && '🥇'}
+                    {index === 1 && '🥈'}
+                    {index === 2 && '🥉'}
+                    {index > 2 && index + 1}
+                  </td>
+                  <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                    {player.username}
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                    {player.email}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                      {player.elo}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                    {new Date(player.created_at).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       </div>
@@ -69,7 +146,38 @@ export const AdminDashboard: React.FC = () => {
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
           📜 Actividad Reciente
         </h2>
-
+        <div className="space-y-3">
+          {stats.recentActivity.map((activity) => (
+            <div
+              key={activity.id}
+              className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {activity.white_username}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">vs</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {activity.black_username || 'Esperando...'}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {activity.mode === 'online' ? '👥 Online' : '🤖 IA'} •
+                  {activity.status === 'active' && ' 🟢 Jugando'}
+                  {activity.status === 'waiting' &&
+                    (activity.mode === 'ai' ? ' 🟡 Pendiente inicio' : ' 🟡 Abierta')}
+                  {activity.status === 'finished' &&
+                    ` ✓ Ganó: ${activity.winner_username || 'Tablas'}`}
+                  {activity.status === 'cancelled' && ' ❌ Cancelada'}
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {new Date(activity.created_at).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
