@@ -2,9 +2,13 @@ import { api } from './api';
 import { Game, CreateGameRequest } from '@/types/game';
 
 const DEFAULT_INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+type ApiGameMode = 'ONLINE' | 'AI';
 
 const normalizeGameMode = (mode: string | null | undefined): Game['mode'] =>
   String(mode || '').toLowerCase() === 'ai' ? 'ai' : 'online';
+
+const serializeGameMode = (mode: CreateGameRequest['mode']): ApiGameMode =>
+  mode === 'ai' ? 'AI' : 'ONLINE';
 
 const normalizeGameStatus = (status: string | null | undefined): Game['status'] => {
   const normalized = String(status || '').toLowerCase();
@@ -35,7 +39,10 @@ const mapGameFromAPI = (apiGame: any): Game => {
 
 export const gameService = {
   async createGame(data: CreateGameRequest): Promise<Game> {
-    const response = await api.post('/games', data);
+    const response = await api.post('/games', {
+      ...data,
+      mode: serializeGameMode(data.mode),
+    });
     return mapGameFromAPI(response.data);
   },
 
