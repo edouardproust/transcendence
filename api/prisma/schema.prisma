@@ -63,11 +63,11 @@ model Game {
     status GameStatus @default(WAITING)
     mode   GameMode   @default(ONLINE)
 
-    whiteId String
+    whiteId String?
     blackId String?
 
-    white User  @relation("WhitePlayer", fields: [whiteId], references: [id])
-    black User? @relation("BlackPlayer", fields: [blackId], references: [id])
+    white User? @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: SetNull)
+    black User? @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: SetNull)
 
     winnerId String?
     winner   User?   @relation("Winner", fields: [winnerId], references: [id])

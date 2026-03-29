@@ -8,7 +8,6 @@ import { usersFixture } from '../users/users.service.mock';
 import { gameFixture } from '../game/game.service.mock';
 import { GameStatus } from '../prisma/generated/enums';
 import { prismaNotFoundException } from '../users/users.service.mock';
-import { AdminGamesQueryDto } from './dtos/admin-games-query.dto';
 
 const userWithCount = {
 	...usersFixture[0],
@@ -208,9 +207,19 @@ describe('AdminService', () => {
 
 			expect(result.stats.totalUsers).toBe(10);
 			expect(result.stats.newUsersWeek).toBe(10);
-			expect(result.stats.totalGames).toBe(0);
+			expect(result.stats.totalGames).toBe(5);
 			expect(result.topPlayers).toEqual(usersFixture);
-			expect(result.recentActivity).toEqual([]);
+			expect(result.recentActivity).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						id: gameWithPlayers.id,
+						whiteUsername: gameWithPlayers.white.username,
+						blackUsername: gameWithPlayers.black.username,
+						status: gameWithPlayers.status,
+						winnerUsername: gameWithPlayers.winner,
+					}),
+				]),
+			);
 		});
 	});
 

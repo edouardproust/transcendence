@@ -87,6 +87,7 @@ export class FriendsService {
 	/**
 	 * Accepts a pending friend request.
 	 * Deletes the request and creates a friendship in a single transaction.
+	 * A transaction forces all the operations to succeed. If one fails, than all ops are cancelled.
 	 *
 	 * @throws {NotFoundException} If the friend request does not exist.
 	 * @throws {ForbiddenException} If the current user is not the receiver of the request.
