@@ -1,27 +1,43 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { friendsService } from '@/services/friendsService';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { UserProfile } from '@/types/user';
+import { Friend, FriendRequest } from '@/types/friends';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
+import { Badge } from '@/components/ui/Badge';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ username: '', email: '' });
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const isOwnProfile = !userId || userId === user?.id;
 
   useEffect(() => {
-    loadProfile();
-  }, [userId]);
+    void loadProfile();
+    if (isOwnProfile) {
+      void loadFriends();
+      void loadRequests();
+      return;
+    }
+
+    setFriends([]);
+    setRequests([]);
+    setSearchResults([]);
+  }, [userId, isOwnProfile]);
 
   const loadProfile = async () => {
     try {
@@ -32,6 +48,24 @@ export const ProfilePage: React.FC = () => {
       console.error('Error loading profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadFriends = async () => {
+    try {
+      const data = await friendsService.getFriends();
+      setFriends(data);
+    } catch (error) {
+      console.error('Error loading friends:', error);
+    }
+  };
+
+  const loadRequests = async () => {
+    try {
+      const data = await friendsService.getPendingRequests();
+      setRequests(data);
+    } catch (error) {
+      console.error('Error loading requests:', error);
     }
   };
 
@@ -56,6 +90,65 @@ export const ProfilePage: React.FC = () => {
       alert(error.response?.data?.message || 'Error subiendo avatar');
     } finally {
       setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (searchQuery.length < 2) {
+      alert('Ingresa al menos 2 caracteres');
+      return;
+    }
+
+    try {
+      const results = await userService.searchUsers(searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      alert('Error buscando usuarios');
+    }
+  };
+
+  const handleSendRequest = async (receiverId: string) => {
+    try {
+      await friendsService.sendFriendRequest(receiverId);
+      alert('Solicitud enviada');
+      setSearchResults([]);
+      setSearchQuery('');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error enviando solicitud');
+    }
+  };
+
+  const handleAcceptRequest = async (requestId: string) => {
+    try {
+      await friendsService.acceptRequest(requestId);
+      await loadRequests();
+      await loadFriends();
+      alert('Solicitud aceptada');
+    } catch (error) {
+      alert('Error aceptando solicitud');
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    try {
+      await friendsService.rejectRequest(requestId);
+      await loadRequests();
+      alert('Solicitud rechazada');
+    } catch (error) {
+      alert('Error rechazando solicitud');
+    }
+  };
+
+  const handleRemoveFriend = async (friendId: string) => {
+    if (!confirm('¿Eliminar este amigo?')) return;
+
+    try {
+      await friendsService.removeFriend(friendId);
+      await loadFriends();
+      alert('Amigo eliminado');
+    } catch (error) {
+      alert('Error eliminando amigo');
     }
   };
 
@@ -93,6 +186,11 @@ export const ProfilePage: React.FC = () => {
             {profile.email && (
               <p className="text-gray-600 dark:text-gray-400">{profile.email}</p>
             )}
+            <div className="mt-1">
+              <Badge tone={profile.is_online ? 'success' : 'neutral'}>
+                {profile.is_online ? 'En linea' : 'Desconectado'}
+              </Badge>
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-500">
               Miembro desde {new Date(profile.created_at).toLocaleDateString()}
             </p>
@@ -180,17 +278,112 @@ export const ProfilePage: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-xl font-bold mb-4">🔍 Buscar Usuarios</h2>
             <div className="flex gap-2 mb-4">
-              <Input
-                placeholder="Buscar por nombre..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button 
-                >Buscar</Button>
+            <Input
+              placeholder="Buscar por nombre..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'Enter') void handleSearch();
+              }}
+            />
+              <Button onClick={() => void handleSearch()}>Buscar</Button>
             </div>
+
+            {searchResults.length > 0 && (
+              <div className="space-y-2">
+                {searchResults.map((result) => (
+                  <div
+                    key={result.id}
+                    className="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
+                  >
+                    <div>
+                      <div className="font-medium">{result.username}</div>
+                      <div className="text-sm text-gray-600">ELO: {result.elo}</div>
+                    </div>
+                    <Button onClick={() => void handleSendRequest(result.id)}>
+                      Agregar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {searchQuery.length >= 2 && searchResults.length === 0 && (
+              <p className="text-gray-500 text-sm">No se encontraron usuarios</p>
+            )}
           </div>
         )}
       </div>
+
+      {isOwnProfile && requests.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">
+            📬 Solicitudes de Amistad ({requests.length})
+          </h2>
+          <div className="space-y-3">
+            {requests.map((request) => (
+              <div key={request.id} className="flex justify-between items-center p-3 border rounded">
+                <div>
+                  <div className="font-medium">{request.username}</div>
+                  <div className="text-sm text-gray-600">ELO: {request.elo}</div>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={() => void handleAcceptRequest(request.id)}>
+                    ✓ Aceptar
+                  </Button>
+                  <Button variant="danger" onClick={() => void handleRejectRequest(request.id)}>
+                    ✗ Rechazar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isOwnProfile && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold mb-4">
+            👥 Amigos ({friends.length})
+          </h2>
+          {friends.length === 0 ? (
+            <p className="text-gray-500">No tienes amigos agregados aún.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {friends.map((friend) => (
+                <div
+                  key={friend.id}
+                  className="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
+                >
+                  <div className="flex-1 flex items-center gap-3">
+                    <Avatar src={friend.avatar_url} alt={friend.username} size="sm" />
+                    <div>
+                      <div className="font-medium">{friend.username}</div>
+                      <div className="text-sm text-gray-600">
+                        ELO: {friend.elo} • {friend.is_online ? 'En linea' : 'Desconectado'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => navigate(`/profile/${friend.id}`)}
+                    >
+                      Ver Perfil
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => void handleRemoveFriend(friend.id)}
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
