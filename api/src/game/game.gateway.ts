@@ -8,6 +8,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
+import { UseGuards } from '@nestjs/common';
+import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 
 @WebSocketGateway({ cors: { origin: '*' } }) //frontend
 export class GameGateway implements OnGatewayConnection {
@@ -18,6 +20,7 @@ export class GameGateway implements OnGatewayConnection {
 	handleConnection(client: Socket) {
 		console.log('Client connected:', client.id);
 	}
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('joinGame')
 	async handleJoinGame(
 		@MessageBody() data: { gameId: string },
@@ -28,16 +31,18 @@ export class GameGateway implements OnGatewayConnection {
 		console.log(`Client ${client.id} joined game ${gameId}`);
 	}
 
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('makeMove')
 	async handleMove(
-		@MessageBody() data: { gameId: string; move: string; userId: string },
+		@MessageBody() data: { gameId: string; move: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		const userId = client.data.user.sub;
 		try {
 			const updatedGame = await this.gameService.makeMove(
 				data.gameId,
 				{ move: data.move },
-				data.userId,
+				userId,
 			);
 			this.server
 				.to(`game:${data.gameId}`)

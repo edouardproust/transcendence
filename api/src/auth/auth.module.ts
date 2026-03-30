@@ -15,5 +15,6 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 			signOptions: { expiresIn: '1d' },
 		}),
 	],
+	exports: [JwtModule],
 })
 export class AuthModule {}
