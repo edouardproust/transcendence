@@ -44,6 +44,10 @@ describe('FriendsService', () => {
 		const dto = { receiverId: friendRequestResponse.receiverId };
 
 		it('should create a friend request', async () => {
+			jest.spyOn(
+				prismaService.friendRequest,
+				'findUnique',
+			).mockResolvedValue(null);
 			jest.spyOn(prismaService.friendRequest, 'create').mockResolvedValue(
 				friendRequestResponse as any,
 			);
@@ -78,6 +82,16 @@ describe('FriendsService', () => {
 			);
 			await expect(service.sendRequest(userId, dto)).rejects.toThrow(
 				genericErrorMsg,
+			);
+		});
+
+		it('should throw ConflictException if a reverse request already exists', async () => {
+			jest.spyOn(
+				prismaService.friendRequest,
+				'findUnique',
+			).mockResolvedValue(friendRequestResponse as any);
+			await expect(service.sendRequest(userId, dto)).rejects.toThrow(
+				ConflictException,
 			);
 		});
 	});

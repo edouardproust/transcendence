@@ -29,7 +29,7 @@ CREATE TABLE "games" (
     "id" TEXT NOT NULL,
     "status" "GameStatus" NOT NULL DEFAULT 'WAITING',
     "mode" "GameMode" NOT NULL DEFAULT 'ONLINE',
-    "whiteId" TEXT NOT NULL,
+    "whiteId" TEXT,
     "blackId" TEXT,
     "winnerId" TEXT,
     "currentFen" TEXT,
@@ -74,7 +74,7 @@ CREATE UNIQUE INDEX "friend_requests_senderId_receiverId_key" ON "friend_request
 CREATE UNIQUE INDEX "friendships_userId_friendId_key" ON "friendships"("userId", "friendId");
 
 -- AddForeignKey
-ALTER TABLE "games" ADD CONSTRAINT "games_whiteId_fkey" FOREIGN KEY ("whiteId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "games" ADD CONSTRAINT "games_whiteId_fkey" FOREIGN KEY ("whiteId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "games" ADD CONSTRAINT "games_blackId_fkey" FOREIGN KEY ("blackId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

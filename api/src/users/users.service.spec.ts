@@ -356,7 +356,7 @@ describe('UsersService', () => {
 				avatarKey: 'avatars/old.jpg',
 			};
 			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
-				userWithAvatar as any,
+				userWithAvatar,
 			);
 			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
 				userInDb,
@@ -376,7 +376,7 @@ describe('UsersService', () => {
 				avatarKey: DEFAULTS.avatar.remoteKey,
 			};
 			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
-				userWithDefault as any,
+				userWithDefault,
 			);
 			jest.spyOn(prismaService.user, 'update').mockResolvedValue(
 				userInDb,

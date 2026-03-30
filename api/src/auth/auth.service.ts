@@ -66,7 +66,7 @@ export class AuthService {
 			loginDto.emailOrUsername,
 		);
 
-		let user = isEmail
+		const user = isEmail
 			? await this.usersService.findOneByEmail(loginDto.emailOrUsername)
 			: await this.usersService.findOneByUsername(
 					loginDto.emailOrUsername,

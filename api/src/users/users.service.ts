@@ -26,11 +26,26 @@ export class UsersService {
 		private readonly storageService: StorageService,
 	) {}
 
-	mapUser(user: any): any {
-		const { password, avatarKey, ...rest } = user;
+	mapUser(user: {
+		username: string;
+		elo: number;
+		avatarKey?: string;
+		isOnline?: boolean;
+		lastSeen?: Date | null;
+	}): any {
+		if ('avatarKey' in user) {
+			const { avatarKey, ...rest } = user;
+			return {
+				...rest,
+				avatarUrl: avatarKey
+					? this.storageService.getUrl(avatarKey)
+					: null,
+			};
+		}
+
 		return {
-			...rest,
-			avatarUrl: avatarKey ? this.storageService.getUrl(avatarKey) : null,
+			...user,
+			avatarUrl: null,
 		};
 	}
 

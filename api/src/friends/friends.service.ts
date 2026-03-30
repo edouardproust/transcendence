@@ -27,12 +27,29 @@ export class FriendsService {
 	 * Sends a friend request from one user to another.
 	 *
 	 * @throws {ConflictException} If a friend request has already been sent.
+	 * @throws {ConflictException} If the receiver has already sent a friend request to the sender.
 	 * @throws {NotFoundException} If the receiver does not exist.
 	 */
 	async sendRequest(
 		senderId: string,
 		dto: SendFriendRequestDto,
 	): Promise<FriendRequestResponseDto> {
+		// Check for a reverse pending request
+		const reverseRequest =
+			await this.prismaService.friendRequest.findUnique({
+				where: {
+					senderId_receiverId: {
+						senderId: dto.receiverId,
+						receiverId: senderId,
+					},
+				},
+			});
+		if (reverseRequest) {
+			throw new ConflictException(
+				'This user has already sent you a friend request',
+			);
+		}
+
 		return this.prismaService.friendRequest
 			.create({
 				data: {

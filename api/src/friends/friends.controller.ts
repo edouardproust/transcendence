@@ -54,7 +54,8 @@ export class FriendsController {
 	})
 	@ApiResponse({
 		status: HttpStatus.CONFLICT,
-		description: 'Friend request already sent',
+		description:
+			'Friend request already sent or receiver has already sent a request',
 	})
 	async sendRequest(
 		@CurrentUser() user: RequestUser,
