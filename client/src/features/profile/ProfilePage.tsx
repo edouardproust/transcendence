@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
+import { connectPresenceSocket } from '@/engine/presenceSocket';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ username: '', email: '' });
@@ -38,6 +39,50 @@ export const ProfilePage: React.FC = () => {
     setRequests([]);
     setSearchResults([]);
   }, [userId, isOwnProfile]);
+
+  const applyUserStatus = (targetUserId: string, isOnline: boolean, lastSeen: string) => {
+    setProfile((prev) =>
+      prev && prev.id === targetUserId
+        ? { ...prev, is_online: isOnline, last_seen: lastSeen }
+        : prev
+    );
+    setFriends((prev) =>
+      prev.map((friend) =>
+        friend.id === targetUserId
+          ? { ...friend, is_online: isOnline, last_seen: lastSeen }
+          : friend
+      )
+    );
+    setRequests((prev) =>
+      prev.map((request) =>
+        request.sender_id === targetUserId
+          ? { ...request, is_online: isOnline, last_seen: lastSeen }
+          : request
+      )
+    );
+    setSearchResults((prev) =>
+      prev.map((result) =>
+        result.id === targetUserId
+          ? { ...result, is_online: isOnline, last_seen: lastSeen }
+          : result
+      )
+    );
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const socket = connectPresenceSocket(token);
+    const handleUserStatus = (data: { userId: string; is_online: boolean; last_seen: string }) => {
+      applyUserStatus(data.userId, data.is_online, data.last_seen);
+    };
+
+    socket.on('user_status', handleUserStatus);
+
+    return () => {
+      socket.off('user_status', handleUserStatus);
+    };
+  }, [token]);
 
   const loadProfile = async () => {
     try {

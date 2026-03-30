@@ -4,6 +4,8 @@ import { useThemeStore } from '@/stores/themeStore';
 import { pushToast } from '@/components/ui/ToastProvider';
 import { authService } from '@/services/authService';
 import { useAuthStore } from '@/features/auth/authStore';
+import { connectPresenceSocket, disconnectPresenceSocket } from '@/engine/presenceSocket';
+
 
 function App() {
   const { theme, setTheme } = useThemeStore();
@@ -12,6 +14,19 @@ function App() {
   useEffect(() => {
     setTheme(theme);
   }, [theme, setTheme]);
+
+  useEffect(() => {
+    if (!token) {
+      disconnectPresenceSocket();
+      return;
+    }
+
+    connectPresenceSocket(token);
+
+    return () => {
+      disconnectPresenceSocket();
+    };
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
