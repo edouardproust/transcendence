@@ -72,8 +72,8 @@ model Game {
     winnerId String?
     winner   User?   @relation("Winner", fields: [winnerId], references: [id])
 
-    currentFen String?
-    pgn        String?
+    currentFen String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    pgn        String @default("")
 
     timeControl String @default("unlimited")
 

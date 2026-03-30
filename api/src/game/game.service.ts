@@ -195,7 +195,10 @@ export class GameService {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
-
+		/* TODO(debug): remove after debugging
+		console.log('🔍 gameId:', gameId);
+		console.log('🔍 game found:', game);
+		*/
 		if (!game) {
 			throw new NotFoundException('Game not found');
 		}
@@ -253,7 +256,11 @@ export class GameService {
 			},
 			data: {
 				currentFen: chess.fen(),
-				pgn: chess.pgn(),
+				pgn: chess
+					.pgn()
+					.replace(/\[.*?\]\s*/g, '')
+					.trim()
+					.replace(/\s*\*$/, ''),
 				status,
 				winnerId,
 			},

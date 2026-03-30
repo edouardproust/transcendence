@@ -67,6 +67,7 @@ export const seedGames = async (prisma: PrismaClient, users: User[]) => {
 			timeControl: '15+10',
 			currentFen:
 				'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+			pgn: '1. e4',
 		},
 		{
 			whiteId: admin.id,
