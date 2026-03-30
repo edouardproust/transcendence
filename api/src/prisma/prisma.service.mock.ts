@@ -19,5 +19,17 @@ export const PrismaServiceMock = {
 			delete: jest.fn(),
 			count: jest.fn(),
 		},
+		friendRequest: {
+			create: jest.fn(),
+			findMany: jest.fn(),
+			findUnique: jest.fn(),
+			delete: jest.fn(),
+		},
+		friendship: {
+			create: jest.fn(),
+			findMany: jest.fn(),
+			deleteMany: jest.fn(),
+		},
+		$transaction: jest.fn(),
 	},
 };

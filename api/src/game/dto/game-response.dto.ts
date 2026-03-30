@@ -15,8 +15,8 @@ export class GameResponseDto {
 	@ApiProperty({ example: GameMode.ONLINE, enum: Object.values(GameMode) })
 	mode: GameMode;
 
-	@ApiProperty({ example: EXAMPLES.id })
-	whiteId: string;
+	@ApiPropertyOptional({ example: EXAMPLES.id, nullable: true })
+	whiteId: string | null;
 
 	@ApiPropertyOptional({ example: EXAMPLES.id2, nullable: true })
 	blackId: string | null;

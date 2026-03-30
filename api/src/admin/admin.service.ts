@@ -7,6 +7,7 @@ import { AdminStatsResponseDto } from './dtos/admin-stats-response.dto';
 import { AdminUsersResponseDto } from './dtos/admin-users-response.dto';
 import { isPrismaError, PrismaErrorCode } from '../prisma/prisma.error';
 import { GameStatus } from '../prisma/generated/enums';
+import { Prisma } from '../prisma/generated/client';
 
 @Injectable()
 export class AdminService {
@@ -36,7 +37,7 @@ export class AdminService {
 	 * @returns Paginated list of users with total game count, and pagination metadata.
 	 */
 	async getUsers(query: AdminUsersQueryDto): Promise<AdminUsersResponseDto> {
-		const { page = 1, limit = 20, search } = query;
+		const { page = 1, limit = 20, search } = query; // TODO: replace by DEFAULTS values
 		const skip = (page - 1) * limit;
 
 		const where = search

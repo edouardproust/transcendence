@@ -45,9 +45,7 @@ describe('AuthService', () => {
 			username: 'testuser',
 		};
 		it('should call usersService.createOne and jwtService.sign', async () => {
-			jest.spyOn(usersService, 'createOne').mockResolvedValue(
-				userInDb as any,
-			);
+			jest.spyOn(usersService, 'createOne').mockResolvedValue(userInDb);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			await service.register(createUserDto);
@@ -60,9 +58,7 @@ describe('AuthService', () => {
 		});
 
 		it('should set user as online and update lastSeen on registration', async () => {
-			jest.spyOn(usersService, 'createOne').mockResolvedValue(
-				userInDb as any,
-			);
+			jest.spyOn(usersService, 'createOne').mockResolvedValue(userInDb);
 			await service.register(createUserDto);
 			expect(usersService.updateOneById).toHaveBeenCalledWith(
 				userInDb.id,
@@ -80,11 +76,9 @@ describe('AuthService', () => {
 
 		it('should return user without password and access token when credentials are valid', async () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
-				userWithPassword as any,
+				userWithPassword,
 			);
-			jest.spyOn(usersService, 'findOneById').mockResolvedValue(
-				userInDb as any,
-			);
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(userInDb);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			const result = await service.login({
@@ -103,11 +97,9 @@ describe('AuthService', () => {
 
 		it('should return user without password and access token when username is valid', async () => {
 			jest.spyOn(usersService, 'findOneByUsername').mockResolvedValue(
-				userWithPassword as any,
+				userWithPassword,
 			);
-			jest.spyOn(usersService, 'findOneById').mockResolvedValue(
-				userInDb as any,
-			);
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(userInDb);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			const result = await service.login({
@@ -137,7 +129,7 @@ describe('AuthService', () => {
 
 		it('should throw UnauthorizedException when password is invalid', async () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
-				userWithPassword as any,
+				userWithPassword,
 			);
 			jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
 

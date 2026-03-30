@@ -30,7 +30,6 @@ import { AdminGamesResponseDto } from './dtos/admin-games-response.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { UpdateUserAdminDto } from '../users/dtos/update-user-admin.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { RequestUser } from '../auth/interfaces/request-user.interface';
 
 @Controller('admin')

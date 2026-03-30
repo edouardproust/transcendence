@@ -37,10 +37,10 @@ model User {
     wonGames   Game[]   @relation("Winner")
     createdAt  DateTime @default(now())
 
-    // TODO: add game relations once Game model is implemented by games module
-    // gamesAsWhite Game[] @relation("WhitePlayer")
-    // gamesAsBlack Game[] @relation("BlackPlayer")
-    // gamesWon     Game[] @relation("Winner")
+    sentRequests     FriendRequest[] @relation("SentRequests")
+    receivedRequests FriendRequest[] @relation("ReceivedRequests")
+    friendships      Friendship[]    @relation("UserFriendships")
+    friendOf         Friendship[]    @relation("FriendFriendships")
 
     @@map("users")
 }
@@ -63,11 +63,11 @@ model Game {
     status GameStatus @default(WAITING)
     mode   GameMode   @default(ONLINE)
 
-    whiteId String
+    whiteId String?
     blackId String?
 
-    white User  @relation("WhitePlayer", fields: [whiteId], references: [id])
-    black User? @relation("BlackPlayer", fields: [blackId], references: [id])
+    white User? @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: SetNull)
+    black User? @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: SetNull)
 
     winnerId String?
     winner   User?   @relation("Winner", fields: [winnerId], references: [id])
@@ -81,4 +81,30 @@ model Game {
     updatedAt DateTime @updatedAt
 
     @@map("games")
+}
+
+model FriendRequest {
+    id         String   @id @default(uuid())
+    senderId   String
+    receiverId String
+    createdAt  DateTime @default(now())
+
+    sender   User @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+    receiver User @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+    @@unique([senderId, receiverId])
+    @@map("friend_requests")
+}
+
+model Friendship {
+    id        String   @id @default(uuid())
+    userId    String
+    friendId  String
+    createdAt DateTime @default(now())
+
+    user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+    friend User @relation("FriendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, friendId])
+    @@map("friendships")
 }
