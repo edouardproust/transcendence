@@ -195,10 +195,6 @@ export class GameService {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
-		/* TODO(debug): remove after debugging
-		console.log('🔍 gameId:', gameId);
-		console.log('🔍 game found:', game);
-		*/
 		if (!game) {
 			throw new NotFoundException('Game not found');
 		}

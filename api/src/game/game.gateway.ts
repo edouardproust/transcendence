@@ -10,7 +10,6 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
-import { time } from 'console';
 
 @WebSocketGateway({ cors: { origin: '*' } }) //frontend
 export class GameGateway implements OnGatewayConnection {
@@ -19,7 +18,9 @@ export class GameGateway implements OnGatewayConnection {
 
 	constructor(private readonly gameService: GameService) {}
 	handleConnection(client: Socket) {
-		console.log('Client connected:', client.id);
+		if (process.env.NODE_ENV != 'production') {
+			console.log('Client connected:', client.id);
+		}
 	}
 	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('joinGame')
@@ -29,7 +30,6 @@ export class GameGateway implements OnGatewayConnection {
 	) {
 		const { gameId } = data;
 		client.join(`game:${gameId}`);
-		console.log(`Client ${client.id} joined game ${gameId}`);
 	}
 
 	@UseGuards(WsJwtGuard)
