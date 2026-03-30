@@ -10,6 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
+import { time } from 'console';
 
 @WebSocketGateway({ cors: { origin: '*' } }) //frontend
 export class GameGateway implements OnGatewayConnection {
@@ -50,5 +51,18 @@ export class GameGateway implements OnGatewayConnection {
 		} catch (error) {
 			client.emit('error', { message: error.message }); // we keep it simple for now, we could work on a better error handling strategy later
 		}
+	}
+
+	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('ping')
+	async handlePing(@ConnectedSocket() client: Socket) {
+		const user = client.data.user;
+		console.log(`Received ping from user ${user.sub}`);
+		client.emit('pong', {
+			message: 'pong',
+			userId: user.sub,
+			username: user.username,
+			timestamp: Date.now(),
+		});
 	}
 }

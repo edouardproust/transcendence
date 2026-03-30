@@ -1,36 +1,37 @@
 const { io } = require('socket.io-client');
-// for now just go to prisma studio and copy the data by hand...
-const GAME_ID = 'fbf59960-edc3-47b8-9c67-8d41ed798c32';
-const USER_ID = '9e97db5f-c165-45b3-a025-dfc8389e45e0';
-const MOVE = 'e5';
 
-const socket = io('http://localhost:3001', {
+// ===== CONFIG =====
+const URL = 'http://localhost:3001';
+const TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYjBkY2I3YS1hY2ZjLTRlMDMtOThjOC01NTQ3NjViNzVjN2UiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc3NDg4Mjg2NiwiZXhwIjoxNzc0OTY5MjY2fQ.HMEjq0DZffpCpMU4BlTtk_kVsYcwHd0IylrejMOLgBQ';
+
+// ===== SOCKET INIT =====
+const socket = io(URL, {
 	transports: ['websocket'],
+	auth: {
+		token: TOKEN,
+	},
 });
 
+// ===== CONNECTION =====
 socket.on('connect', () => {
-	console.log('✅ connected:', socket.id);
-	socket.emit('joinGame', { gameId: GAME_ID });
+	console.log('Connected:', socket.id);
 
-	setTimeout(() => {
-		console.log('♟️ Sending move...');
-		socket.emit('makeMove', {
-			gameId: GAME_ID,
-			move: MOVE,
-			userId: USER_ID,
-		});
-	}, 2000);
+	console.log('Sending ping...');
+	socket.emit('ping');
 });
 
-socket.on('gameUpdate', (data) => {
-	console.log('♟️ Game update:');
+// ===== RESPONSE =====
+socket.on('pong', (data) => {
+	console.log('Pong received:');
 	console.dir(data, { depth: null });
 });
 
-socket.on('error', (err) => {
-	console.error('❌ Error:', err);
+// ===== ERRORS =====
+socket.on('connect_error', (err) => {
+	console.error('Connection error:', err.message);
 });
 
-socket.on('connect_error', (err) => {
-	console.error('❌ Connection error:', err.message);
+socket.on('disconnect', (reason) => {
+	console.log('🔌 Disconnected:', reason);
 });
