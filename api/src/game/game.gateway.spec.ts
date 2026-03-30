@@ -3,6 +3,7 @@ import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 import { GameServiceMock, ongoingGameFixture } from './game.service.mock';
 import { Socket, Server } from 'socket.io';
+import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 
 describe('GameGateway', () => {
 	let gateway: GameGateway;
@@ -17,16 +18,30 @@ describe('GameGateway', () => {
 		id: 'client-123',
 		join: jest.fn(),
 		emit: jest.fn(),
+		data: {
+			user: {
+				sub: ongoingGameFixture.whiteId,
+				username: 'testUser',
+			},
+		},
 	} as unknown as Socket;
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [GameGateway, GameServiceMock],
-		}).compile();
+		})
+			.overrideGuard(WsJwtGuard)
+			.useValue({
+				canActivate: jest.fn(() => true),
+			})
+			.compile();
 
 		gateway = module.get<GameGateway>(GameGateway);
 		gameService = module.get<GameService>(GameService);
+
 		gateway.server = mockServer as unknown as Server;
+
+		jest.clearAllMocks();
 	});
 
 	it('should be defined', () => {
