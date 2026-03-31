@@ -130,11 +130,16 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
 
     const success = makeMove(move);
     if (!success) {
-      console.log('Invalid move:', move);
       return false;
     }
 
-    socket.emit('move', { gameId, move });
+    const latestMoves = useGameStore.getState().moves;
+    const latestMove = latestMoves[latestMoves.length - 1];
+    if (!latestMove) {
+      return false;
+    }
+
+    socket.emit('makeMove', { gameId, move: latestMove });
     return true;
   };
 

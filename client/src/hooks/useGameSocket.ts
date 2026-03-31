@@ -5,6 +5,36 @@ import { useAuthStore } from '@/features/auth/authStore';
 import { useGameStore } from '@/features/game/gameStore';
 import { gameService } from '@/services/gameService';
 
+type GameSocketErrorPayload = string | { message?: string };
+
+const normalizeGameStatus = (status: string | null | undefined) => {
+  const normalized = String(status || '').toLowerCase();
+
+  if (normalized === 'ongoing' || normalized === 'active') return 'active';
+  if (normalized === 'finished') return 'finished';
+  if (normalized === 'cancelled') return 'cancelled';
+  return 'waiting';
+};
+
+const normalizeGameUpdatePayload = (data: any) => {
+  const fen =
+    typeof data?.fen === 'string' && data.fen
+      ? data.fen
+      : typeof data?.currentFen === 'string' && data.currentFen
+        ? data.currentFen
+        : undefined;
+  const status = data?.status == null ? undefined : normalizeGameStatus(data.status);
+
+  return {
+    fen,
+    pgn: typeof data?.pgn === 'string' ? data.pgn : undefined,
+    turn: fen ? (fen.split(' ')[1] === 'b' ? 'b' : 'w') : undefined,
+    status,
+    lastMove: data?.lastMove,
+    timeLeft: data?.timeLeft,
+  };
+};
+
 export const useGameSocket = (gameId: string | null) => {
   const navigate = useNavigate();
   const { token } = useAuthStore();
@@ -17,12 +47,12 @@ export const useGameSocket = (gameId: string | null) => {
 
     const joinGame = () => {
       console.log('[SOCKET] joinGame', gameId);
-      socket.emit('joinGame', gameId);
+      socket.emit('joinGame', { gameId });
     };
 
     const handleGameUpdate = (data: any) => {
       console.log('[SOCKET] gameUpdate', data);
-      useGameStore.getState().updateFromServer(data);
+      useGameStore.getState().updateFromServer(normalizeGameUpdatePayload(data));
 
       const state = useGameStore.getState();
       const chess = state.chess;
@@ -107,10 +137,12 @@ export const useGameSocket = (gameId: string | null) => {
       navigate('/lobby');
     };
 
-    const handleError = (err: string) => {
-      console.error('[SOCKET]', err);
+    const handleError = (payload: GameSocketErrorPayload) => {
+      const message = typeof payload === 'string' ? payload : payload?.message || 'Socket error';
 
-      if (err === 'Not your turn' || err === 'Invalid move') {
+      console.error('[SOCKET]', message);
+
+      if (message === 'Not your turn' || message === 'Illegal move') {
         // Re-sync against server authority to recover from client/server drift.
         void (async () => {
           try {
@@ -125,7 +157,7 @@ export const useGameSocket = (gameId: string | null) => {
         })();
       }
 
-      alert(err);
+      alert(message);
     };
 
     const handlePlayerDisconnected = () => {
@@ -187,7 +219,6 @@ export const useGameSocket = (gameId: string | null) => {
       socket.off('playerDisconnected', handlePlayerDisconnected);
       socket.off('playerReconnected', handlePlayerReconnected);
       socket.off('connect', joinGame);
-      
       disconnectSocket();
     };
   }, [gameId, token, navigate]);

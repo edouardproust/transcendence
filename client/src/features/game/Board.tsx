@@ -36,8 +36,19 @@ const board2DThemes = {
 } as const;
 
 export const Board: React.FC<BoardProps> = ({ onMove }) => {
-  const { gameId, fen, playerColor, mode, turn, status, boardView, board3DTheme, board2DTheme, chess, lastMove } =
-    useGameStore();
+  const {
+    gameId,
+    fen,
+    playerColor,
+    mode,
+    turn,
+    status,
+    boardView,
+    board3DTheme,
+    board2DTheme,
+    chess,
+    lastMove,
+  } = useGameStore();
   const validPromotionPieces = new Set(['q', 'r', 'b', 'n']);
   const pendingPromotionRef = React.useRef<string | undefined>(undefined);
 
@@ -65,7 +76,7 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
   // Verificar si el juego está listo para jugar
   const canPlay = status === 'active' && isMyTurn();
   const chessboardKey = `chessboard-${gameId ?? 'none'}-${playerColor ?? 'none'}-${status}-${canPlay ? 'play' : 'wait'}`;
-  //const active2DTheme = board2DThemes[board2DTheme];
+  const active2DTheme = board2DThemes[board2DTheme];
   const lastMoveStyles = React.useMemo<Record<string, React.CSSProperties>>(() => {
     if (!lastMove?.from || !lastMove?.to) return {};
     return {
@@ -179,6 +190,13 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           onPromotionPieceSelect={handlePromotionPieceSelect}
           autoPromoteToQueen={false}
           boardOrientation={playerColor === 'black' ? 'black' : 'white'}
+          customDarkSquareStyle={{ backgroundColor: active2DTheme.dark }}
+          customLightSquareStyle={{ backgroundColor: active2DTheme.light }}
+          customBoardStyle={{
+            borderRadius: '12px',
+            border: `6px solid ${active2DTheme.border}`,
+            boxShadow: active2DTheme.shadow,
+          }}
           arePiecesDraggable={canPlay}
           isDraggablePiece={({ piece, sourceSquare }) => {
             if (!canPlay || !piece || !sourceSquare) return false;
@@ -191,9 +209,8 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           }}
 
           customSquareStyles={lastMoveStyles}
-          
         />
-        )}
+      )}
     </div>
   );
 };

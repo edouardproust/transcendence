@@ -28,7 +28,7 @@ export const connectPresenceSocket = (token: string): Socket => {
     console.log('[PRESENCE] disconnected:', reason);
   });
 
-  presenceSocketInstance.on('connectError', (err) => {
+  presenceSocketInstance.on('connect_error', (err) => {
     console.error('[PRESENCE] connect error:', err.message);
   });
 
