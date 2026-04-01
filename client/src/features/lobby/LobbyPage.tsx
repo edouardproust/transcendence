@@ -1,14 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gameService } from '@/services/gameService';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { useAuthStore } from '@/features/auth/authStore';
+import { Game } from '@/types/game';
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuthStore();
+  const [games, setGames] = useState<Game[]>([]);
 
+  const loadActiveGames = async () => {
+    try {
+      const activeGames = await gameService.getActiveGames();
+
+      const availableGames = activeGames.filter(
+        (game) =>
+          game.whitePlayerId !== user?.id &&
+          game.status === 'waiting' &&
+          game.blackPlayerId === null
+      );
+
+      setGames(availableGames);
+    } catch (error) {
+      console.error('Error loading games:', error);
+    }
+  };
+
+  useEffect(() => {
+    void loadActiveGames();
+
+    const interval = window.setInterval(() => {
+      void loadActiveGames();
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [user?.id]);
+
+  const handleCreateOnlineGame = async () => {
+    setIsLoading(true);
+    try {
+      const game = await gameService.createGame({
+        timeControl: '10+0',
+        mode: 'online',
+      });
+      navigate(`/game/${game.id}`);
+    } catch (error) {
+      console.error('Error creating game:', error);
+      alert('Error al crear la partida');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCreateAIGame = async () => {
     setIsLoading(true);
@@ -26,6 +72,9 @@ export const LobbyPage: React.FC = () => {
     }
   };
 
+  const handleJoinGame = (gameId: string) => {
+    navigate(`/game/${gameId}`);
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -39,6 +88,30 @@ export const LobbyPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Partidas Disponibles</h2>
+          {games.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">
+              No hay partidas disponibles. ¡Crea una nueva para que otros jugadores se unan!
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {games.map((game) => (
+                <div
+                  key={game.id}
+                  className="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
+                >
+                  <div>
+                    <p className="font-medium">Partida #{game.id.slice(0, 8)}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Control: {game.timeControl} • Esperando oponente...
+                    </p>
+                  </div>
+                  <Button onClick={() => handleJoinGame(game.id)}>
+                    Unirse
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -49,10 +122,8 @@ export const LobbyPage: React.FC = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Crea una partida y espera a que otro jugador se una
               </p>
-              <Button 
-                disabled
-              >
-                Proximamente
+              <Button onClick={handleCreateOnlineGame} disabled={isLoading}>
+                {isLoading ? 'Creando...' : 'Crear Partida Online'}
               </Button>
             </div>
             <div className="p-4 border rounded">
@@ -60,10 +131,7 @@ export const LobbyPage: React.FC = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Practica contra Stockfish (motor de ajedrez)
               </p>
-              <Button 
-                onClick={handleCreateAIGame}
-                disabled={isLoading}
-              >
+              <Button onClick={handleCreateAIGame} disabled={isLoading}>
                 {isLoading ? 'Creando...' : 'Jugar vs IA'}
               </Button>
             </div>
@@ -90,10 +158,11 @@ export const LobbyPage: React.FC = () => {
           <p className="text-gray-700 dark:text-gray-400">Selecciona el modo de juego:</p>
           
           <Button 
-            disabled
+            onClick={handleCreateOnlineGame} 
+            disabled={isLoading} 
             className="w-full"
           >
-            🎮 Partida Online (Pronto)
+            🎮 Partida Online
           </Button>
           
           <Button 

@@ -8,6 +8,7 @@ import { GameLayout } from './shared/GameLayout';
 import { GameHeader } from './shared/GameHeader';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/features/auth/authStore';
+import { exportGameTxt } from './utils/exportGameTxt';
 
 interface AIGamePageProps {
   gameId: string;
@@ -28,9 +29,17 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     initGame,
     makeMove,
     gameId: storeGameId,
+    mode,
     playerColor,
     fen,
     turn,
+    boardView,
+    board2DTheme,
+    board3DTheme,
+    setBoardView,
+    cycleBoard2DTheme,
+    cycleBoard3DTheme,
+    moves,
     status,
     endGame,
     reset,
@@ -381,6 +390,28 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     navigate('/lobby');
   };
 
+  const handleExportTxt = () => {
+    exportGameTxt({
+      profileName: user?.username || 'Jugador',
+      mode,
+      status,
+      playerColor: humanColor,
+      moves,
+    });
+  };
+
+  const board2DThemeLabels = {
+    classic: 'Clasico',
+    wood: 'Madera',
+    ocean: 'Oceano',
+    slate: 'Pizarra',
+  } as const;
+
+  const board3DThemeLabels = {
+    wood: 'Madera',
+    obsidian: 'Obsidiana',
+  } as const;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -399,6 +430,27 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       variant: 'danger' as const,
     });
   }
+
+  headerActions.push({
+    label: boardView === '3d' ? 'Vista 2D' : 'Vista 3D',
+    onClick: () => setBoardView(boardView === '3d' ? '2d' : '3d'),
+    variant: 'secondary' as const,
+  });
+
+  headerActions.push({
+    label:
+      boardView === '2d'
+        ? `Tema 2D: ${board2DThemeLabels[board2DTheme]}`
+        : `Tema 3D: ${board3DThemeLabels[board3DTheme]}`,
+    onClick: boardView === '2d' ? cycleBoard2DTheme : cycleBoard3DTheme,
+    variant: 'secondary' as const,
+  });
+
+  headerActions.push({
+    label: 'Descargar TXT',
+    onClick: handleExportTxt,
+    variant: 'primary' as const,
+  });
 
   headerActions.push({
     label: status === 'waiting' ? 'Cancelar' : 'Salir',

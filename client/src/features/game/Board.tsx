@@ -2,14 +2,53 @@ import React from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useGameStore } from './gameStore';
 import { Move } from '@/types/game';
+import { Board3D } from './Board3D';
 
 interface BoardProps {
   onMove: (move: Move) => boolean;
 }
 
+const board2DThemes = {
+  classic: {
+    light: '#f0d9b5',
+    dark: '#b58863',
+    border: '#5b3f2f',
+    shadow: '0 8px 18px rgba(0, 0, 0, 0.2)',
+  },
+  wood: {
+    light: '#f3e2c3',
+    dark: '#8d5f3a',
+    border: '#4d3018',
+    shadow: '0 12px 22px rgba(59, 35, 16, 0.35)',
+  },
+  ocean: {
+    light: '#d9f1ff',
+    dark: '#3b82a8',
+    border: '#174a63',
+    shadow: '0 10px 20px rgba(23, 74, 99, 0.32)',
+  },
+  slate: {
+    light: '#d8dde6',
+    dark: '#4b5563',
+    border: '#1f2937',
+    shadow: '0 10px 22px rgba(17, 24, 39, 0.33)',
+  },
+} as const;
+
 export const Board: React.FC<BoardProps> = ({ onMove }) => {
-  const { gameId, fen, playerColor, mode, turn, status, boardView, board3DTheme, chess, lastMove } =
-    useGameStore();
+  const {
+    gameId,
+    fen,
+    playerColor,
+    mode,
+    turn,
+    status,
+    boardView,
+    board3DTheme,
+    board2DTheme,
+    chess,
+    lastMove,
+  } = useGameStore();
   const validPromotionPieces = new Set(['q', 'r', 'b', 'n']);
   const pendingPromotionRef = React.useRef<string | undefined>(undefined);
 
@@ -37,6 +76,7 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
   // Verificar si el juego está listo para jugar
   const canPlay = status === 'active' && isMyTurn();
   const chessboardKey = `chessboard-${gameId ?? 'none'}-${playerColor ?? 'none'}-${status}-${canPlay ? 'play' : 'wait'}`;
+  const active2DTheme = board2DThemes[board2DTheme];
   const lastMoveStyles = React.useMemo<Record<string, React.CSSProperties>>(() => {
     if (!lastMove?.from || !lastMove?.to) return {};
     return {
@@ -131,6 +171,18 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
         </div>
       )}
 
+      {boardView === '3d' ? (
+        <Board3D
+          fen={fen}
+          boardOrientation={playerColor === 'black' ? 'black' : 'white'}
+          canPlay={canPlay}
+          playerColor={playerColor}
+          lastMove={lastMove}
+          theme={board3DTheme}
+          onMove={onMove}
+          getLegalTargets={getLegalTargets}
+        />
+      ) : (
         <Chessboard
           key={chessboardKey}
           position={fen}
@@ -138,6 +190,13 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           onPromotionPieceSelect={handlePromotionPieceSelect}
           autoPromoteToQueen={false}
           boardOrientation={playerColor === 'black' ? 'black' : 'white'}
+          customDarkSquareStyle={{ backgroundColor: active2DTheme.dark }}
+          customLightSquareStyle={{ backgroundColor: active2DTheme.light }}
+          customBoardStyle={{
+            borderRadius: '12px',
+            border: `6px solid ${active2DTheme.border}`,
+            boxShadow: active2DTheme.shadow,
+          }}
           arePiecesDraggable={canPlay}
           isDraggablePiece={({ piece, sourceSquare }) => {
             if (!canPlay || !piece || !sourceSquare) return false;
@@ -150,9 +209,8 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           }}
 
           customSquareStyles={lastMoveStyles}
-          
         />
-
+      )}
     </div>
   );
 };
