@@ -120,17 +120,19 @@ export class GameService {
 			throw new BadRequestException('Game cannot be started');
 		}
 
-		if (game.whiteId !== userId && game.blackId !== userId) {
-			throw new ForbiddenException('You are not a player in this game');
+		const updated = await this.prisma.game.update({
+			where: { id: gameId, blackId: null, whiteId: {not: userId}, },
+			data: { blackId: userId },
+		});
+		if (!updated && userId !== game.whiteId) {		
+			throw new BadRequestException('Game is already full');
 		}
-
-		const chess = new Chess();
 
 		const updatedGame = await this.prisma.game.update({
 			where: { id: gameId },
 			data: {
 				status: GameStatus.ONGOING,
-				currentFen: chess.fen(),
+				currentFen: new Chess.fen(),
 				pgn: '',
 			},
 		});
