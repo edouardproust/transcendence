@@ -11,7 +11,9 @@ import { GameService } from './game.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 
-@WebSocketGateway({ cors: { origin: '*' } }) //frontend
+@WebSocketGateway({
+  cors: { origin: ['http://localhost:8080', 'https://localhost:8443'], methods: ['GET', 'POST'] },
+})
 export class GameGateway implements OnGatewayConnection {
 	@WebSocketServer()
 	server: Server;
