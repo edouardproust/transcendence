@@ -31,7 +31,19 @@ export class GameGateway implements OnGatewayConnection {
 		@ConnectedSocket() client: Socket,
 	) {
 		const { gameId } = data;
-		client.join(`game:${gameId}`);
+		const room = `game:${gameId}`;
+		client.join(room);
+
+		const sockets = await this.server.in(room).fetchSockets();
+
+		if (sockets.length == 2) {
+			const userId = client.data.user.sub;
+			const updatedGame = await this.gameService.startGame(gameId, userId);
+			this.server.to(room).emit('playerJoined', { playerId: userId, game: updatedGame });
+		} else if (sockets.length > 2) {
+			client.leave(room);
+			client.emit('error', { message: 'Game room is full' });
+		}
 	}
 
 	@UseGuards(WsJwtGuard)
