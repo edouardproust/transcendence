@@ -12,6 +12,9 @@ describe('GameGateway', () => {
 	const mockServer = {
 		to: jest.fn().mockReturnThis(),
 		emit: jest.fn(),
+		in: jest.fn().mockReturnValue({
+			fetchSockets: jest.fn().mockResolvedValue([]), // tu peux ajuster selon test
+		}),
 	};
 
 	const mockClient = {

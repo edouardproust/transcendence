@@ -3,7 +3,9 @@ import { io, Socket } from 'socket.io-client';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 if (!SOCKET_URL) {
   throw new Error('VITE_SOCKET_URL is not defined in environment variables');
+  console.log("SOCKET =", import.meta.env.VITE_SOCKET_URL);
 }
+
 
 let socketInstance: Socket | null = null;
 
