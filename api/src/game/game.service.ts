@@ -120,22 +120,30 @@ export class GameService {
 			throw new BadRequestException('Game cannot be started');
 		}
 
-		if (game.whiteId !== userId && game.blackId !== userId) {
-			throw new ForbiddenException('You are not a player in this game');
+		// ✅ Si black pas défini → on autorise un user à rejoindre
+		if (!game.blackId && userId !== game.whiteId) {
+			await this.prisma.game.update({
+				where: { id: gameId },
+				data: { blackId: userId },
+			});
+
+			// ⚠️ reload game
+			game.blackId = userId;
 		}
 
-		const chess = new Chess();
+		// 🔥 Forbidden seulement APRÈS assignation possible
+		if (userId !== game.whiteId && userId !== game.blackId) {
+			throw new ForbiddenException('User is not a player');
+		}
 
-		const updatedGame = await this.prisma.game.update({
+		return this.prisma.game.update({
 			where: { id: gameId },
 			data: {
 				status: GameStatus.ONGOING,
-				currentFen: chess.fen(),
+				currentFen: new Chess().fen(),
 				pgn: '',
 			},
 		});
-
-		return updatedGame;
 	}
 
 	/**

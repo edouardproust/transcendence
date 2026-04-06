@@ -212,10 +212,31 @@ describe('GameService', () => {
 			).rejects.toThrow(NotFoundException);
 		});
 
-		it('should throw ForbiddenException if user is not a player', async () => {
+		it('should allow a second player to join as black and start the game', async () => {
 			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
 				gameFixture as any,
 			);
+
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue({
+				...gameFixture,
+				blackId: 'invalid-user-id',
+				status: GameStatus.ONGOING,
+			} as any);
+
+			const result = await service.startGame(
+				EXAMPLES.gameId,
+				'invalid-user-id',
+			);
+
+			expect(result.blackId).toBe('invalid-user-id');
+			expect(result.status).toBe(GameStatus.ONGOING);
+		});
+
+		it('should throw ForbiddenException if game is full and user is not a player', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue({
+				...gameFixture,
+				blackId: EXAMPLES.id2, // déjà 2 joueurs
+			} as any);
 
 			await expect(
 				service.startGame(EXAMPLES.gameId, 'invalid-user-id'),
