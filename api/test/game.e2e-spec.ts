@@ -177,13 +177,23 @@ describe('Game (e2e)', () => {
 
 			const res = await request(app.getHttpServer())
 				.post(`/games/${EXAMPLES.gameId}/move`)
-				.send({ move: 'e4' })
+				.send({
+					move: {
+						from: 'e2',
+						to: 'e4',
+					},
+				})
 				.expect(HttpStatus.OK);
 
 			expect(res.body).toBeDefined();
 			expect(service.makeMove).toHaveBeenCalledWith(
 				EXAMPLES.gameId,
-				{ move: 'e4' },
+				{
+					move: {
+						from: 'e2',
+						to: 'e4',
+					},
+				},
 				EXAMPLES.id,
 			);
 		});

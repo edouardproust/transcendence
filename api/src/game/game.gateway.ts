@@ -81,7 +81,11 @@ export class GameGateway implements OnGatewayConnection {
 	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('makeMove')
 	async handleMove(
-		@MessageBody() data: { gameId: string; move: string },
+		@MessageBody()
+		data: {
+			gameId: string;
+			move: { from: string; to: string; promotion?: string };
+		},
 		@ConnectedSocket() client: Socket,
 	) {
 		const userId = client.data.user.sub;

@@ -21,6 +21,7 @@ class MoveDto {
 }
 
 export class MakeMoveDto {
+	@IsNotEmpty()
 	@ValidateNested()
 	@Type(() => MoveDto)
 	move: MoveDto;
