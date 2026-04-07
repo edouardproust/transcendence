@@ -215,7 +215,17 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     const socket = getSocket();
     if (!socket) return;
 
+    console.log(user);
+
     socket.emit('chatMessage', { gameId, message: text });
+
+    setMessages((prev) => [...prev.slice(-49), {
+      userId: user?.id || '',
+      username: user?.username || '',
+      message: text,
+      timestamp: new Date().toISOString(),
+    }]);
+
     setChatInput('');
   };
 

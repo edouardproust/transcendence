@@ -10,6 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
+import { UsersService } from '../users/users.service';
 
 @WebSocketGateway({
 	cors: {
@@ -21,7 +22,11 @@ export class GameGateway implements OnGatewayConnection {
 	@WebSocketServer()
 	server: Server;
 
-	constructor(private readonly gameService: GameService) {}
+	constructor(
+		private readonly gameService: GameService,
+		private readonly usersService: UsersService,
+	) {}
+
 	handleConnection(client: Socket) {
 		if (process.env.NODE_ENV != 'production') {
 			console.log('Client connected:', client.id);
@@ -162,6 +167,24 @@ export class GameGateway implements OnGatewayConnection {
 		} catch (error) {
 			client.emit('error', { message: error.message });
 		}
+	}
+
+	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('chatMessage')
+	async handleChatMessage(
+		@MessageBody() data: { gameId: string; message: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		const user = client.data.user;
+		const room = `game:${data.gameId}`;
+		const dbUser = await this.usersService.findOneById(user.sub);
+
+		client.to(room).emit('chatMessage', {
+			userId: user.sub,
+			username: dbUser.username,
+			message: data.message,
+			timestamp: new Date().toISOString(),
+		});
 	}
 
 	@UseGuards(WsJwtGuard)
