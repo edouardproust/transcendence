@@ -79,18 +79,46 @@ export class GameGateway implements OnGatewayConnection {
 	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('offerDraw')
 	async handleOfferDraw(
-		@MessageBody() data: { gameId: string },
+		@MessageBody() gameId: string,
 		@ConnectedSocket() client: Socket,
 	) {
 		const userId = client.data.user.sub;
+		const room = `game:${gameId}`;
+
 		try {
-			const updatedGame = await this.gameService.offerDraw(
-				data.gameId,
+			await this.gameService.offerDraw(gameId, userId);
+
+			client.to(room).emit('drawOffered', {
+				playerId: userId,
+			});
+		} catch (error) {
+			client.emit('error', { message: error.message });
+		}
+	}
+
+	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('acceptDraw')
+	async handleAcceptDraw(
+		@MessageBody() gameId: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		const userId = client.data.user.sub;
+		const room = `game:${gameId}`;
+
+		try {
+			const game = await this.gameService.getGame(gameId);
+
+			await this.gameService.finishGame(
+				gameId,
+				{
+					winnerId: null,
+					currentFen: game.currentFen,
+					pgn: game.pgn,
+				},
 				userId,
 			);
-			this.server
-				.to(`game:${data.gameId}`)
-				.emit('drawOffered', { offeredBy: userId });
+
+			this.server.to(room).emit('drawAccepted');
 		} catch (error) {
 			client.emit('error', { message: error.message });
 		}

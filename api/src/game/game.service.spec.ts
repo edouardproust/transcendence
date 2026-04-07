@@ -10,6 +10,7 @@ import { PrismaServiceMock } from '../prisma/prisma.service.mock';
 import { GameStatus, GameMode } from '../prisma/generated/enums';
 import { EXAMPLES } from '../common/constants';
 import { gameFixture, ongoingGameFixture } from './game.service.mock';
+import { describe } from 'node:test';
 
 describe('GameService', () => {
 	let service: GameService;
@@ -379,4 +380,219 @@ describe('GameService', () => {
 			).rejects.toThrow(BadRequestException);
 		});
 	});
+
+	describe('resignGame', () => {
+	const resignGame = () =>
+		service.resignGame(EXAMPLES.gameId, EXAMPLES.id);
+
+		it('should resign and set opponent as winner', async () => {
+			const updatedGame = {
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+				winnerId: EXAMPLES.id2,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue(
+				updatedGame as any,
+			);
+
+			const result = await resignGame();
+
+			expect(prismaService.game.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						status: GameStatus.FINISHED,
+						winnerId: EXAMPLES.id2,
+					}),
+				}),
+			);
+			expect(result.winnerId).toBe(EXAMPLES.id2);
+		});
+
+		it('should throw NotFoundException if game does not exist', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(null);
+
+			await expect(resignGame()).rejects.toThrow(NotFoundException);
+		});
+
+		it('should throw BadRequestException if game is not ongoing', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+			} as any);
+
+			await expect(resignGame()).rejects.toThrow(BadRequestException);
+		});
+
+		it('should throw ForbiddenException if user is not a player', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+
+			await expect(
+				service.resignGame(EXAMPLES.gameId, 'invalid-user'),
+			).rejects.toThrow(ForbiddenException);
+		});
+	});
+
+	describe('offerDraw', () => {
+	const offerDraw = () =>
+		service.offerDraw(EXAMPLES.gameId, EXAMPLES.id);
+
+		it('should set drawOfferedBy', async () => {
+			const updatedGame = {
+				...ongoingGameFixture,
+				drawOfferedBy: EXAMPLES.id,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue(
+				updatedGame as any,
+			);
+
+			const result = await offerDraw();
+
+			expect(prismaService.game.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: { drawOfferedBy: EXAMPLES.id },
+				}),
+			);
+			expect(result.drawOfferedBy).toBe(EXAMPLES.id);
+		});
+
+		it('should throw NotFoundException if game not found', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(null);
+
+			await expect(offerDraw()).rejects.toThrow(NotFoundException);
+		});
+
+		it('should throw BadRequestException if game is not ongoing', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+			} as any);
+
+			await expect(offerDraw()).rejects.toThrow(BadRequestException);
+		});
+
+		it('should throw ForbiddenException if user is not a player', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+
+			await expect(
+				service.offerDraw(EXAMPLES.gameId, 'invalid-user'),
+			).rejects.toThrow(ForbiddenException);
+		});
+	});
+
+	describe('acceptDraw', () => {
+	const acceptDraw = () =>
+		service.acceptDraw(EXAMPLES.gameId, EXAMPLES.id2);
+
+		it('should finish game with no winner', async () => {
+			const gameWithOffer = {
+				...ongoingGameFixture,
+				drawOfferedBy: EXAMPLES.id,
+			};
+
+			const updatedGame = {
+				...gameWithOffer,
+				status: GameStatus.FINISHED,
+				winnerId: null,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				gameWithOffer as any,
+			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue(
+				updatedGame as any,
+			);
+
+			const result = await acceptDraw();
+
+			expect(result.status).toBe(GameStatus.FINISHED);
+			expect(result.winnerId).toBeNull();
+		});
+
+		it('should throw if no draw offer', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+
+			await expect(acceptDraw()).rejects.toThrow(BadRequestException);
+		});
+
+		it('should throw if same user tries to accept own offer', async () => {
+			const gameWithOffer = {
+				...ongoingGameFixture,
+				drawOfferedBy: EXAMPLES.id,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				gameWithOffer as any,
+			);
+
+			await expect(
+				service.acceptDraw(EXAMPLES.gameId, EXAMPLES.id),
+			).rejects.toThrow(BadRequestException);
+		});
+	});
+
+	describe('declineDraw', () => {
+	const declineDraw = () =>
+		service.declineDraw(EXAMPLES.gameId, EXAMPLES.id2);
+
+		it('should remove draw offer', async () => {
+			const gameWithOffer = {
+				...ongoingGameFixture,
+				drawOfferedBy: EXAMPLES.id,
+			};
+
+			const updatedGame = {
+				...gameWithOffer,
+				drawOfferedBy: null,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				gameWithOffer as any,
+			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue(
+				updatedGame as any,
+			);
+
+			const result = await declineDraw();
+
+			expect(result.drawOfferedBy).toBeNull();
+		});
+
+		it('should throw if no draw offer', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+
+			await expect(declineDraw()).rejects.toThrow(BadRequestException);
+		});
+
+		it('should throw if user declines own offer', async () => {
+			const gameWithOffer = {
+				...ongoingGameFixture,
+				drawOfferedBy: EXAMPLES.id,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				gameWithOffer as any,
+			);
+
+			await expect(
+				service.declineDraw(EXAMPLES.gameId, EXAMPLES.id),
+			).rejects.toThrow(BadRequestException);
+		});
+	});
+
 });
