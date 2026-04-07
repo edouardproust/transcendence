@@ -121,6 +121,13 @@ export class GameService {
 		}
 
 		if (!game.blackId && userId !== game.whiteId) {
+			const userExists = await this.prisma.user.findUnique({
+				where: { id: userId },
+			});
+			if (!userExists) {
+				throw new NotFoundException('User not found');
+			}
+
 			await this.prisma.game.update({
 				where: { id: gameId },
 				data: { blackId: userId },

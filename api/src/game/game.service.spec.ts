@@ -218,6 +218,10 @@ describe('GameService', () => {
 				gameFixture as any,
 			);
 
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+				id: 'invalid-user-id',
+			} as any);
+
 			jest.spyOn(prismaService.game, 'update').mockResolvedValue({
 				...gameFixture,
 				blackId: 'invalid-user-id',

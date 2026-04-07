@@ -68,7 +68,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       endGame();
       alert('Tablas aceptadas');
     };
-
+/*
     const handlePlayerResigned = (data: { playerId: string }) => {
       console.log('[OnlineGame] Opponent resigned');
       if (data.playerId !== user?.id) {
@@ -76,7 +76,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
         alert('Tu oponente se ha rendido. ¡Has ganado!');
       }
     };
-
+*/
     const handleChatMessage = (data: {
       userId: string;
       username: string;
@@ -89,14 +89,14 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     socket.on('playerJoined', handlePlayerJoined);
     socket.on('drawOffered', handleDrawOffered);
     socket.on('drawAccepted', handleDrawAccepted);
-    socket.on('playerResigned', handlePlayerResigned);
+   // socket.on('playerResigned', handlePlayerResigned);
     socket.on('chatMessage', handleChatMessage);
 
     return () => {
       socket.off('playerJoined', handlePlayerJoined);
       socket.off('drawOffered', handleDrawOffered);
       socket.off('drawAccepted', handleDrawAccepted);
-      socket.off('playerResigned', handlePlayerResigned);
+     // socket.off('playerResigned', handlePlayerResigned);
       socket.off('chatMessage', handleChatMessage);
     };
   }, [endGame]);

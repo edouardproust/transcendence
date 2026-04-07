@@ -5,6 +5,7 @@ import {
 	SubscribeMessage,
 	MessageBody,
 	ConnectedSocket,
+	OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
@@ -18,9 +19,14 @@ import { UsersService } from '../users/users.service';
 		methods: ['GET', 'POST'],
 	},
 })
-export class GameGateway implements OnGatewayConnection {
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
+
+	private socketGameMap = new Map<
+		string,
+		{ gameId: string; userId: string }
+	>();
 
 	constructor(
 		private readonly gameService: GameService,
@@ -32,6 +38,24 @@ export class GameGateway implements OnGatewayConnection {
 			console.log('Client connected:', client.id);
 		}
 	}
+
+	async handleDisconnect(client: Socket) {
+		if (process.env.NODE_ENV != 'production') {
+			console.log('Client disconnected:', client.id);
+		}
+
+		const session = this.socketGameMap.get(client.id);
+		if (!session) {
+			return;
+		}
+
+		const { gameId, userId } = session;
+		this.socketGameMap.delete(client.id);
+
+		const room = `game:${gameId}`;
+		client.to(room).emit('playerDisconnected', { playerId: userId });
+	}
+
 	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('joinGame')
 	async handleJoinGame(
@@ -39,12 +63,27 @@ export class GameGateway implements OnGatewayConnection {
 		@ConnectedSocket() client: Socket,
 	) {
 		const { gameId } = data;
+		const userId = client.data.user.sub;
 		const room = `game:${gameId}`;
+
+		const wasConnected = [...this.socketGameMap.values()].some(
+			(session) => session.gameId === gameId && session.userId === userId,
+		);
 		client.join(room);
+		this.socketGameMap.set(client.id, { gameId, userId });
+
+		if (wasConnected) {
+			client.to(room).emit('playerReconnected', { playerId: userId });
+
+			const game = await this.gameService.getGame(gameId);
+			client.emit('gameUpdate', game);
+
+			return;
+		}
 
 		const sockets = await this.server.in(room).fetchSockets();
 
-		if (sockets.length == 2) {
+		if (sockets.length === 2) {
 			const userId = client.data.user.sub;
 			const updatedGame = await this.gameService.startGame(
 				gameId,
@@ -56,6 +95,7 @@ export class GameGateway implements OnGatewayConnection {
 			});
 		} else if (sockets.length > 2) {
 			client.leave(room);
+			this.socketGameMap.delete(client.id);
 			client.emit('error', { message: 'Game room is full' });
 		}
 	}
@@ -197,6 +237,7 @@ export class GameGateway implements OnGatewayConnection {
 				winnerId: updatedGame.winnerId,
 				reason: updatedGame.endReason,
 			});
+			this.server.to(room).emit('gameUpdate', updatedGame);
 		} catch (error) {
 			client.emit('error', { message: error.message });
 		}
@@ -224,7 +265,9 @@ export class GameGateway implements OnGatewayConnection {
 	@SubscribeMessage('ping')
 	async handlePing(@ConnectedSocket() client: Socket) {
 		const user = client.data.user;
-		console.log(`Received ping from user ${user.sub}`);
+		if (process.env.NODE_ENV != 'production') {
+			console.log(`Received ping from user ${user.sub}`);
+		}
 		client.emit('pong', {
 			message: 'pong',
 			userId: user.sub,
