@@ -235,7 +235,7 @@ describe('GameService', () => {
 		it('should throw ForbiddenException if game is full and user is not a player', async () => {
 			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue({
 				...gameFixture,
-				blackId: EXAMPLES.id2, // déjà 2 joueurs
+				blackId: EXAMPLES.id2,
 			} as any);
 
 			await expect(

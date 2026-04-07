@@ -120,18 +120,15 @@ export class GameService {
 			throw new BadRequestException('Game cannot be started');
 		}
 
-		// ✅ Si black pas défini → on autorise un user à rejoindre
 		if (!game.blackId && userId !== game.whiteId) {
 			await this.prisma.game.update({
 				where: { id: gameId },
 				data: { blackId: userId },
 			});
 
-			// ⚠️ reload game
 			game.blackId = userId;
 		}
 
-		// 🔥 Forbidden seulement APRÈS assignation possible
 		if (userId !== game.whiteId && userId !== game.blackId) {
 			throw new ForbiddenException('User is not a player');
 		}
@@ -267,6 +264,121 @@ export class GameService {
 					.replace(/\s*\*$/, ''),
 				status,
 				winnerId,
+			},
+		});
+
+		return updatedGame;
+	}
+
+	async resignGame(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.FINISHED,
+				winnerId,
+			},
+		});
+
+		return updatedGame;
+	}
+
+	async offerDraw(gameId: string, userId: string) {
+		cond game  =await.this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: { drawOfferedBy : userId},
+		});
+
+		return updatedGame;
+	}
+
+	async acceptDraw(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+		
+		if (!game.drawOfferedBy || game.drawOfferedBy === userId) {
+			throw new BadRequestException('No draw offer to accept');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.FINISHED,
+				winnerId: null,
+			},
+		});
+
+		return updatedGame;
+
+	}
+
+	async declineDraw(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+		
+		if (!game.drawOfferedBy || game.drawOfferedBy === userId) {
+			throw new BadRequestException('No draw offer to refuse');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				drawOfferedBy: null,
 			},
 		});
 
