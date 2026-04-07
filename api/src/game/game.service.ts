@@ -185,6 +185,44 @@ export class GameService {
 	}
 
 	/**
+	 * Cancel a waiting game. Only the white player can cancel the game and only if the game has not started yet.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user canceling the game
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {ForbiddenException} If user is not the white player in this game
+	 * @throws {BadRequestException} If game is not in WAITING status
+	 */
+	async cancelGame(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		if (game.status !== GameStatus.WAITING) {
+			throw new BadRequestException('Cannot cancel a started game');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.ABORTED,
+				winnerId: null,
+			},
+		});
+
+		return updatedGame;
+	}
+
+	/**
 	 * Apply a move to an ongoing game.
 	 * Automatically detects checkmate, draw, stalemate and updates game status.
 	 * Uses optimistic concurrency control on currentFen to prevent race conditions.

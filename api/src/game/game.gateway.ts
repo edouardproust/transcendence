@@ -61,6 +61,24 @@ export class GameGateway implements OnGatewayConnection {
 	}
 
 	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('cancelGame')
+	async handleCancelGame(
+		@MessageBody() gameId: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		const userId = client.data.user.sub;
+		const room = `game:${gameId}`;
+
+		try {
+			await this.gameService.cancelGame(gameId, userId);
+
+			this.server.to(room).emit('gameCancelled');
+		} catch (error) {
+			client.emit('error', { message: error.message });
+		}
+	}
+
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('makeMove')
 	async handleMove(
 		@MessageBody() data: { gameId: string; move: string },

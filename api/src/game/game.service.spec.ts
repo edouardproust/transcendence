@@ -382,8 +382,8 @@ describe('GameService', () => {
 	});
 
 	describe('resignGame', () => {
-	const resignGame = () =>
-		service.resignGame(EXAMPLES.gameId, EXAMPLES.id);
+		const resignGame = () =>
+			service.resignGame(EXAMPLES.gameId, EXAMPLES.id);
 
 		it('should resign and set opponent as winner', async () => {
 			const updatedGame = {
@@ -413,7 +413,9 @@ describe('GameService', () => {
 		});
 
 		it('should throw NotFoundException if game does not exist', async () => {
-			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(null);
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				null,
+			);
 
 			await expect(resignGame()).rejects.toThrow(NotFoundException);
 		});
@@ -439,8 +441,7 @@ describe('GameService', () => {
 	});
 
 	describe('offerDraw', () => {
-	const offerDraw = () =>
-		service.offerDraw(EXAMPLES.gameId, EXAMPLES.id);
+		const offerDraw = () => service.offerDraw(EXAMPLES.gameId, EXAMPLES.id);
 
 		it('should set drawOfferedBy', async () => {
 			const updatedGame = {
@@ -466,7 +467,9 @@ describe('GameService', () => {
 		});
 
 		it('should throw NotFoundException if game not found', async () => {
-			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(null);
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				null,
+			);
 
 			await expect(offerDraw()).rejects.toThrow(NotFoundException);
 		});
@@ -492,8 +495,8 @@ describe('GameService', () => {
 	});
 
 	describe('acceptDraw', () => {
-	const acceptDraw = () =>
-		service.acceptDraw(EXAMPLES.gameId, EXAMPLES.id2);
+		const acceptDraw = () =>
+			service.acceptDraw(EXAMPLES.gameId, EXAMPLES.id2);
 
 		it('should finish game with no winner', async () => {
 			const gameWithOffer = {
@@ -545,8 +548,8 @@ describe('GameService', () => {
 	});
 
 	describe('declineDraw', () => {
-	const declineDraw = () =>
-		service.declineDraw(EXAMPLES.gameId, EXAMPLES.id2);
+		const declineDraw = () =>
+			service.declineDraw(EXAMPLES.gameId, EXAMPLES.id2);
 
 		it('should remove draw offer', async () => {
 			const gameWithOffer = {
@@ -594,5 +597,86 @@ describe('GameService', () => {
 			).rejects.toThrow(BadRequestException);
 		});
 	});
+	describe('cancelGame', () => {
+		it('should cancel a waiting game', async () => {
+			const waitingGame = {
+				...gameFixture,
+				status: GameStatus.WAITING,
+				whiteId: EXAMPLES.id,
+				blackId: null,
+			};
 
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				waitingGame as any,
+			);
+
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue({
+				...waitingGame,
+				status: GameStatus.ABORTED,
+				winnerId: null,
+			} as any);
+
+			const result = await service.cancelGame(
+				waitingGame.id,
+				EXAMPLES.id,
+			);
+
+			expect(prismaService.game.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					where: { id: waitingGame.id },
+					data: expect.objectContaining({
+						status: GameStatus.ABORTED,
+						winnerId: null,
+					}),
+				}),
+			);
+
+			expect(result.status).toBe(GameStatus.ABORTED);
+			expect(result.winnerId).toBeNull();
+		});
+
+		it('should throw if game not found', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				null,
+			);
+
+			await expect(
+				service.cancelGame('invalid-id', EXAMPLES.id),
+			).rejects.toThrow('Game not found');
+		});
+
+		it('should throw if user is not a player', async () => {
+			const game = {
+				...gameFixture,
+				status: GameStatus.WAITING,
+				whiteId: 'other-user',
+				blackId: null,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				game as any,
+			);
+
+			await expect(
+				service.cancelGame(game.id, EXAMPLES.id),
+			).rejects.toThrow('You are not a player in this game');
+		});
+
+		it('should throw if game is not waiting', async () => {
+			const ongoingGame = {
+				...gameFixture,
+				status: GameStatus.ONGOING,
+				whiteId: EXAMPLES.id,
+				blackId: 'opponent-id',
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGame as any,
+			);
+
+			await expect(
+				service.cancelGame(ongoingGame.id, EXAMPLES.id),
+			).rejects.toThrow('Cannot cancel a started game');
+		});
+	});
 });
