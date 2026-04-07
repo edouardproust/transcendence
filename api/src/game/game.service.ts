@@ -219,7 +219,7 @@ export class GameService {
 			},
 		});
 
-		return updatedGame;
+		return { ...updatedGame, endReason: 'called' };
 	}
 
 	/**
@@ -274,18 +274,28 @@ export class GameService {
 
 		let status: GameStatus = GameStatus.ONGOING;
 		let winnerId: string | null = null;
+		let endReason: string | null = null;
 
 		if (chess.isCheckmate()) {
 			status = GameStatus.FINISHED;
 			winnerId = isWhiteTurn ? game.whiteId : (game.blackId ?? null);
-		} else if (
-			chess.isDraw() ||
-			chess.isStalemate() ||
-			chess.isThreefoldRepetition() ||
-			chess.isInsufficientMaterial()
-		) {
+			endReason = 'checkmate';
+		} else if (chess.isStalemate()) {
 			status = GameStatus.FINISHED;
 			winnerId = null;
+			endReason = 'stalemate';
+		} else if (chess.isThreefoldRepetition()) {
+			status = GameStatus.FINISHED;
+			winnerId = null;
+			endReason = 'repetition';
+		} else if (chess.isInsufficientMaterial()) {
+			status = GameStatus.FINISHED;
+			winnerId = null;
+			endReason = 'insufficient';
+		} else if (chess.isDraw()) {
+			status = GameStatus.FINISHED;
+			winnerId = null;
+			endReason = 'draw';
 		}
 
 		const updatedGame = await this.prisma.game.update({
@@ -305,7 +315,7 @@ export class GameService {
 			},
 		});
 
-		return updatedGame;
+		return { ...updatedGame, endReason };
 	}
 
 	/**
@@ -344,7 +354,7 @@ export class GameService {
 			},
 		});
 
-		return updatedGame;
+		return { ...updatedGame, endReason: 'resignation' as const };
 	}
 
 	/**
@@ -419,7 +429,7 @@ export class GameService {
 			},
 		});
 
-		return updatedGame;
+		return { ...updatedGame, endReason: 'draw' as const };
 	}
 
 	/**
