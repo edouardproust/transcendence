@@ -138,18 +138,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       return false;
     }
 
-    const success = makeMove(move);
-    if (!success) {
-      return false;
-    }
-
-    const latestMoves = useGameStore.getState().moves;
-    const latestMove = latestMoves[latestMoves.length - 1];
-    if (!latestMove) {
-      return false;
-    }
-
-    socket.emit('makeMove', { gameId, move: latestMove });
+    socket.emit('makeMove', { gameId, move: {from: move.from, to: move.to, promotion: move.promotion} });
     return true;
   };
 

@@ -1,7 +1,27 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+	IsNotEmpty,
+	IsOptional,
+	IsString,
+	ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class MakeMoveDto {
+class MoveDto {
 	@IsString()
 	@IsNotEmpty()
-	move: string;
+	from: string;
+
+	@IsString()
+	@IsNotEmpty()
+	to: string;
+
+	@IsOptional()
+	@IsString()
+	promotion?: string;
+}
+
+export class MakeMoveDto {
+	@ValidateNested()
+	@Type(() => MoveDto)
+	move: MoveDto;
 }
