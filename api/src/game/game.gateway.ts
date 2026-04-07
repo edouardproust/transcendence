@@ -73,6 +73,13 @@ export class GameGateway implements OnGatewayConnection {
 				{ move: data.move },
 				userId,
 			);
+			if (updatedGame.status === 'FINISHED') {
+				this.server.to(`game:${data.gameId}`).emit('gameEnd', {
+					winnerId: updatedGame.winnerId,
+					reason: 'checkmate', // for now we only support checkmate, but we could enhance this later to support other end conditions like stalemate, resignation, etc.
+				});
+			}
+
 			this.server
 				.to(`game:${data.gameId}`)
 				.emit('gameUpdate', updatedGame);
@@ -159,10 +166,14 @@ export class GameGateway implements OnGatewayConnection {
 		const room = `game:${gameId}`;
 
 		try {
-			await this.gameService.resignGame(gameId, userId);
+			const updatedGame = await this.gameService.resignGame(
+				gameId,
+				userId,
+			);
 
-			this.server.to(room).emit('playerResigned', {
-				playerId: userId,
+			this.server.to(room).emit('gameEnd', {
+				winnerId: updatedGame.winnerId,
+				reason: 'resignation',
 			});
 		} catch (error) {
 			client.emit('error', { message: error.message });
