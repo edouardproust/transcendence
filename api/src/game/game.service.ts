@@ -120,18 +120,22 @@ export class GameService {
 			throw new BadRequestException('Game cannot be started');
 		}
 
-		// ✅ Si black pas défini → on autorise un user à rejoindre
 		if (!game.blackId && userId !== game.whiteId) {
+			const userExists = await this.prisma.user.findUnique({
+				where: { id: userId },
+			});
+			if (!userExists) {
+				throw new NotFoundException('User not found');
+			}
+
 			await this.prisma.game.update({
 				where: { id: gameId },
 				data: { blackId: userId },
 			});
 
-			// ⚠️ reload game
 			game.blackId = userId;
 		}
 
-		// 🔥 Forbidden seulement APRÈS assignation possible
 		if (userId !== game.whiteId && userId !== game.blackId) {
 			throw new ForbiddenException('User is not a player');
 		}
@@ -188,6 +192,44 @@ export class GameService {
 	}
 
 	/**
+	 * Cancel a waiting game. Only the white player can cancel the game and only if the game has not started yet.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user canceling the game
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {ForbiddenException} If user is not the white player in this game
+	 * @throws {BadRequestException} If game is not in WAITING status
+	 */
+	async cancelGame(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		if (game.status !== GameStatus.WAITING) {
+			throw new BadRequestException('Cannot cancel a started game');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.ABORTED,
+				winnerId: null,
+			},
+		});
+
+		return { ...updatedGame, endReason: 'called' };
+	}
+
+	/**
 	 * Apply a move to an ongoing game.
 	 * Automatically detects checkmate, draw, stalemate and updates game status.
 	 * Uses optimistic concurrency control on currentFen to prevent race conditions.
@@ -239,18 +281,28 @@ export class GameService {
 
 		let status: GameStatus = GameStatus.ONGOING;
 		let winnerId: string | null = null;
+		let endReason: string | null = null;
 
 		if (chess.isCheckmate()) {
 			status = GameStatus.FINISHED;
 			winnerId = isWhiteTurn ? game.whiteId : (game.blackId ?? null);
-		} else if (
-			chess.isDraw() ||
-			chess.isStalemate() ||
-			chess.isThreefoldRepetition() ||
-			chess.isInsufficientMaterial()
-		) {
+			endReason = 'checkmate';
+		} else if (chess.isStalemate()) {
 			status = GameStatus.FINISHED;
 			winnerId = null;
+			endReason = 'stalemate';
+		} else if (chess.isThreefoldRepetition()) {
+			status = GameStatus.FINISHED;
+			winnerId = null;
+			endReason = 'repetition';
+		} else if (chess.isInsufficientMaterial()) {
+			status = GameStatus.FINISHED;
+			winnerId = null;
+			endReason = 'insufficient';
+		} else if (chess.isDraw()) {
+			status = GameStatus.FINISHED;
+			winnerId = null;
+			endReason = 'draw';
 		}
 
 		const updatedGame = await this.prisma.game.update({
@@ -267,6 +319,160 @@ export class GameService {
 					.replace(/\s*\*$/, ''),
 				status,
 				winnerId,
+			},
+		});
+
+		return { ...updatedGame, endReason };
+	}
+
+	/**
+	 * Resign from an ongoing game.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user resigning from the game
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {BadRequestException} If game is not ongoing
+	 * @throws {ForbiddenException} If user is not a player in this game
+	 */
+	async resignGame(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.FINISHED,
+				winnerId,
+			},
+		});
+
+		return { ...updatedGame, endReason: 'resignation' as const };
+	}
+
+	/**
+	 * offer a draw in an ongoing game.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user offering the draw
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {BadRequestException} If game is not ongoing or if there is already a draw offer
+	 * @throws {ForbiddenException} If user is not a player in this game
+	 */
+	async offerDraw(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: { drawOfferedBy: userId },
+		});
+
+		return updatedGame;
+	}
+
+	/**
+	 * Accept a draw offer in an ongoing game.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user accepting the draw offer
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {BadRequestException} If game is not ongoing or if there is no draw offer to accept
+	 * @throws {ForbiddenException} If user is not a player in this game
+	 */
+	async acceptDraw(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		if (!game.drawOfferedBy || game.drawOfferedBy === userId) {
+			throw new BadRequestException('No draw offer to accept');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.FINISHED,
+				winnerId: null,
+			},
+		});
+
+		return { ...updatedGame, endReason: 'draw' as const };
+	}
+
+	/**
+	 * Decline a draw offer in an ongoing game.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the user declining the draw offer
+	 * @returns The updated game
+	 * @throws {NotFoundException} If game not found
+	 * @throws {BadRequestException} If game is not ongoing or if there is no draw offer to decline
+	 * @throws {ForbiddenException} If user is not a player in this game
+	 */
+	async declineDraw(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game is not ongoing');
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			throw new ForbiddenException('You are not a player in this game');
+		}
+
+		if (!game.drawOfferedBy || game.drawOfferedBy === userId) {
+			throw new BadRequestException('No draw offer to refuse');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				drawOfferedBy: null,
 			},
 		});
 

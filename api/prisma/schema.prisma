@@ -69,8 +69,9 @@ model Game {
     white User? @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: SetNull)
     black User? @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: SetNull)
 
-    winnerId String?
-    winner   User?   @relation("Winner", fields: [winnerId], references: [id])
+    winnerId      String?
+    winner        User?   @relation("Winner", fields: [winnerId], references: [id])
+    drawOfferedBy String?
 
     currentFen String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     pgn        String @default("")

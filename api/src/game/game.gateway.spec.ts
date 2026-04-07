@@ -4,6 +4,7 @@ import { GameService } from './game.service';
 import { GameServiceMock, ongoingGameFixture } from './game.service.mock';
 import { Socket, Server } from 'socket.io';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
+import { UsersService } from '../users/users.service';
 
 describe('GameGateway', () => {
 	let gateway: GameGateway;
@@ -31,7 +32,19 @@ describe('GameGateway', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [GameGateway, GameServiceMock],
+			providers: [
+				GameGateway,
+				GameServiceMock,
+				{
+					provide: UsersService,
+					useValue: {
+						findOneById: jest.fn().mockResolvedValue({
+							id: ongoingGameFixture.whiteId,
+							username: 'testUser',
+						}),
+					},
+				},
+			],
 		})
 			.overrideGuard(WsJwtGuard)
 			.useValue({

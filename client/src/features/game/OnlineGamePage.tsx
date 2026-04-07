@@ -128,18 +128,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       return false;
     }
 
-    const success = makeMove(move);
-    if (!success) {
-      return false;
-    }
-
-    const latestMoves = useGameStore.getState().moves;
-    const latestMove = latestMoves[latestMoves.length - 1];
-    if (!latestMove) {
-      return false;
-    }
-
-    socket.emit('makeMove', { gameId, move: latestMove });
+    socket.emit('makeMove', { gameId, move: {from: move.from, to: move.to, promotion: move.promotion} });
     return true;
   };
 
@@ -206,6 +195,14 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     if (!socket) return;
 
     socket.emit('chatMessage', { gameId, message: text });
+
+    setMessages((prev) => [...prev.slice(-49), {
+      userId: user?.id || '',
+      username: user?.username || '',
+      message: text,
+      timestamp: new Date().toISOString(),
+    }]);
+
     setChatInput('');
   };
 
