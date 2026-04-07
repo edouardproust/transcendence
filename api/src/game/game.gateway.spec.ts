@@ -38,7 +38,7 @@ describe('GameGateway', () => {
 				{
 					provide: UsersService,
 					useValue: {
-						getUserById: jest.fn().mockResolvedValue({
+						findOneById: jest.fn().mockResolvedValue({
 							id: ongoingGameFixture.whiteId,
 							username: 'testUser',
 						}),

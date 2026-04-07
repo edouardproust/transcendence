@@ -9,6 +9,7 @@ import {
 	ongoingGameFixture,
 } from '../src/game/game.service.mock';
 import { WsJwtGuard } from '../src/auth/guard/ws-jwt.guard';
+import { UsersService } from '../src/users/users.service';
 
 // WebSocket serializes Date objects to ISO strings, so we normalize the fixture before comparing
 const serializeGame = (game: any) => ({
@@ -38,7 +39,19 @@ describe('GameGateway (e2e)', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [GameGateway, GameServiceMock],
+			providers: [
+				GameGateway,
+				GameServiceMock,
+				{
+					provide: UsersService,
+					useValue: {
+						findOneById: jest.fn().mockResolvedValue({
+							id: ongoingGameFixture.whiteId,
+							username: 'testUser',
+						}),
+					},
+				},
+			],
 		})
 			.overrideGuard(WsJwtGuard)
 			.useValue(mockWsGuard)
