@@ -125,6 +125,46 @@ export class GameGateway implements OnGatewayConnection {
 	}
 
 	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('declineDraw')
+	async handleDeclineDraw(
+		@MessageBody() gameId: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		const userId = client.data.user.sub;
+		const room = `game:${gameId}`;
+
+		try {
+			await this.gameService.declineDraw(gameId, userId);
+
+			client.to(room).emit('drawDeclined', {
+				playerId: userId,
+			});
+		} catch (error) {
+			client.emit('error', { message: error.message });
+		}
+	}
+
+	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('resign')
+	async handleResign(
+		@MessageBody() gameId: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		const userId = client.data.user.sub;
+		const room = `game:${gameId}`;
+
+		try {
+			await this.gameService.resignGame(gameId, userId);
+
+			this.server.to(room).emit('playerResigned', {
+				playerId: userId,
+			});
+		} catch (error) {
+			client.emit('error', { message: error.message });
+		}
+	}
+
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('ping')
 	async handlePing(@ConnectedSocket() client: Socket) {
 		const user = client.data.user;
