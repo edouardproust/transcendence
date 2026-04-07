@@ -195,7 +195,7 @@ export class GameGateway implements OnGatewayConnection {
 
 			this.server.to(room).emit('gameEnd', {
 				winnerId: updatedGame.winnerId,
-				reason: 'resignation',
+				reason: updatedGame.endReason,
 			});
 		} catch (error) {
 			client.emit('error', { message: error.message });
