@@ -479,7 +479,11 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     : undefined;
 
   return (
-    <GameLayout onMove={handleMove} gameFinished={status === 'finished' || status === 'cancelled'}>
+    <GameLayout
+      onMove={handleMove}
+      gameFinished={status === 'finished' || status === 'cancelled'}
+      clockEnabled
+    >
       <GameHeader
         title="👥 Partida Online"
         subtitle={subtitle}

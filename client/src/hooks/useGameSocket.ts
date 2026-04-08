@@ -171,6 +171,13 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
 
       console.error('[SOCKET]', message);
 
+      if (message === 'Game room is full') {
+        useGameStore.getState().reset();
+        alert('La partida ya tiene dos jugadores. Volviendo al lobby.');
+        navigate('/lobby');
+        return;
+      }
+
       if (message === 'Not your turn' || message === 'Illegal move') {
         // Re-sync against server authority to recover from client/server drift.
         void (async () => {
