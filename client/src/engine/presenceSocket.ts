@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
+const PRESENCE_NAMESPACE = '/presence';
 
 let presenceSocketInstance: Socket | null = null;
 
@@ -12,7 +13,7 @@ export const connectPresenceSocket = (token: string): Socket => {
     presenceSocketInstance.disconnect();
   }
 
-  presenceSocketInstance = io(SOCKET_URL, {
+  presenceSocketInstance = io(`${SOCKET_URL}${PRESENCE_NAMESPACE}`, {
     auth: { token },
     autoConnect: true,
     reconnection: true,

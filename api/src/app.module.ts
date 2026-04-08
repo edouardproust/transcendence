@@ -5,6 +5,7 @@ import { GameModule } from './game/game.module';
 import { StorageModule } from './storage/storage.module';
 import { AdminModule } from './admin/admin.module';
 import { FriendsModule } from './friends/friends.module';
+import { PresenceModule } from './presence/presence.module';
 
 @Module({
 	imports: [
@@ -14,6 +15,7 @@ import { FriendsModule } from './friends/friends.module';
 		StorageModule,
 		AdminModule,
 		FriendsModule,
+		PresenceModule,
 	],
 })
 export class AppModule {}
