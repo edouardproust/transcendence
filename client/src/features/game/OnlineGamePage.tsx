@@ -48,7 +48,30 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   const activeLeaveWaitCleanupRef = useRef<(() => void) | null>(null);
 
   // Conectar socket
-  useGameSocket(gameId);
+  useGameSocket(gameId, {
+    suppressErrorAlerts: isLeavingGame,
+    onError: (message) => {
+      if (!isLeavingGame) {
+        return false;
+      }
+
+      return message === 'Cannot cancel a started game' || message === 'Game is not ongoing';
+    },
+    onPlayerJoined: () => {
+      setHasOpponent(true);
+    },
+    onDrawOffered: (data) => {
+      setDrawOfferFrom(data.playerId);
+    },
+    onDrawDeclined: () => {
+      setDrawOffered(false);
+      setDrawOfferFrom(null);
+      alert('Tu oponente rechazó las tablas');
+    },
+    onChatMessage: (data) => {
+      setMessages((prev) => [...prev.slice(-49), data]);
+    },
+  });
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -57,50 +80,6 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       isMountedRef.current = false;
       activeLeaveWaitCleanupRef.current?.();
       activeLeaveWaitCleanupRef.current = null;
-    };
-  }, []);
-
-  // Listener para detectar cuando se une un oponente
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
-    const handlePlayerJoined = () => {
-      console.log('[OnlineGame] Opponent joined!');
-      setHasOpponent(true);
-    };
-
-    const handleDrawOffered = (data: { playerId: string }) => {
-      console.log('[OnlineGame] Draw offered');
-      setDrawOfferFrom(data.playerId);
-    };
-
-    const handleDrawDeclined = () => {
-      console.log('[OnlineGame] Draw declined');
-      setDrawOffered(false);
-      setDrawOfferFrom(null);
-      alert('Tu oponente rechazó las tablas');
-    };
-
-    const handleChatMessage = (data: {
-      userId: string;
-      username: string;
-      message: string;
-      timestamp: string;
-    }) => {
-      setMessages((prev) => [...prev.slice(-49), data]);
-    };
-
-    socket.on('playerJoined', handlePlayerJoined);
-    socket.on('drawOffered', handleDrawOffered);
-    socket.on('drawDeclined', handleDrawDeclined);
-    socket.on('chatMessage', handleChatMessage);
-
-    return () => {
-      socket.off('playerJoined', handlePlayerJoined);
-      socket.off('drawOffered', handleDrawOffered);
-      socket.off('drawDeclined', handleDrawDeclined);
-      socket.off('chatMessage', handleChatMessage);
     };
   }, []);
 

@@ -53,6 +53,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const pendingAiMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aiThinkWindowRef = useRef<{ requestedAt: number; minDelayMs: number } | null>(null);
   const gameEndAlertShownRef = useRef(false);
+  const gameResultPersistedRef = useRef(false);
   const lastCheckAlertKeyRef = useRef<string | null>(null);
 
   const aiColorStorageKey = `ai-player-color:${gameId}`;
@@ -96,12 +97,14 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     }
 
     let message = 'Partida finalizada.';
+    let winnerId: string | null = null;
     if (chess.isCheckmate()) {
       // In checkmate, side to move is the loser.
       const humanSide = humanColor === 'white' ? 'w' : 'b';
       const aiSide = humanSide === 'w' ? 'b' : 'w';
       const loserSide = chess.turn();
       const playerWon = loserSide === aiSide;
+      winnerId = playerWon ? user?.id || null : null;
       message =
         playerWon
           ? '♔ Jaque mate. Ganaste a la IA.'
@@ -114,6 +117,20 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       alert(message);
       gameEndAlertShownRef.current = true;
     }
+
+    if (!gameResultPersistedRef.current && state.gameId) {
+      gameResultPersistedRef.current = true;
+      void gameService.finishGame(state.gameId, {
+        winnerId,
+        currentFen: state.fen,
+        pgn: state.pgn,
+      }).catch((error) => {
+        gameResultPersistedRef.current = false;
+        console.error('[AIGame] Error saving finished game:', error);
+        alert('La partida terminó, pero no se pudo guardar el resultado.');
+      });
+    }
+
     endGame();
     return true;
   };
@@ -217,6 +234,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
         setSelectedPlayerColor(storedColor);
         initGame(gameId, 'ai', storedColor, game.currentFen, game.pgn, game.status);
         setIsLoading(false);
+        gameResultPersistedRef.current = false;
       } catch (error) {
         console.error('Error loading game:', error);
         alert('Error al cargar la partida');
@@ -230,13 +248,11 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   // Inicializar Stockfish
   useEffect(() => {
     if (!stockfish) {
-      console.log('[AIGame] Initializing Stockfish...');
       const engine = new StockfishEngine();
 
       engine
         .init()
         .then(() => {
-          console.log('[AIGame] ✓ Stockfish ready');
           setStockfish(engine);
 
           engine.onBestMove((bestMove) => {
@@ -281,7 +297,6 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       clearPendingAiMove();
       aiThinkWindowRef.current = null;
       if (stockfish) {
-        console.log('[AIGame] Terminating Stockfish');
         stockfish.terminate();
       }
     };
@@ -329,7 +344,6 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const handleMove = (move: Move): boolean => {
     const success = makeMove(move);
     if (!success) {
-      console.log('Invalid move:', move);
       return false;
     }
 
@@ -353,8 +367,27 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     }
   };
 
-  const handleResign = () => {
+  const handleResign = async () => {
+    const state = useGameStore.getState();
+
     endGame();
+
+    if (!gameResultPersistedRef.current && state.gameId) {
+      gameResultPersistedRef.current = true;
+
+      try {
+        await gameService.finishGame(state.gameId, {
+          winnerId: null,
+          currentFen: state.fen,
+          pgn: state.pgn,
+        });
+      } catch (error) {
+        gameResultPersistedRef.current = false;
+        console.error('[AIGame] Error saving resignation:', error);
+        alert('La partida terminó, pero no se pudo guardar el resultado.');
+      }
+    }
+
     reset();
     navigate('/lobby');
   };

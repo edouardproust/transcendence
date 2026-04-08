@@ -4,6 +4,12 @@ import { Game, CreateGameRequest } from '@/types/game';
 const DEFAULT_INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 type ApiGameMode = 'ONLINE' | 'AI';
 
+interface FinishGameRequest {
+  winnerId?: string | null;
+  currentFen: string;
+  pgn: string;
+}
+
 const normalizeGameMode = (mode: string | null | undefined): Game['mode'] =>
   String(mode || '').toLowerCase() === 'ai' ? 'ai' : 'online';
 
@@ -63,6 +69,11 @@ export const gameService = {
 
   async startGame(gameId: string): Promise<Game> {
     const response = await api.post(`/games/${gameId}/start`);
+    return mapGameFromAPI(response.data);
+  },
+
+  async finishGame(gameId: string, data: FinishGameRequest): Promise<Game> {
+    const response = await api.post(`/games/${gameId}/finish`, data);
     return mapGameFromAPI(response.data);
   },
 };
