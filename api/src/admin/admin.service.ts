@@ -37,8 +37,17 @@ export class AdminService {
 	 * @returns Paginated list of users with total game count, and pagination metadata.
 	 */
 	async getUsers(query: AdminUsersQueryDto): Promise<AdminUsersResponseDto> {
-		const { page = 1, limit = 20, search } = query; // TODO: replace by DEFAULTS values
+		const {
+			page = 1,
+			limit = 20,
+			search,
+			sortBy = 'createdAt',
+			sortOrder = 'desc',
+		} = query; // TODO: replace by DEFAULTS values
 		const skip = (page - 1) * limit;
+		const userOrderBy = {
+			[sortBy]: sortOrder,
+		} as Prisma.UserOrderByWithRelationInput;
 
 		const where = search
 			? {
@@ -66,7 +75,7 @@ export class AdminService {
 				skip,
 				take: limit,
 				omit: { password: true },
-				orderBy: { createdAt: 'desc' },
+				orderBy: userOrderBy,
 				include: {
 					_count: {
 						select: {
@@ -106,8 +115,17 @@ export class AdminService {
 	 * @returns Paginated list of games with player usernames, and pagination metadata.
 	 */
 	async getGames(query: AdminGamesQueryDto): Promise<AdminGamesResponseDto> {
-		const { page = 1, limit = 20, status } = query;
+		const {
+			page = 1,
+			limit = 20,
+			status,
+			sortBy = 'createdAt',
+			sortOrder = 'desc',
+		} = query;
 		const skip = (page - 1) * limit;
+		const gameOrderBy = {
+			[sortBy]: sortOrder,
+		} as Prisma.GameOrderByWithRelationInput;
 
 		const where = status ? { status: status as GameStatus } : {};
 
@@ -117,7 +135,7 @@ export class AdminService {
 				where,
 				skip,
 				take: limit,
-				orderBy: { createdAt: 'desc' },
+				orderBy: gameOrderBy,
 				include: {
 					white: { select: { username: true } },
 					black: { select: { username: true } },

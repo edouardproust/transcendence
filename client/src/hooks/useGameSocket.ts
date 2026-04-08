@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { connectSocket, disconnectSocket } from '@/engine/socket';
+import { pushToast } from '@/components/ui/ToastProvider';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useGameStore } from '@/features/game/gameStore';
 import { gameService } from '@/services/gameService';
@@ -92,7 +93,7 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
       const myColor =
         state.playerColor === 'white' ? 'w' : state.playerColor === 'black' ? 'b' : null;
       const isMyKingInCheck = myColor ? checkedSide === myColor : false;
-      alert(isMyKingInCheck ? '⚠️ Jaque a tu rey' : '⚠️ Jaque al rey rival');
+      pushToast(isMyKingInCheck ? '⚠️ Jaque a tu rey' : '⚠️ Jaque al rey rival', 'info');
     };
 
     const handlePlayerJoined = () => {
@@ -145,7 +146,14 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
           : 'La partida terminó por desconexión.';
       }
 
-      alert(message);
+      pushToast(
+        message,
+        data.reason === 'checkmate' || data.reason === 'resignation' || data.reason === 'disconnect'
+          ? hasWinner && iWon
+            ? 'success'
+            : 'error'
+          : 'info'
+      );
     };
 
     const handleDrawOffered = (data: { playerId: string }) => {
@@ -162,7 +170,7 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
 
     const handleGameCancelled = () => {
       useGameStore.getState().reset();
-      alert('La partida fue cancelada');
+      pushToast('La partida fue cancelada', 'info');
       navigate('/lobby');
     };
 
@@ -173,7 +181,7 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
 
       if (message === 'Game room is full') {
         useGameStore.getState().reset();
-        alert('La partida ya tiene dos jugadores. Volviendo al lobby.');
+        pushToast('La partida ya tiene dos jugadores. Volviendo al lobby.', 'error');
         navigate('/lobby');
         return;
       }
@@ -195,16 +203,16 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
 
       const handledByPage = optionsRef.current?.onError?.(message) === true;
       if (!handledByPage && !optionsRef.current?.suppressErrorAlerts) {
-        alert(message);
+        pushToast(message, 'error');
       }
     };
 
     const handlePlayerDisconnected = () => {
-      alert('Tu oponente se desconecto. Esperando reconexion...');
+      pushToast('Tu oponente se desconecto. Esperando reconexion...', 'info');
     };
 
     const handlePlayerReconnected = () => {
-      alert('Tu oponente se reconecto');
+      pushToast('Tu oponente se reconecto', 'success');
     };
 
     socket.on('gameUpdate', handleGameUpdate);

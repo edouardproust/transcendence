@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import { Icon } from './Icon';
+import { uiRadius, uiShadow, uiTypography } from './designSystem';
 
 type ToastTone = 'success' | 'error' | 'info';
 
@@ -64,10 +65,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         {messages.map((toast) => (
           <div
             key={toast.id}
-            className={`min-w-[260px] max-w-[360px] px-4 py-3 rounded-lg shadow-lg flex items-start gap-2 ${styles[toast.tone]}`}
+            className={`min-w-[260px] max-w-[360px] px-4 py-3 ${uiRadius.md} ${uiShadow.toast} flex items-start gap-2 ${styles[toast.tone]}`}
           >
             <Icon name={icons[toast.tone]} className="w-4 h-4 mt-0.5" />
-            <p className="text-sm">{toast.message}</p>
+            <p className={uiTypography.body}>{toast.message}</p>
           </div>
         ))}
       </div>

@@ -1,4 +1,4 @@
-# Check.io
+# Chess 42
 
 This project has been created as part of the 42 curriculum ("Transcendence" project) by **ahetru**, **eproust**, **matde-la**, **sluterea**. ([View subject](/subject/en.subject.pdf)).
 
@@ -183,12 +183,13 @@ Posts\
 | Web             | Allow users to interact with other users (chqt, profile or firends system) | Major | + 2    |      |                                                                                                                                                                                                          |
 | Web             | A public API to interact with the database                                 | Major | +2     |      | Secured API key, rate limite, documentation, and at least 5 endpoints (GET, POST, PUT, DELETE)                                                                                                           |                                                        |
 | Web             | Use an ORM for the database                                                | Minor | +1     |      | Prisma ORM                                                                                                                                                                                               | ahetru, eproust                                        |
-| Gaming and UX   | Complete web-based game where users can play against each other            | Major | +2     |      | Real-time multiplayer game, live matches, game with clear rules and win/loss conditions                                                                                                                  |                                                        |
+| Gaming and UX   | Complete web-based game where users can play against each other            | Major | +2     |      | Real-time multiplayer chess game, live matches, legal move validation, draw offers, resignation flow and downloadable game transcript                                                                    |                                                        |
 | Gaming and UX   | Remote players in real-time                                                | Major | +2     |      | Handle network latency and disconnections gracefully, provide a smooth UX for remote gameplay, reconnection logic                                                                                        |                                                        |
 | User Management | Standard user management and authentication                                | Major | + 2    |      | Users can update their profile information, upload an avatar (and have a default avatar), add other users as friends and se their online status. Users have a profile page displaying their information. | all (backend and frontend)                             |
 | Web             | Implement real-time features using WebSockets or similar technology        | Major | + 2    |      |                                                                                                                                                                                                          |
-| Web             | Custom-made design system with reusable components                         | Minor | +1     |      | Minimum of 10 reusable components, including proper color palette, typography and icons                                                                                                                  | matde-la, sluterea                                     |
-| Web             | A complete notification system for CRUD actions                            | Minor | +1     |      | Notifications popups with React on entity creationm update and deletion                                                                                                                                  |                                                        |
+| Web             | Custom-made design system with reusable components                         | Minor | +1     |      | Shared UI tokens for palette, typography, icons and surfaces. Reusable components documented in `docs/design-system.md` and reused across game, lobby, profile and admin views.                       | matde-la, sluterea                                     |
+| Web             | A complete notification system for CRUD actions                            | Minor | +1     |      | Toast notifications with success, error and info states for user, friend, avatar, game and admin CRUD flows.                                                                                            |                                                        |
+| Gaming and UX   | AI Opponent                                                                | Major | +2     |      | Stockfish-powered chess opponent with 20 difficulty levels, persistent AI settings, color choice and persisted match results for profile statistics.                                                     |                                                        |
 
 // TODO Add a the base the project structure and finilize only if time left
 | Category | Module | Type | Points | Goal | Implementation | Contributors |
@@ -196,7 +197,7 @@ Posts\
 | Accessibility & i18n | Support for multiple languages | Minor | +1 | | Langage switch
 | Accessibility & i18n | Support for aditional browsers | Minor | +1 | | Full compatibility in 3 browsers (Google Chrome, Firefox, Safari), documentation on browser-specific limitations, consisten UI/UX across all supported browsers | |
 | User management | Game statistics and match history | Minor | +1 | | Track user game statistics (wins, losses, ranking, level, etc.), display match history (1v1 games, dates, results, opponents), show achievements and progression, leaderboard integration | all (backend and frontend) |
-| User management | Advanced permissions system | Major | +2 | | View, edit and delete users (CRUD), Roles management (admin, user, guest moderator, etc.) | Different views and actions based on user role |
+| User management | Advanced permissions system | Major | +2 | | Protected admin routes, admin guard, role-based UI and admin CRUD on users/games, including protections against self-removal and self-role degradation. | Different views and actions based on user role |
 
 // TODO Bonus (if we have time left only)
 
@@ -206,9 +207,10 @@ Posts\
 | user management  | Remote authentication with OAuth 2.0 | Minor | + 1    |      | Google, Github, 42 authentication system                                                                   |              |
 | DevOps           | Health check and status page system  | Minor | +1     |      | Page system with automated backups and disaster recovery procedures                                        |              |
 | Gaming and UX    | 3D graphics                          | Major | +2     |      | 3D chess board using three.js, advanced rendering technics, smooth performance and user interaction        |              |
-| Gaming and UX    | Game customization options           | Minor | +1     |      | Power-ups and special abilities of pawns                                                                   |              |
+| Gaming and UX    | Game customization options           | Minor | +1     |      | Persistent 2D/3D board view, board themes, AI color selection and saved AI difficulty between games.     |              |
+| Web              | Advanced search                      | Minor | +1     |      | Admin users and games support search, filtering, pagination and sorting by multiple fields.               |              |
 
-**Total points**: // TODO
+**Total points**: 20
 
 ## Individual Contributions
 

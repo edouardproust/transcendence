@@ -72,10 +72,11 @@ describe('GameController', () => {
 		it('should call service.startGame with id and userId', async () => {
 			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
 			jest.spyOn(gameService, 'startGame').mockResolvedValue(gameFixture);
-			await controller.startGame(EXAMPLES.gameId, user);
+			await controller.startGame(EXAMPLES.gameId, {}, user);
 			expect(gameService.startGame).toHaveBeenCalledWith(
 				EXAMPLES.gameId,
 				user.id,
+				{},
 			);
 		});
 	});

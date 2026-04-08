@@ -5,23 +5,28 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
+import { pushToast } from '@/components/ui/ToastProvider';
+import { AdminGameSortField, SortOrder } from '@/types/admin';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const AdminGames: React.FC = () => {
   const [games, setGames] = useState<AdminGame[]>([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [statusFilter, setStatusFilter] = useState('');
+  const [sortBy, setSortBy] = useState<AdminGameSortField>('createdAt');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     void loadGames();
-  }, [pagination.page, statusFilter]);
+  }, [pagination.page, statusFilter, sortBy, sortOrder]);
 
   const loadGames = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await adminService.getGames(pagination.page, statusFilter);
+      const data = await adminService.getGames(pagination.page, statusFilter, sortBy, sortOrder);
       setGames(data.games);
       setPagination(data.pagination);
     } catch (error: any) {
@@ -43,10 +48,10 @@ export const AdminGames: React.FC = () => {
 
     try {
       await adminService.deleteGame(gameId);
-      alert('Partida eliminada');
+      pushToast('Partida eliminada', 'success');
       void loadGames();
-    } catch (error) {
-      alert('Error eliminando partida');
+    } catch (error: any) {
+      pushToast(getApiErrorMessage(error, 'Error eliminando partida'), 'error');
     }
   };
 
@@ -112,25 +117,65 @@ export const AdminGames: React.FC = () => {
       {/* Filtros */}
       <Card className="mb-6">
         <CardBody>
-          <div className="max-w-xs">
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Filtrar por estado
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPagination((current) => ({ ...current, page: 1 }));
-              }}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-            >
-              <option value="">Todos los estados</option>
-              <option value="waiting">Abiertas / pendientes</option>
-              <option value="active">Jugando</option>
-              <option value="finished">Finalizadas</option>
-              <option value="cancelled">Canceladas</option>
-            </select>
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPagination((current) => ({ ...current, page: 1 }));
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              >
+                <option value="">Todos los estados</option>
+                <option value="waiting">Abiertas / pendientes</option>
+                <option value="active">Jugando</option>
+                <option value="finished">Finalizadas</option>
+                <option value="cancelled">Canceladas</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Ordenar por
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setPagination((current) => ({ ...current, page: 1 }));
+                  setSortBy(e.target.value as AdminGameSortField);
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              >
+                <option value="createdAt">Fecha de creacion</option>
+                <option value="updatedAt">Ultima actualizacion</option>
+                <option value="status">Estado</option>
+                <option value="mode">Modo</option>
+                <option value="timeControl">Tiempo</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Orden
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setPagination((current) => ({ ...current, page: 1 }));
+                  setSortOrder(e.target.value as SortOrder);
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              >
+                <option value="desc">Descendente</option>
+                <option value="asc">Ascendente</option>
+              </select>
+            </div>
           </div>
+          <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+            Puedes combinar filtros por estado con ordenacion por fecha, estado, modo o control de tiempo.
+          </p>
         </CardBody>
       </Card>
 

@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendsService } from '@/services/friendsService';
+import { gameService } from '@/services/gameService';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { UserProfile } from '@/types/user';
 import { Friend, FriendRequest } from '@/types/friends';
+import { Game } from '@/types/game';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
+import { pushToast } from '@/components/ui/ToastProvider';
 import { connectPresenceSocket } from '@/engine/presenceSocket';
 import { AUTH_CONSTRAINTS, validateEmail, validateUsername } from '@/features/auth/authConstraints';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -21,9 +25,11 @@ export const ProfilePage: React.FC = () => {
   const [editData, setEditData] = useState({ username: '', email: '' });
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [matchHistory, setMatchHistory] = useState<Game[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [editErrors, setEditErrors] = useState<{ username?: string; email?: string }>({});
 
@@ -34,12 +40,14 @@ export const ProfilePage: React.FC = () => {
     if (isOwnProfile) {
       void loadFriends();
       void loadRequests();
+      void loadMatchHistory();
       return;
     }
 
     setFriends([]);
     setRequests([]);
     setSearchResults([]);
+    setMatchHistory([]);
   }, [userId, isOwnProfile]);
 
   const applyUserStatus = (targetUserId: string, isOnline: boolean, lastSeen: string) => {
@@ -116,6 +124,19 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
+  const loadMatchHistory = async () => {
+    try {
+      setIsLoadingHistory(true);
+      const games = await gameService.getUserGames();
+      setMatchHistory(games.filter((game) => game.status === 'finished').slice(0, 10));
+    } catch (error) {
+      console.error('Error loading match history:', error);
+      pushToast('Error cargando historial de partidas', 'error');
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
   const handleUpdateProfile = async () => {
     const nextEditErrors = {
       username: validateUsername(editData.username) ?? undefined,
@@ -135,9 +156,9 @@ export const ProfilePage: React.FC = () => {
       setProfile(updated);
       setEditErrors({});
       setIsEditing(false);
-      alert('Perfil actualizado exitosamente');
+      pushToast('Perfil actualizado exitosamente', 'success');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error actualizando perfil');
+      pushToast(getApiErrorMessage(error, 'Error actualizando perfil'), 'error');
     }
   };
 
@@ -146,9 +167,9 @@ export const ProfilePage: React.FC = () => {
       setIsUploadingAvatar(true);
       const result = await userService.uploadAvatar(file);
       setProfile((prev) => (prev ? { ...prev, avatar_url: result.avatar_url } : prev));
-      alert('Avatar actualizado');
+      pushToast('Avatar actualizado', 'success');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error subiendo avatar');
+      pushToast(getApiErrorMessage(error, 'Error subiendo avatar'), 'error');
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -158,32 +179,41 @@ export const ProfilePage: React.FC = () => {
     const normalizedQuery = searchQuery.trim();
 
     if (normalizedQuery.length < 2) {
-      alert('Ingresa al menos 2 caracteres');
+      pushToast('Ingresa al menos 2 caracteres', 'error');
       return;
     }
 
     try {
+      const friendIds = new Set(friends.map((friend) => friend.id));
+      const pendingSenderIds = new Set(requests.map((request) => request.sender_id));
       const results = await userService.searchUsers(normalizedQuery);
-      setSearchResults(results.filter((result) => result.id !== user?.id));
+      setSearchResults(
+        results.filter(
+          (result) =>
+            result.id !== user?.id &&
+            !friendIds.has(result.id) &&
+            !pendingSenderIds.has(result.id)
+        )
+      );
     } catch (error) {
       console.error('Error searching users:', error);
-      alert('Error buscando usuarios');
+      pushToast('Error buscando usuarios', 'error');
     }
   };
 
   const handleSendRequest = async (receiverId: string) => {
     if (receiverId === user?.id) {
-      alert('No puedes enviarte una solicitud a ti mismo');
+      pushToast('No puedes enviarte una solicitud a ti mismo', 'error');
       return;
     }
 
     try {
       await friendsService.sendFriendRequest(receiverId);
-      alert('Solicitud enviada');
+      pushToast('Solicitud enviada', 'success');
       setSearchResults([]);
       setSearchQuery('');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error enviando solicitud');
+      pushToast(getApiErrorMessage(error, 'Error enviando solicitud'), 'error');
     }
   };
 
@@ -192,9 +222,9 @@ export const ProfilePage: React.FC = () => {
       await friendsService.acceptRequest(requestId);
       await loadRequests();
       await loadFriends();
-      alert('Solicitud aceptada');
+      pushToast('Solicitud aceptada', 'success');
     } catch (error) {
-      alert('Error aceptando solicitud');
+      pushToast('Error aceptando solicitud', 'error');
     }
   };
 
@@ -202,9 +232,9 @@ export const ProfilePage: React.FC = () => {
     try {
       await friendsService.rejectRequest(requestId);
       await loadRequests();
-      alert('Solicitud rechazada');
+      pushToast('Solicitud rechazada', 'success');
     } catch (error) {
-      alert('Error rechazando solicitud');
+      pushToast('Error rechazando solicitud', 'error');
     }
   };
 
@@ -214,9 +244,9 @@ export const ProfilePage: React.FC = () => {
     try {
       await friendsService.removeFriend(friendId);
       await loadFriends();
-      alert('Amigo eliminado');
+      pushToast('Amigo eliminado', 'success');
     } catch (error) {
-      alert('Error eliminando amigo');
+      pushToast('Error eliminando amigo', 'error');
     }
   };
 
@@ -239,6 +269,50 @@ export const ProfilePage: React.FC = () => {
   const winRate = profile.totalGames > 0 
     ? ((profile.wins / profile.totalGames) * 100).toFixed(1) 
     : '0';
+
+  const getPgnResultToken = (pgn: string) => {
+    const tokens = pgn.trim().split(/\s+/);
+    const lastToken = tokens[tokens.length - 1];
+
+    return lastToken === '1-0' || lastToken === '0-1' || lastToken === '1/2-1/2'
+      ? lastToken
+      : null;
+  };
+
+  const getMatchResult = (game: Game) => {
+    if (game.status === 'cancelled') return 'Cancelada';
+    if (game.status !== 'finished') return 'En curso';
+    if (game.winnerId === user?.id) return 'Victoria';
+
+    const pgnResult = getPgnResultToken(game.pgn);
+    if (pgnResult === '1/2-1/2') return 'Empate';
+    if (pgnResult === '1-0') return game.whitePlayerId === user?.id ? 'Victoria' : 'Derrota';
+    if (pgnResult === '0-1') return game.blackPlayerId === user?.id ? 'Victoria' : 'Derrota';
+    if (game.winnerId) return 'Derrota';
+
+    return 'Empate';
+  };
+
+  const getMatchResultTone = (result: string) => {
+    if (result === 'Victoria') return 'success';
+    if (result === 'Derrota') return 'danger';
+    if (result === 'Empate') return 'info';
+    if (result === 'Cancelada') return 'warning';
+    return 'neutral';
+  };
+
+  const getOpponentLabel = (game: Game) => {
+    if (game.mode === 'ai') return 'ChessAI';
+
+    const opponentId = game.whitePlayerId === user?.id ? game.blackPlayerId : game.whitePlayerId;
+    return opponentId ? `Jugador ${opponentId.slice(0, 8)}` : 'Rival pendiente';
+  };
+
+  const getPlayerColorLabel = (game: Game) => {
+    if (game.whitePlayerId === user?.id) return 'Blancas';
+    if (game.blackPlayerId === user?.id) return 'Negras';
+    return '-';
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -392,6 +466,57 @@ export const ProfilePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {isOwnProfile && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">📜 Historial de Partidas</h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Ultimas {matchHistory.length} partidas finalizadas
+            </span>
+          </div>
+
+          {isLoadingHistory ? (
+            <p className="text-gray-500 dark:text-gray-400">Cargando historial...</p>
+          ) : matchHistory.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">
+              Aun no hay partidas finalizadas para mostrar.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {matchHistory.map((game) => {
+                const matchResult = getMatchResult(game);
+
+                return (
+                  <div
+                    key={game.id}
+                    className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                          vs {getOpponentLabel(game)}
+                        </span>
+                        <Badge tone={getMatchResultTone(matchResult)}>{matchResult}</Badge>
+                        <Badge tone={game.mode === 'ai' ? 'warning' : 'info'}>
+                          {game.mode === 'ai' ? 'IA' : 'Online'}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {getPlayerColorLabel(game)} • {game.timeControl} •{' '}
+                        {new Date(game.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {game.id.slice(0, 8)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {isOwnProfile && requests.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-6">

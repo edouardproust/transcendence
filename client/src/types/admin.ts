@@ -35,6 +35,10 @@ export interface AdminUser {
   total_games: number;
 }
 
+export type AdminUserSortField = 'createdAt' | 'username' | 'email' | 'elo' | 'role';
+export type AdminGameSortField = 'createdAt' | 'updatedAt' | 'status' | 'mode' | 'timeControl';
+export type SortOrder = 'asc' | 'desc';
+
 export interface AdminGame {
   id: string;
   status: string;

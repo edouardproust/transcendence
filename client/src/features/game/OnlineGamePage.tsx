@@ -9,7 +9,9 @@ import { Move } from '@/types/game';
 import { GameLayout } from './shared/GameLayout';
 import { GameHeader } from './shared/GameHeader';
 import { Button } from '@/components/ui/Button';
+import { pushToast } from '@/components/ui/ToastProvider';
 import { exportGameTxt } from './utils/exportGameTxt';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 interface OnlineGamePageProps {
   gameId: string;
@@ -66,7 +68,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     onDrawDeclined: () => {
       setDrawOffered(false);
       setDrawOfferFrom(null);
-      alert('Tu oponente rechazó las tablas');
+      pushToast('Tu oponente rechazó las tablas', 'info');
     },
     onChatMessage: (data) => {
       setMessages((prev) => [...prev.slice(-49), data]);
@@ -101,7 +103,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
         const game = await gameService.getGame(gameId);
 
         if (game.status === 'cancelled') {
-          alert('La partida fue cancelada');
+          pushToast('La partida fue cancelada', 'info');
           navigate('/lobby');
           return;
         }
@@ -116,7 +118,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading game:', error);
-        alert('Error al cargar la partida');
+        pushToast(getApiErrorMessage(error, 'Error al cargar la partida'), 'error');
         navigate('/lobby');
       }
     };
@@ -131,7 +133,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
 
     const socket = getSocket();
     if (!socket || !socket.connected) {
-      alert('Conexion perdida. Esperando reconexion...');
+      pushToast('Conexion perdida. Esperando reconexion...', 'error');
       return false;
     }
 
@@ -304,7 +306,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
 
     const socket = getOrCreateSocket();
     if (!socket) {
-      alert('No se pudo contactar el servidor. Inténtalo de nuevo.');
+      pushToast('No se pudo contactar el servidor. Inténtalo de nuevo.', 'error');
       return;
     }
 
@@ -320,7 +322,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
 
       if (!result.ok) {
         if (!result.alreadyNotified) {
-          alert(result.message || 'No se pudo salir de la partida.');
+          pushToast(result.message || 'No se pudo salir de la partida.', 'error');
         }
         return;
       }
@@ -346,7 +348,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     if (socket && status === 'active' && hasOpponent && !drawOffered) {
       socket.emit('offerDraw', gameId);
       setDrawOffered(true);
-      alert('Oferta de tablas enviada al oponente');
+      pushToast('Oferta de tablas enviada al oponente', 'success');
     }
   };
 
@@ -520,7 +522,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
           <button
             onClick={() => {
               navigator.clipboard.writeText(window.location.href);
-              alert('¡Link copiado!');
+              pushToast('Link copiado', 'success');
             }}
             className="mt-2 text-sm text-blue-600 hover:underline"
           >

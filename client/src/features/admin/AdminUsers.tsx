@@ -2,13 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { adminService } from '@/services/adminService';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { AdminUser } from '@/types/admin';
+import { pushToast } from '@/components/ui/ToastProvider';
+import { useAuthStore } from '@/features/auth/authStore';
+import { AdminUser, AdminUserSortField, SortOrder } from '@/types/admin';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const AdminUsers: React.FC = () => {
+  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
+  const [sortBy, setSortBy] = useState<AdminUserSortField>('createdAt');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
@@ -17,13 +23,13 @@ export const AdminUsers: React.FC = () => {
 
   useEffect(() => {
     void loadUsers();
-  }, [pagination.page, appliedSearch]);
+  }, [pagination.page, appliedSearch, sortBy, sortOrder]);
 
   const loadUsers = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await adminService.getUsers(pagination.page, appliedSearch);
+      const data = await adminService.getUsers(pagination.page, appliedSearch, sortBy, sortOrder);
       setUsers(data.users);
       setPagination(data.pagination);
     } catch (error: any) {
@@ -44,7 +50,7 @@ export const AdminUsers: React.FC = () => {
     const normalizedSearch = search.trim();
 
     if (normalizedSearch.length === 1) {
-      alert('Ingresa al menos 2 caracteres para buscar.');
+      pushToast('Ingresa al menos 2 caracteres para buscar.', 'error');
       return;
     }
 
@@ -60,17 +66,18 @@ export const AdminUsers: React.FC = () => {
 
   const handleSaveEdit = async () => {
     if (!editingUser) return;
+    const parsedElo = Number.parseInt(editElo, 10);
 
     try {
       await adminService.updateUser(editingUser.id, {
-        elo: Number.parseInt(editElo, 10),
-        role: editRole,
+        elo: Number.isNaN(parsedElo) ? undefined : parsedElo,
+        role: editingUser.id === currentUser?.id ? undefined : editRole,
       });
-      alert('Usuario actualizado');
+      pushToast('Usuario actualizado', 'success');
       setEditingUser(null);
       void loadUsers();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error actualizando usuario');
+      pushToast(getApiErrorMessage(error, 'Error actualizando usuario'), 'error');
     }
   };
 
@@ -81,10 +88,10 @@ export const AdminUsers: React.FC = () => {
 
     try {
       await adminService.deleteUser(userId);
-      alert('Usuario eliminado');
+      pushToast('Usuario eliminado', 'success');
       void loadUsers();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error eliminando usuario');
+      pushToast(getApiErrorMessage(error, 'Error eliminando usuario'), 'error');
     }
   };
 
@@ -118,7 +125,7 @@ export const AdminUsers: React.FC = () => {
 
       {/* Búsqueda */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex gap-3">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_140px_auto]">
           <Input
             placeholder="Buscar por nombre o email..."
             value={search}
@@ -127,8 +134,36 @@ export const AdminUsers: React.FC = () => {
               if (e.key === 'Enter') handleSearch();
             }}
           />
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setPagination((current) => ({ ...current, page: 1 }));
+              setSortBy(e.target.value as AdminUserSortField);
+            }}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+          >
+            <option value="createdAt">Mas recientes</option>
+            <option value="username">Usuario</option>
+            <option value="email">Email</option>
+            <option value="elo">ELO</option>
+            <option value="role">Rol</option>
+          </select>
+          <select
+            value={sortOrder}
+            onChange={(e) => {
+              setPagination((current) => ({ ...current, page: 1 }));
+              setSortOrder(e.target.value as SortOrder);
+            }}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+          >
+            <option value="desc">Descendente</option>
+            <option value="asc">Ascendente</option>
+          </select>
           <Button onClick={handleSearch}>Buscar</Button>
         </div>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Busqueda con paginacion, filtros y ordenacion por usuario, email, ELO, rol o fecha.
+        </p>
       </div>
 
       {/* Tabla de usuarios */}
@@ -157,55 +192,65 @@ export const AdminUsers: React.FC = () => {
                   </td>
                 </tr>
               )}
-              {users.map((user) => (
-                <tr 
-                  key={user.id}
-                  className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    {user.username}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                    {user.email}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {user.elo}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      user.role === 'ADMIN'
-                        ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                    }`}>
-                      {user.role === 'ADMIN' ? '👑 Admin' : '👤 User'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                    {user.total_games}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        onClick={() => handleEdit(user)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        variant="danger"
-                        onClick={() => void handleDelete(user.id, user.username)}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {users.map((user) => {
+                const isCurrentUser = user.id === currentUser?.id;
+
+                return (
+                  <tr
+                    key={user.id}
+                    className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                      {user.username}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {user.email}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-bold text-blue-600 dark:text-blue-400">
+                        {user.elo}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        user.role === 'ADMIN'
+                          ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                      }`}>
+                        {user.role === 'ADMIN' ? '👑 Admin' : '👤 User'}
+                      </span>
+                      {isCurrentUser && (
+                        <span className="ml-2 px-2 py-1 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                          Tu cuenta
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {user.total_games}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleEdit(user)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          variant="danger"
+                          disabled={isCurrentUser}
+                          onClick={() => void handleDelete(user.id, user.username)}
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -268,11 +313,17 @@ export const AdminUsers: React.FC = () => {
                 <select
                   value={editRole}
                   onChange={(e) => setEditRole(e.target.value as 'USER' | 'ADMIN')}
+                  disabled={editingUser.id === currentUser?.id}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="USER">Usuario</option>
                   <option value="ADMIN">Administrador</option>
                 </select>
+                {editingUser.id === currentUser?.id && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Tu propio rol no se puede degradar desde esta pantalla.
+                  </p>
+                )}
               </div>
             </div>
 

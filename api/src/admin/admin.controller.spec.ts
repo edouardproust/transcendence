@@ -42,7 +42,10 @@ describe('AdminController', () => {
 	describe('updateUser', () => {
 		it('should call usersService.updateOneById with correct id and dto', async () => {
 			const dto: UpdateUserAdminDto = { elo: 1400, role: Role.ADMIN };
-			await controller.updateUser(userFixture.id, dto);
+			await controller.updateUser(userFixture.id, dto, {
+				id: 'other-id',
+				role: Role.ADMIN,
+			});
 			expect(usersService.updateOneById).toHaveBeenCalledWith(
 				userFixture.id,
 				dto,

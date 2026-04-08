@@ -1,5 +1,12 @@
 import { api } from './api';
-import { AdminGame, AdminStats, AdminUser } from '@/types/admin';
+import {
+  AdminGame,
+  AdminGameSortField,
+  AdminStats,
+  AdminUser,
+  AdminUserSortField,
+  SortOrder,
+} from '@/types/admin';
 
 const mapAdminUserFromApi = (user: any): AdminUser => ({
   id: user.id,
@@ -119,13 +126,20 @@ export const adminService = {
     return mapAdminStatsFromApi(response.data);
   },
 
-  async getUsers(page: number = 1, search: string = '') {
+  async getUsers(
+    page: number = 1,
+    search: string = '',
+    sortBy: AdminUserSortField = 'createdAt',
+    sortOrder: SortOrder = 'desc'
+  ) {
     const normalizedSearch = search.trim();
     const response = await api.get('/admin/users', {
       params: {
         page,
         limit: 20,
         ...(normalizedSearch ? { search: normalizedSearch } : {}),
+        sortBy,
+        sortOrder,
       },
     });
     const payload = getAdminCollectionPayload(response.data);
@@ -146,13 +160,20 @@ export const adminService = {
     await api.delete(`/admin/users/${userId}`);
   },
 
-  async getGames(page: number = 1, status: string = '') {
+  async getGames(
+    page: number = 1,
+    status: string = '',
+    sortBy: AdminGameSortField = 'createdAt',
+    sortOrder: SortOrder = 'desc'
+  ) {
     const normalizedStatus = status.trim();
     const response = await api.get('/admin/games', {
       params: {
         page,
         limit: 20,
         ...(normalizedStatus ? { status: mapStatusFilterToApi(normalizedStatus) } : {}),
+        sortBy,
+        sortOrder,
       },
     });
     const payload = getAdminCollectionPayload(response.data);

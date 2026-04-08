@@ -95,7 +95,18 @@ export class AdminController {
 	async updateUser(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdateUserAdminDto,
+		@CurrentUser() currentUser: RequestUser,
 	): Promise<UserResponseDto> {
+		if (
+			currentUser.id === id &&
+			dto.role != null &&
+			dto.role !== currentUser.role
+		) {
+			throw new ForbiddenException(
+				'Admin cannot remove their own admin role',
+			);
+		}
+
 		return this.usersService.updateOneById(id, dto);
 	}
 
