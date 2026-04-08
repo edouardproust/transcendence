@@ -14,7 +14,6 @@ interface AIGamePageProps {
   gameId: string;
 }
 
-const AI_USER_ID = '00000000-0000-0000-0000-000000000001';
 const FILES = 'abcdefgh';
 const RANKS = '12345678';
 const PROMOTION_OPTIONS: Array<'q' | 'r' | 'b' | 'n'> = ['q', 'r', 'b', 'n'];
@@ -28,7 +27,6 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const {
     initGame,
     makeMove,
-    gameId: storeGameId,
     mode,
     playerColor,
     fen,
@@ -52,7 +50,6 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const [selectedPlayerColor, setSelectedPlayerColor] = useState<PlayerColor>('white');
   const [untimedMode] = useState<boolean>(true);
   const [isStartingGame, setIsStartingGame] = useState(false);
-  const persistedResultRef = useRef(false);
   const pendingAiMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aiThinkWindowRef = useRef<{ requestedAt: number; minDelayMs: number } | null>(null);
   const gameEndAlertShownRef = useRef(false);
@@ -90,23 +87,6 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     return oneThird(previous);
   };
 
-  const persistResult = async (winnerId: string | null) => {
-    if (persistedResultRef.current || !storeGameId) return;
-
-    persistedResultRef.current = true;
-    try {
-      const state = useGameStore.getState();
-      await gameService.finishGame(storeGameId, {
-        winnerId,
-        currentFen: state.fen,
-        pgn: state.pgn,
-      });
-    } catch (error) {
-      console.error('[AIGame] Error saving final result:', error);
-      persistedResultRef.current = false;
-    }
-  };
-
   const finalizeIfGameOver = () => {
     const state = useGameStore.getState();
     const chess = state.chess;
@@ -115,23 +95,21 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       return false;
     }
 
-    let winnerId: string | null = null;
     let message = 'Partida finalizada.';
     if (chess.isCheckmate()) {
       // In checkmate, side to move is the loser.
       const humanSide = humanColor === 'white' ? 'w' : 'b';
       const aiSide = humanSide === 'w' ? 'b' : 'w';
       const loserSide = chess.turn();
-      winnerId = loserSide === aiSide ? user?.id || null : AI_USER_ID;
+      const playerWon = loserSide === aiSide;
       message =
-        winnerId && winnerId === user?.id
+        playerWon
           ? '♔ Jaque mate. Ganaste a la IA.'
           : '♚ Jaque mate. Ganó la IA.';
     } else if (chess.isDraw() || chess.isStalemate()) {
       message = 'Tablas. No hay ganador.';
     }
 
-    void persistResult(winnerId);
     if (!gameEndAlertShownRef.current) {
       alert(message);
       gameEndAlertShownRef.current = true;
@@ -376,16 +354,12 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   };
 
   const handleResign = () => {
-    void persistResult(AI_USER_ID);
     endGame();
     reset();
     navigate('/lobby');
   };
 
   const handleLeave = () => {
-    if (status === 'active') {
-      void persistResult(AI_USER_ID);
-    }
     reset();
     navigate('/lobby');
   };

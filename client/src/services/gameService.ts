@@ -15,7 +15,7 @@ const normalizeGameStatus = (status: string | null | undefined): Game['status'] 
 
   if (normalized === 'ongoing') return 'active';
   if (normalized === 'finished') return 'finished';
-  if (normalized === 'cancelled') return 'cancelled';
+  if (normalized === 'cancelled' || normalized === 'aborted') return 'cancelled';
   return 'waiting';
 };
 
@@ -63,14 +63,6 @@ export const gameService = {
 
   async startGame(gameId: string): Promise<Game> {
     const response = await api.post(`/games/${gameId}/start`);
-    return mapGameFromAPI(response.data);
-  },
-
-  async finishGame(
-    gameId: string,
-    data: { winnerId?: string | null; currentFen?: string; pgn?: string }
-  ): Promise<Game> {
-    const response = await api.post(`/games/${gameId}/finish`, data);
     return mapGameFromAPI(response.data);
   },
 };

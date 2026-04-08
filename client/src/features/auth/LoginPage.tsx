@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { user, token } = await authService.login(email, password);
+      const { user, token } = await authService.login(identifier.trim(), password);
       
       login(user, token);
       
@@ -47,12 +47,13 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@email.com"
+            label="Email o nombre de usuario"
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="tu@email.com o usuario123"
             required
+            autoComplete="username"
           />
           
           <Input
@@ -62,6 +63,7 @@ export const LoginPage: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
+            autoComplete="current-password"
           />
 
           <Button type="submit" disabled={isLoading} className="w-full">

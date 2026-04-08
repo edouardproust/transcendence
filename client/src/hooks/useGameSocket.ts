@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { connectSocket, disconnectSocket, getSocket } from '@/engine/socket';
+import { connectSocket, disconnectSocket } from '@/engine/socket';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useGameStore } from '@/features/game/gameStore';
 import { gameService } from '@/services/gameService';
@@ -12,7 +12,7 @@ const normalizeGameStatus = (status: string | null | undefined) => {
 
   if (normalized === 'ongoing' || normalized === 'active') return 'active';
   if (normalized === 'finished') return 'finished';
-  if (normalized === 'cancelled') return 'cancelled';
+  if (normalized === 'cancelled' || normalized === 'aborted') return 'cancelled';
   return 'waiting';
 };
 
@@ -117,7 +117,12 @@ export const useGameSocket = (gameId: string | null) => {
           : 'La partida terminó por rendición.';
       }
 
-      if (data.reason === 'draw' || data.reason === 'stalemate') {
+      if (
+        data.reason === 'draw' ||
+        data.reason === 'stalemate' ||
+        data.reason === 'repetition' ||
+        data.reason === 'insufficient'
+      ) {
         message = 'Tablas. No hay ganador.';
       }
 
@@ -133,6 +138,7 @@ export const useGameSocket = (gameId: string | null) => {
     };
 
     const handleGameCancelled = () => {
+      useGameStore.getState().reset();
       alert('La partida fue cancelada');
       navigate('/lobby');
     };
@@ -168,31 +174,6 @@ export const useGameSocket = (gameId: string | null) => {
       alert('Tu oponente se reconecto');
     };
 
-    const handleDrawOffered = (data: any) => {
-      const { playerId } = data;
-      const myUserId = useAuthStore.getState().user?.id;
-
-      if (playerId === myUserId) {
-        return;
-      }
-
-      const accept = confirm('Tu oponente ofrece tablas. ¿Aceptar?');
-      const socket = getSocket();
-
-      if (accept) {
-        socket?.emit('acceptDraw', gameId);
-      } else {
-        socket?.emit('declineDraw', gameId);
-      }
-    };
-
-    const handleDrawDeclined = () => {
-      alert('Tu oponente rechazó las tablas');
-    };
-
-    socket.on('drawOffered', handleDrawOffered);
-    socket.on('drawDeclined', handleDrawDeclined);
-
     socket.on('gameUpdate', handleGameUpdate);
     socket.on('playerJoined', handlePlayerJoined);
     socket.on('gameEnd', handleGameEnd);
@@ -214,8 +195,6 @@ export const useGameSocket = (gameId: string | null) => {
       socket.off('gameEnd', handleGameEnd);
       socket.off('gameCancelled', handleGameCancelled);
       socket.off('error', handleError);
-      socket.off('drawOffered', handleDrawOffered);
-      socket.off('drawDeclined', handleDrawDeclined);
       socket.off('playerDisconnected', handlePlayerDisconnected);
       socket.off('playerReconnected', handlePlayerReconnected);
       socket.off('connect', joinGame);

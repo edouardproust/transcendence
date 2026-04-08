@@ -226,7 +226,7 @@ export class GameService {
 			},
 		});
 
-		return { ...updatedGame, endReason: 'called' };
+		return { ...updatedGame, endReason: 'canlled' };
 	}
 
 	/**

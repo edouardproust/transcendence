@@ -155,13 +155,13 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           : 'max-w-2xl'
       }`}
     >
-      {!canPlay && status === 'active' && (
+      {/* {!canPlay && status === 'active' && (
         <div className="mb-3 p-3 bg-blue-100 dark:bg-blue-900 border border-blue-400 dark:border-blue-600 rounded text-center">
           <p className="text-blue-800 dark:text-blue-200 font-medium">
             {mode === 'online' ? '⏳ Esperando el turno del oponente...' : '⏳ La IA está pensando...'}
           </p>
         </div>
-      )}
+      )} */}
       
       {status === 'waiting' && (
         <div className="mb-3 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded text-center">
