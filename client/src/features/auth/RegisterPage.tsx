@@ -4,6 +4,12 @@ import { authService } from '@/services/authService';
 import { useAuthStore } from './authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import {
+  AUTH_CONSTRAINTS,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from './authConstraints';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,15 +18,32 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    username?: string;
+    email?: string;
+    password?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const nextFieldErrors = {
+      username: validateUsername(username) ?? undefined,
+      email: validateEmail(email) ?? undefined,
+      password: validatePassword(password) ?? undefined,
+    };
+
+    if (nextFieldErrors.username || nextFieldErrors.email || nextFieldErrors.password) {
+      setFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    setFieldErrors({});
     setIsLoading(true);
 
     try {
-      const { user, token } = await authService.register(username, email, password);
+      const { user, token } = await authService.register(username.trim(), email.trim(), password);
       
       // Save in store
       login(user, token);
@@ -50,29 +73,52 @@ export const RegisterPage: React.FC = () => {
             label="Nombre de usuario"
             type="text"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setFieldErrors((current) => ({ ...current, username: undefined }));
+            }}
             placeholder="usuario123"
             required
+            minLength={AUTH_CONSTRAINTS.username.minLength}
+            maxLength={AUTH_CONSTRAINTS.username.maxLength}
+            error={fieldErrors.username}
+            autoComplete="username"
           />
 
           <Input
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setFieldErrors((current) => ({ ...current, email: undefined }));
+            }}
             placeholder="tu@email.com"
             required
+            error={fieldErrors.email}
+            autoComplete="email"
           />
           
           <Input
             label="Contraseña"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setFieldErrors((current) => ({ ...current, password: undefined }));
+            }}
             placeholder="••••••••"
             required
-            minLength={6}
+            minLength={AUTH_CONSTRAINTS.password.minLength}
+            maxLength={AUTH_CONSTRAINTS.password.maxLength}
+            error={fieldErrors.password}
+            autoComplete="new-password"
           />
+
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Usuario: 3-30 caracteres, letras, números, guiones o guion bajo. Contraseña: mínimo
+            12 caracteres, con mayúscula, minúscula, número y carácter especial.
+          </p>
 
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? 'Registrando...' : 'Registrarse'}

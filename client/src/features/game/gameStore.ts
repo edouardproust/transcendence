@@ -77,7 +77,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       fen: chess.getFen(),
       pgn: chess.getPgn(),
       moves: chess.getHistory(),
-      lastMove: null,
+      lastMove: chess.getLastMove(),
       turn: chess.turn(),
     });
   },
@@ -95,7 +95,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         pgn,
         turn,
         moves: chess.getHistory(),
-        lastMove: null,
+        lastMove: chess.getLastMove(),
       });
     }
   },
@@ -116,15 +116,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       pgn: data.pgn || get().pgn,
       turn: data.turn || get().turn,
       moves: chess.getHistory(),
+      lastMove:
+        data.lastMove?.from && data.lastMove?.to
+          ? {
+              from: data.lastMove.from,
+              to: data.lastMove.to,
+              promotion: data.lastMove.promotion,
+            }
+          : chess.getLastMove(),
     };
-
-    if (data.lastMove?.from && data.lastMove?.to) {
-      updates.lastMove = {
-        from: data.lastMove.from,
-        to: data.lastMove.to,
-        promotion: data.lastMove.promotion,
-      };
-    }
 
     const nextStatus = data.status as GameStatus | undefined;
     if (nextStatus && ['waiting', 'active', 'finished', 'cancelled'].includes(nextStatus)) {

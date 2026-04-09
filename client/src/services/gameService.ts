@@ -4,6 +4,12 @@ import { Game, CreateGameRequest } from '@/types/game';
 const DEFAULT_INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 type ApiGameMode = 'ONLINE' | 'AI';
 
+interface FinishGameRequest {
+  winnerId?: string | null;
+  currentFen: string;
+  pgn: string;
+}
+
 const normalizeGameMode = (mode: string | null | undefined): Game['mode'] =>
   String(mode || '').toLowerCase() === 'ai' ? 'ai' : 'online';
 
@@ -15,7 +21,7 @@ const normalizeGameStatus = (status: string | null | undefined): Game['status'] 
 
   if (normalized === 'ongoing') return 'active';
   if (normalized === 'finished') return 'finished';
-  if (normalized === 'cancelled') return 'cancelled';
+  if (normalized === 'cancelled' || normalized === 'aborted') return 'cancelled';
   return 'waiting';
 };
 
@@ -66,10 +72,7 @@ export const gameService = {
     return mapGameFromAPI(response.data);
   },
 
-  async finishGame(
-    gameId: string,
-    data: { winnerId?: string | null; currentFen?: string; pgn?: string }
-  ): Promise<Game> {
+  async finishGame(gameId: string, data: FinishGameRequest): Promise<Game> {
     const response = await api.post(`/games/${gameId}/finish`, data);
     return mapGameFromAPI(response.data);
   },

@@ -3,18 +3,19 @@ import { io, Socket } from 'socket.io-client';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 if (!SOCKET_URL) {
   throw new Error('VITE_SOCKET_URL is not defined in environment variables');
-  console.log("SOCKET =", import.meta.env.VITE_SOCKET_URL);
 }
-
 
 let socketInstance: Socket | null = null;
 
 export const connectSocket = (token: string): Socket => {
-  if (socketInstance?.connected) return socketInstance;
-
   if (socketInstance) {
-    socketInstance.removeAllListeners();
-    socketInstance.disconnect();
+    socketInstance.auth = { token };
+
+    if (!socketInstance.connected) {
+      socketInstance.connect();
+    }
+
+    return socketInstance;
   }
 
   socketInstance = io(SOCKET_URL, {
@@ -23,14 +24,6 @@ export const connectSocket = (token: string): Socket => {
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-  });
-
-  socketInstance.on('connect', () => {
-    console.log('[SOCKET] connected:', socketInstance?.id);
-  });
-
-  socketInstance.on('disconnect', (reason) => {
-    console.log('[SOCKET] disconnected:', reason);
   });
 
   socketInstance.on('connect_error', (err) => {

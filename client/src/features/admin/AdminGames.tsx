@@ -11,6 +11,7 @@ export const AdminGames: React.FC = () => {
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [statusFilter, setStatusFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     void loadGames();
@@ -18,13 +19,20 @@ export const AdminGames: React.FC = () => {
 
   const loadGames = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const data = await adminService.getGames(pagination.page, statusFilter);
       setGames(data.games);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading games:', error);
-      alert('Error cargando partidas');
+      const backendMessage = error.response?.data?.message;
+      setGames([]);
+      setErrorMessage(
+        Array.isArray(backendMessage)
+          ? backendMessage.join(', ')
+          : backendMessage || 'No se pudieron cargar las partidas.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -76,6 +84,20 @@ export const AdminGames: React.FC = () => {
         <div className="flex items-center gap-2 text-xl">
           <Spinner />
           Cargando partidas...
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <div className="text-xl font-semibold text-red-700">Error cargando partidas</div>
+          <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
+          <Button className="mt-4" variant="danger" onClick={() => void loadGames()}>
+            Reintentar
+          </Button>
         </div>
       </div>
     );

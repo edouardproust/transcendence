@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { connectPresenceSocket } from '@/engine/presenceSocket';
+import { AUTH_CONSTRAINTS, validateEmail, validateUsername } from '@/features/auth/authConstraints';
 
 export const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -24,6 +25,7 @@ export const ProfilePage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [editErrors, setEditErrors] = useState<{ username?: string; email?: string }>({});
 
   const isOwnProfile = !userId || userId === user?.id;
 
@@ -115,9 +117,23 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleUpdateProfile = async () => {
+    const nextEditErrors = {
+      username: validateUsername(editData.username) ?? undefined,
+      email: validateEmail(editData.email) ?? undefined,
+    };
+
+    if (nextEditErrors.username || nextEditErrors.email) {
+      setEditErrors(nextEditErrors);
+      return;
+    }
+
     try {
-      const updated = await userService.updateProfile(editData);
+      const updated = await userService.updateProfile({
+        username: editData.username.trim(),
+        email: editData.email.trim(),
+      });
       setProfile(updated);
+      setEditErrors({});
       setIsEditing(false);
       alert('Perfil actualizado exitosamente');
     } catch (error: any) {
@@ -139,14 +155,16 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    if (searchQuery.length < 2) {
+    const normalizedQuery = searchQuery.trim();
+
+    if (normalizedQuery.length < 2) {
       alert('Ingresa al menos 2 caracteres');
       return;
     }
 
     try {
-      const results = await userService.searchUsers(searchQuery);
-      setSearchResults(results);
+      const results = await userService.searchUsers(normalizedQuery);
+      setSearchResults(results.filter((result) => result.id !== user?.id));
     } catch (error) {
       console.error('Error searching users:', error);
       alert('Error buscando usuarios');
@@ -154,6 +172,11 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleSendRequest = async (receiverId: string) => {
+    if (receiverId === user?.id) {
+      alert('No puedes enviarte una solicitud a ti mismo');
+      return;
+    }
+
     try {
       await friendsService.sendFriendRequest(receiverId);
       alert('Solicitud enviada');
@@ -272,13 +295,23 @@ export const ProfilePage: React.FC = () => {
             <Input
               label="Nombre de usuario"
               value={editData.username}
-              onChange={(e) => setEditData({ ...editData, username: e.target.value })}
+              onChange={(e) => {
+                setEditData({ ...editData, username: e.target.value });
+                setEditErrors((current) => ({ ...current, username: undefined }));
+              }}
+              minLength={AUTH_CONSTRAINTS.username.minLength}
+              maxLength={AUTH_CONSTRAINTS.username.maxLength}
+              error={editErrors.username}
             />
             <Input
               label="Email"
               type="email"
               value={editData.email}
-              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+              onChange={(e) => {
+                setEditData({ ...editData, email: e.target.value });
+                setEditErrors((current) => ({ ...current, email: undefined }));
+              }}
+              error={editErrors.email}
             />
             <div className="flex gap-2">
               <Button onClick={handleUpdateProfile}>Guardar</Button>

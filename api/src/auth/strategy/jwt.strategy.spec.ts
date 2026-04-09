@@ -1,11 +1,19 @@
-import { usersFixture } from '../../users/users.service.mock';
+import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 
 describe('JwtStrategy', () => {
 	let strategy: JwtStrategy;
+	let usersService: { findOneById: jest.Mock };
+	const mockUser = {
+		id: 'user-123',
+		role: 'USER',
+	};
 
 	beforeEach(() => {
-		strategy = new JwtStrategy();
+		usersService = {
+			findOneById: jest.fn().mockResolvedValue(mockUser),
+		};
+		strategy = new JwtStrategy(usersService as never);
 	});
 
 	it('should be defined', () => {
@@ -14,22 +22,35 @@ describe('JwtStrategy', () => {
 
 	it('should use JWT_SECRET env variable when defined', () => {
 		process.env.JWT_SECRET = 'test-secret';
-		const strategy = new JwtStrategy();
+		const strategy = new JwtStrategy(usersService as never);
 		expect(strategy).toBeDefined();
 		delete process.env.JWT_SECRET;
 	});
 
 	describe('validate', () => {
-		it('should return user id and role from payload', async () => {
+		it('should return user id and role from database', async () => {
 			const payload = {
-				sub: usersFixture[0].id,
-				role: usersFixture[0].role,
+				sub: mockUser.id,
+				role: mockUser.role,
 			};
 			const result = await strategy.validate(payload);
+
+			expect(usersService.findOneById).toHaveBeenCalledWith(mockUser.id);
 			expect(result).toEqual({
-				id: usersFixture[0].id,
-				role: usersFixture[0].role,
+				id: mockUser.id,
+				role: mockUser.role,
 			});
+		});
+
+		it('should throw UnauthorizedException when user does not exist', async () => {
+			usersService.findOneById.mockResolvedValueOnce(null);
+
+			await expect(
+				strategy.validate({
+					sub: mockUser.id,
+					role: mockUser.role,
+				}),
+			).rejects.toThrow(UnauthorizedException);
 		});
 	});
 });

@@ -10,6 +10,7 @@ export const AdminUsers: React.FC = () => {
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editElo, setEditElo] = useState('');
   const [editRole, setEditRole] = useState<'USER' | 'ADMIN'>('USER');
@@ -20,21 +21,35 @@ export const AdminUsers: React.FC = () => {
 
   const loadUsers = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const data = await adminService.getUsers(pagination.page, appliedSearch);
       setUsers(data.users);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading users:', error);
-      alert('Error cargando usuarios');
+      const backendMessage = error.response?.data?.message;
+      setUsers([]);
+      setErrorMessage(
+        Array.isArray(backendMessage)
+          ? backendMessage.join(', ')
+          : backendMessage || 'No se pudieron cargar los usuarios.'
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSearch = () => {
+    const normalizedSearch = search.trim();
+
+    if (normalizedSearch.length === 1) {
+      alert('Ingresa al menos 2 caracteres para buscar.');
+      return;
+    }
+
     setPagination((current) => ({ ...current, page: 1 }));
-    setAppliedSearch(search);
+    setAppliedSearch(normalizedSearch);
   };
 
   const handleEdit = (user: AdminUser) => {
@@ -77,6 +92,20 @@ export const AdminUsers: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-xl">Cargando usuarios...</div>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <div className="text-xl font-semibold text-red-700">Error cargando usuarios</div>
+          <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
+          <Button className="mt-4" variant="danger" onClick={() => void loadUsers()}>
+            Reintentar
+          </Button>
+        </div>
       </div>
     );
   }
@@ -124,7 +153,7 @@ export const AdminUsers: React.FC = () => {
                     colSpan={7}
                     className="py-6 px-4 text-center text-gray-500 dark:text-gray-400"
                   >
-                    No hay datos de administración conectados todavía en esta rama.
+                    No se encontraron usuarios para esta búsqueda.
                   </td>
                 </tr>
               )}

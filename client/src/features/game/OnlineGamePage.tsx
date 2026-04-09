@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from './gameStore';
 import { useGameSocket } from '@/hooks/useGameSocket';
-import { getSocket } from '@/engine/socket';
+import { connectSocket, getSocket } from '@/engine/socket';
 import { gameService } from '@/services/gameService';
 import { useAuthStore } from '@/features/auth/authStore';
 import { Move } from '@/types/game';
@@ -16,11 +16,12 @@ interface OnlineGamePageProps {
 }
 
 export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
+  type ExitAction = 'cancel' | 'resign';
+
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const { 
     initGame, 
-    makeMove, 
     mode,
     playerColor,
     boardView,
@@ -31,11 +32,11 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     cycleBoard3DTheme,
     moves,
     status, 
-    endGame,
     reset 
   } = useGameStore();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isLeavingGame, setIsLeavingGame] = useState(false);
   const [hasOpponent, setHasOpponent] = useState(false);
   const [drawOffered, setDrawOffered] = useState(false);
   const [drawOfferFrom, setDrawOfferFrom] = useState<string | null>(null);
@@ -43,57 +44,53 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   const [messages, setMessages] = useState<
     Array<{ userId: string; username: string; message: string; timestamp: string }>
   >([]);
-  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const isMountedRef = useRef(true);
+  const activeLeaveWaitCleanupRef = useRef<(() => void) | null>(null);
 
   // Conectar socket
-  useGameSocket(gameId);
+  useGameSocket(gameId, {
+    suppressErrorAlerts: isLeavingGame,
+    onError: (message) => {
+      if (!isLeavingGame) {
+        return false;
+      }
 
-  // Listener para detectar cuando se une un oponente
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
-    const handlePlayerJoined = () => {
-      console.log('[OnlineGame] Opponent joined!');
+      return message === 'Cannot cancel a started game' || message === 'Game is not ongoing';
+    },
+    onPlayerJoined: () => {
       setHasOpponent(true);
-    };
-
-    const handleDrawOffered = (data: { playerId: string }) => {
-      console.log('[OnlineGame] Draw offered');
+    },
+    onDrawOffered: (data) => {
       setDrawOfferFrom(data.playerId);
-    };
-
-    const handleDrawAccepted = () => {
-      console.log('[OnlineGame] Draw accepted');
-      endGame();
-      alert('Tablas aceptadas');
-    };
-
-    const handleChatMessage = (data: {
-      userId: string;
-      username: string;
-      message: string;
-      timestamp: string;
-    }) => {
+    },
+    onDrawDeclined: () => {
+      setDrawOffered(false);
+      setDrawOfferFrom(null);
+      alert('Tu oponente rechazó las tablas');
+    },
+    onChatMessage: (data) => {
       setMessages((prev) => [...prev.slice(-49), data]);
-    };
+    },
+  });
 
-    socket.on('playerJoined', handlePlayerJoined);
-    socket.on('drawOffered', handleDrawOffered);
-    socket.on('drawAccepted', handleDrawAccepted);
-    socket.on('chatMessage', handleChatMessage);
+  useEffect(() => {
+    isMountedRef.current = true;
 
     return () => {
-      socket.off('playerJoined', handlePlayerJoined);
-      socket.off('drawOffered', handleDrawOffered);
-      socket.off('drawAccepted', handleDrawAccepted);
-      socket.off('chatMessage', handleChatMessage);
+      isMountedRef.current = false;
+      activeLeaveWaitCleanupRef.current?.();
+      activeLeaveWaitCleanupRef.current = null;
     };
-  }, [endGame]);
+  }, []);
 
   useEffect(() => {
     if (status === 'active') {
       setHasOpponent(true);
+    }
+
+    if (status !== 'active') {
+      setDrawOffered(false);
+      setDrawOfferFrom(null);
     }
   }, [status]);
 
@@ -102,6 +99,12 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     const loadGame = async () => {
       try {
         const game = await gameService.getGame(gameId);
+
+        if (game.status === 'cancelled') {
+          alert('La partida fue cancelada');
+          navigate('/lobby');
+          return;
+        }
 
         const color = game.whitePlayerId === user?.id ? 'white' : 'black';
 
@@ -122,6 +125,10 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   }, [gameId, user, initGame, navigate]);
 
   const handleMove = (move: Move): boolean => {
+    if (isLeavingGame) {
+      return false;
+    }
+
     const socket = getSocket();
     if (!socket || !socket.connected) {
       alert('Conexion perdida. Esperando reconexion...');
@@ -132,22 +139,211 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     return true;
   };
 
-  const handleResign = async () => {
-    const socket = getSocket();
-    if (socket && status === 'active' && hasOpponent) {
-      socket.emit('resign', gameId);
-      // Give socket a short window to flush the event before unmount/disconnect.
-      await sleep(150);
+  const getSocketErrorMessage = (payload: unknown) => {
+    if (typeof payload === 'string') return payload;
+    if (payload && typeof payload === 'object' && 'message' in payload) {
+      const message = (payload as { message?: unknown }).message;
+      return typeof message === 'string' ? message : null;
     }
-    
-    endGame();
-    reset();
-    navigate('/lobby');
+    return null;
+  };
+
+  const getOrCreateSocket = () => {
+    const existingSocket = getSocket();
+    if (existingSocket) {
+      if (!existingSocket.connected) {
+        existingSocket.connect();
+      }
+      return existingSocket;
+    }
+
+    if (!token) {
+      return null;
+    }
+
+    return connectSocket(token);
+  };
+
+  const emitExitAction = (action: ExitAction, socket: ReturnType<typeof getSocket>) => {
+    if (!socket?.connected) {
+      return false;
+    }
+
+    socket.emit(action === 'cancel' ? 'cancelGame' : 'resign', gameId);
+    return true;
+  };
+
+  const waitForBackendExitConfirmation = (
+    action: ExitAction,
+    socket: ReturnType<typeof getSocket>,
+    actionAlreadyEmitted: boolean
+  ) =>
+    new Promise<{ ok: boolean; message?: string; alreadyNotified?: boolean }>((resolve) => {
+      let settled = false;
+      let pollInFlight = false;
+      let actionEmitted = actionAlreadyEmitted;
+      let socketErrorMessage: string | null = null;
+      let pollTimer: number | null = null;
+      let timeoutTimer: number | null = null;
+
+      const emitWhenPossible = () => {
+        if (settled || actionEmitted) return;
+
+        if (!emitExitAction(action, socket)) {
+          return;
+        }
+
+        actionEmitted = true;
+      };
+
+      const cleanup = () => {
+        if (pollTimer !== null) {
+          window.clearInterval(pollTimer);
+        }
+        if (timeoutTimer !== null) {
+          window.clearTimeout(timeoutTimer);
+        }
+        socket?.off('connect', handleSocketConnect);
+        socket?.off('error', handleSocketError);
+        socket?.off('gameCancelled', handleGameCancelled);
+        socket?.off('gameEnd', handleGameEnd);
+        if (activeLeaveWaitCleanupRef.current === cleanup) {
+          activeLeaveWaitCleanupRef.current = null;
+        }
+      };
+
+      const finish = (result: { ok: boolean; message?: string; alreadyNotified?: boolean }) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(result);
+      };
+
+      const handleSocketConnect = () => {
+        emitWhenPossible();
+      };
+
+      const handleSocketError = (payload: unknown) => {
+        const message = getSocketErrorMessage(payload);
+        if (!message) return;
+
+        socketErrorMessage = message;
+
+        if (action === 'cancel' && message === 'Cannot cancel a started game') {
+          finish({ ok: false, message, alreadyNotified: true });
+        }
+      };
+
+      const handleGameCancelled = () => {
+        finish({ ok: true });
+      };
+
+      const handleGameEnd = () => {
+        if (action === 'resign') {
+          finish({ ok: true });
+        }
+      };
+
+      const pollGameStatus = async () => {
+        if (pollInFlight || settled) return;
+        pollInFlight = true;
+
+        try {
+          const game = await gameService.getGame(gameId);
+
+          if (action === 'cancel') {
+            if (game.status === 'cancelled') {
+              finish({ ok: true });
+              return;
+            }
+
+            if (game.status === 'active') {
+              finish({
+                ok: false,
+                message: socketErrorMessage || 'No se pudo cancelar. La partida ya comenzó.',
+                alreadyNotified: Boolean(socketErrorMessage),
+              });
+              return;
+            }
+          }
+
+          if (action === 'resign' && (game.status === 'finished' || game.status === 'cancelled')) {
+            finish({ ok: true });
+          }
+        } catch (error: any) {
+          const message = error.response?.data?.message;
+          if (typeof message === 'string' && message.toLowerCase().includes('not found')) {
+            finish({ ok: false, message: 'La partida ya no está disponible.' });
+          }
+        } finally {
+          pollInFlight = false;
+        }
+      };
+
+      socket?.on('connect', handleSocketConnect);
+      socket?.on('error', handleSocketError);
+      socket?.on('gameCancelled', handleGameCancelled);
+      socket?.on('gameEnd', handleGameEnd);
+
+      activeLeaveWaitCleanupRef.current = cleanup;
+      emitWhenPossible();
+      void pollGameStatus();
+      pollTimer = window.setInterval(() => {
+        void pollGameStatus();
+      }, 400);
+      timeoutTimer = window.setTimeout(() => {
+        finish({
+          ok: false,
+          message: 'No se pudo confirmar el estado con el servidor. Inténtalo de nuevo.',
+        });
+      }, 5000);
+    });
+
+  const requestLeaveWithConfirmation = async (action: ExitAction) => {
+    if (isLeavingGame) return;
+
+    const socket = getOrCreateSocket();
+    if (!socket) {
+      alert('No se pudo contactar el servidor. Inténtalo de nuevo.');
+      return;
+    }
+
+    setIsLeavingGame(true);
+
+    try {
+      const actionEmitted = emitExitAction(action, socket);
+      const result = await waitForBackendExitConfirmation(action, socket, actionEmitted);
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      if (!result.ok) {
+        if (!result.alreadyNotified) {
+          alert(result.message || 'No se pudo salir de la partida.');
+        }
+        return;
+      }
+
+      reset();
+      navigate('/lobby');
+    } finally {
+      if (isMountedRef.current) {
+        setIsLeavingGame(false);
+      }
+    }
+  };
+
+  const handleResign = async () => {
+    if (status !== 'active' || !hasOpponent) return;
+    await requestLeaveWithConfirmation('resign');
   };
 
   const handleOfferDraw = () => {
+    if (isLeavingGame) return;
+
     const socket = getSocket();
-    if (socket) {
+    if (socket && status === 'active' && hasOpponent && !drawOffered) {
       socket.emit('offerDraw', gameId);
       setDrawOffered(true);
       alert('Oferta de tablas enviada al oponente');
@@ -155,16 +351,18 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   };
 
   const handleAcceptDraw = () => {
+    if (isLeavingGame) return;
+
     const socket = getSocket();
     if (socket && drawOfferFrom) {
       socket.emit('acceptDraw', gameId);
-      endGame();
-      alert('Tablas aceptadas');
-      navigate('/lobby');
+      setDrawOfferFrom(null);
     }
   };
 
   const handleDeclineDraw = () => {
+    if (isLeavingGame) return;
+
     const socket = getSocket();
     if (socket) {
       socket.emit('declineDraw', gameId);
@@ -173,22 +371,13 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   };
 
   const handleLeave = async () => {
-    const socket = getSocket();
-    if (socket) {
-      if (status === 'waiting' || !hasOpponent) {
-        socket.emit('cancelGame', gameId);
-        await sleep(120);
-      } else if (status === 'active') {
-        socket.emit('resign', gameId);
-        await sleep(150);
-      }
-    }
-    
-    reset();
-    navigate('/lobby');
+    const action: ExitAction = status === 'waiting' || !hasOpponent ? 'cancel' : 'resign';
+    await requestLeaveWithConfirmation(action);
   };
 
   const handleSendMessage = () => {
+    if (isLeavingGame) return;
+
     const text = chatInput.trim();
     if (!text) return;
     const socket = getSocket();
@@ -244,12 +433,13 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       label: drawOffered ? 'Oferta Enviada' : 'Ofrecer Tablas',
       onClick: handleOfferDraw,
       variant: 'secondary' as const,
-      disabled: drawOffered,
+      disabled: drawOffered || isLeavingGame,
     });
     headerActions.push({
-      label: 'Rendirse',
+      label: isLeavingGame ? 'Confirmando...' : 'Rendirse',
       onClick: handleResign,
       variant: 'danger' as const,
+      disabled: isLeavingGame,
     });
   }
 
@@ -272,20 +462,28 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     label: 'Descargar TXT',
     onClick: handleExportTxt,
     variant: 'primary' as const,
+    disabled: isLeavingGame,
   });
 
   headerActions.push({
-    label: status === 'waiting' ? 'Cancelar' : 'Salir',
+    label: isLeavingGame ? 'Confirmando...' : status === 'waiting' ? 'Cancelar' : 'Salir',
     onClick: handleLeave,
     variant: 'secondary' as const,
+    disabled: isLeavingGame,
   });
 
   const subtitle = !hasOpponent && status === 'waiting' 
     ? '⏳ Esperando oponente...' 
+    : isLeavingGame
+      ? '⏳ Confirmando el estado con el servidor...'
     : undefined;
 
   return (
-    <GameLayout onMove={handleMove} gameFinished={status === 'finished'}>
+    <GameLayout
+      onMove={handleMove}
+      gameFinished={status === 'finished' || status === 'cancelled'}
+      clockEnabled
+    >
       <GameHeader
         title="👥 Partida Online"
         subtitle={subtitle}
@@ -299,10 +497,10 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
             🤝 Tu oponente ha ofrecido tablas
           </p>
           <div className="flex gap-3">
-            <Button onClick={handleAcceptDraw}>
+            <Button onClick={handleAcceptDraw} disabled={isLeavingGame}>
               ✓ Aceptar Tablas
             </Button>
-            <Button variant="danger" onClick={handleDeclineDraw}>
+            <Button variant="danger" onClick={handleDeclineDraw} disabled={isLeavingGame}>
               ✗ Rechazar
             </Button>
           </div>

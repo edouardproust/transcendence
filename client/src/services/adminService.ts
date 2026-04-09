@@ -22,7 +22,7 @@ const mapAdminGameFromApi = (game: any): AdminGame => {
         ? 'active'
         : normalizedStatus === 'FINISHED'
           ? 'finished'
-          : normalizedStatus === 'CANCELLED'
+          : normalizedStatus === 'CANCELLED' || normalizedStatus === 'ABORTED'
             ? 'cancelled'
             : 'waiting',
     mode: normalizedMode === 'AI' ? 'ai' : 'online',
@@ -35,47 +35,81 @@ const mapAdminGameFromApi = (game: any): AdminGame => {
   };
 };
 
-const mapAdminStatsFromApi = (payload: any): AdminStats => ({
-  stats: {
-    total_users: payload.stats?.totalUsers ?? payload.stats?.total_users ?? 0,
-    total_games: payload.stats?.totalGames ?? payload.stats?.total_games ?? 0,
-    active_games: payload.stats?.activeGames ?? payload.stats?.active_games ?? 0,
-    finished_games: payload.stats?.finishedGames ?? payload.stats?.finished_games ?? 0,
-    games_last_24h: payload.stats?.gamesLast24h ?? payload.stats?.games_last_24h ?? 0,
-    new_users_week: payload.stats?.newUsersWeek ?? payload.stats?.new_users_week ?? 0,
-  },
-  topPlayers: (payload.topPlayers ?? []).map((player: any) => ({
-    id: player.id,
-    username: player.username,
-    email: player.email ?? '',
-    elo: player.elo ?? 0,
-    created_at: player.createdAt ?? player.created_at ?? '',
-  })),
-  recentActivity: (payload.recentActivity ?? []).map((activity: any) => {
-    const normalizedStatus = String(activity.status ?? '').toUpperCase();
-    const normalizedMode = String(activity.mode ?? '').toUpperCase();
+const getAdminStatsPayload = (payload: any) => payload?.data ?? payload ?? {};
+const getAdminCollectionPayload = (payload: any) => payload?.data ?? payload ?? {};
 
-    return {
-      id: activity.id,
-      status:
-        normalizedStatus === 'ONGOING'
-          ? 'active'
-          : normalizedStatus === 'FINISHED'
-            ? 'finished'
-            : normalizedStatus === 'CANCELLED'
-              ? 'cancelled'
-              : 'waiting',
-      mode: normalizedMode === 'AI' ? 'ai' : 'online',
-      created_at: activity.createdAt ?? activity.created_at ?? '',
-      white_username: activity.whiteUsername ?? activity.white_username ?? '',
-      black_username: activity.blackUsername ?? activity.black_username ?? null,
-      winner_username: activity.winnerUsername ?? activity.winner_username ?? null,
-    };
-  }),
+const mapPaginationFromApi = (pagination: any) => ({
+  total: pagination?.total ?? 0,
+  page: pagination?.page ?? 1,
+  limit: pagination?.limit ?? 20,
+  totalPages: pagination?.totalPages ?? pagination?.total_pages ?? 1,
 });
+
+const mapAdminStatsFromApi = (payload: any): AdminStats => {
+  const normalizedPayload = getAdminStatsPayload(payload);
+  const normalizedStats = normalizedPayload.stats ?? normalizedPayload;
+  const normalizedTopPlayers = normalizedPayload.topPlayers ?? normalizedPayload.top_players ?? [];
+  const normalizedRecentActivity =
+    normalizedPayload.recentActivity ?? normalizedPayload.recent_activity ?? [];
+
+  return {
+    stats: {
+      total_users:
+        normalizedStats.totalUsers ?? normalizedStats.total_users ?? normalizedPayload.totalUsers ?? 0,
+      total_games:
+        normalizedStats.totalGames ?? normalizedStats.total_games ?? normalizedPayload.totalGames ?? 0,
+      active_games:
+        normalizedStats.activeGames ?? normalizedStats.active_games ?? normalizedPayload.activeGames ?? 0,
+      finished_games:
+        normalizedStats.finishedGames ??
+        normalizedStats.finished_games ??
+        normalizedPayload.finishedGames ??
+        0,
+      games_last_24h:
+        normalizedStats.gamesLast24h ??
+        normalizedStats.games_last_24h ??
+        normalizedPayload.gamesLast24h ??
+        0,
+      new_users_week:
+        normalizedStats.newUsersWeek ??
+        normalizedStats.new_users_week ??
+        normalizedPayload.newUsersWeek ??
+        0,
+    },
+    topPlayers: normalizedTopPlayers.map((player: any) => ({
+      id: player.id,
+      username: player.username,
+      email: player.email ?? '',
+      elo: player.elo ?? 0,
+      created_at: player.createdAt ?? player.created_at ?? '',
+    })),
+    recentActivity: normalizedRecentActivity.map((activity: any) => {
+      const normalizedStatus = String(activity.status ?? '').toUpperCase();
+      const normalizedMode = String(activity.mode ?? '').toUpperCase();
+
+      return {
+        id: activity.id,
+        status:
+          normalizedStatus === 'ONGOING'
+            ? 'active'
+            : normalizedStatus === 'FINISHED'
+              ? 'finished'
+              : normalizedStatus === 'CANCELLED' || normalizedStatus === 'ABORTED'
+                ? 'cancelled'
+                : 'waiting',
+        mode: normalizedMode === 'AI' ? 'ai' : 'online',
+        created_at: activity.createdAt ?? activity.created_at ?? '',
+        white_username: activity.whiteUsername ?? activity.white_username ?? '',
+        black_username: activity.blackUsername ?? activity.black_username ?? null,
+        winner_username: activity.winnerUsername ?? activity.winner_username ?? null,
+      };
+    }),
+  };
+};
 
 const mapStatusFilterToApi = (status: string): string => {
   if (status === 'active') return 'ONGOING';
+  if (status === 'cancelled') return 'ABORTED';
   return status.toUpperCase();
 };
 
@@ -86,12 +120,20 @@ export const adminService = {
   },
 
   async getUsers(page: number = 1, search: string = '') {
+    const normalizedSearch = search.trim();
     const response = await api.get('/admin/users', {
-      params: { page, limit: 20, search },
+      params: {
+        page,
+        limit: 20,
+        ...(normalizedSearch ? { search: normalizedSearch } : {}),
+      },
     });
+    const payload = getAdminCollectionPayload(response.data);
+
     return {
-      ...response.data,
-      users: (response.data.users ?? []).map(mapAdminUserFromApi),
+      ...payload,
+      users: (payload.users ?? payload.data?.users ?? []).map(mapAdminUserFromApi),
+      pagination: mapPaginationFromApi(payload.pagination),
     };
   },
 
@@ -105,16 +147,20 @@ export const adminService = {
   },
 
   async getGames(page: number = 1, status: string = '') {
+    const normalizedStatus = status.trim();
     const response = await api.get('/admin/games', {
       params: {
         page,
         limit: 20,
-        status: status ? mapStatusFilterToApi(status) : '',
+        ...(normalizedStatus ? { status: mapStatusFilterToApi(normalizedStatus) } : {}),
       },
     });
+    const payload = getAdminCollectionPayload(response.data);
+
     return {
-      ...response.data,
-      games: (response.data.games ?? []).map(mapAdminGameFromApi),
+      ...payload,
+      games: (payload.games ?? payload.data?.games ?? []).map(mapAdminGameFromApi),
+      pagination: mapPaginationFromApi(payload.pagination),
     };
   },
 

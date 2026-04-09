@@ -80,6 +80,23 @@ export class ChessClient {
     return this.chess.history();
   }
 
+  getLastMove(): Move | null {
+    const history = this.chess.history({
+      verbose: true,
+    }) as Array<{ from: string; to: string; promotion?: string }>;
+    const lastMove = history[history.length - 1];
+
+    if (!lastMove) {
+      return null;
+    }
+
+    return {
+      from: lastMove.from,
+      to: lastMove.to,
+      promotion: lastMove.promotion,
+    };
+  }
+
   reset(): void {
     this.chess.reset();
   }
