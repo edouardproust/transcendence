@@ -9,6 +9,7 @@ describe('PresenceGateway', () => {
 	let gateway: PresenceGateway;
 	let usersService: UsersService;
 	let jwtService: JwtService;
+	let consoleErrorSpy: jest.SpyInstance;
 
 	const mockServer = {
 		emit: jest.fn(),
@@ -26,6 +27,8 @@ describe('PresenceGateway', () => {
 	} as unknown as Socket;
 
 	beforeEach(async () => {
+		consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				PresenceGateway,
@@ -54,6 +57,10 @@ describe('PresenceGateway', () => {
 		gateway.server = mockServer as unknown as Server;
 
 		jest.clearAllMocks();
+	});
+
+	afterEach(() => {
+		consoleErrorSpy.mockRestore();
 	});
 
 	it('should be defined', () => {
