@@ -31,6 +31,16 @@ const mapGameFromAPI = (apiGame: any): Game => {
     id: apiGame.id,
     whitePlayerId: apiGame.whitePlayerId ?? apiGame.whiteId ?? apiGame.white_player_id,
     blackPlayerId: apiGame.blackPlayerId ?? apiGame.blackId ?? apiGame.black_player_id ?? null,
+    creatorUsername:
+      apiGame.creatorUsername ??
+      apiGame.creator_username ??
+      apiGame.white?.username ??
+      null,
+    creatorElo:
+      apiGame.creatorElo ??
+      apiGame.creator_elo ??
+      apiGame.white?.elo ??
+      null,
     currentFen: apiGame.currentFen ?? apiGame.current_fen ?? DEFAULT_INITIAL_FEN,
     pgn: apiGame.pgn || '',
     status: normalizeGameStatus(apiGame.status),

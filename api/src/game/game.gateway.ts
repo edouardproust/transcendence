@@ -13,6 +13,7 @@ import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 import { UsersService } from '../users/users.service';
 import { getErrorMessage } from '../common/utils/error.utils';
+import { GameStatus } from '../prisma/generated/enums';
 
 @WebSocketGateway({
 	cors: {
@@ -56,8 +57,38 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const { gameId, userId } = session;
 		this.socketGameMap.delete(client.id);
 
+		const hasAnotherSocketForSameUser = [...this.socketGameMap.values()].some(
+			(activeSession) =>
+				activeSession.gameId === gameId && activeSession.userId === userId,
+		);
+
+		if (hasAnotherSocketForSameUser) {
+			return;
+		}
+
 		const room = `game:${gameId}`;
-		client.to(room).emit('playerDisconnected', { playerId: userId });
+		const resolvedGame = await this.gameService.handlePlayerDisconnect(
+			gameId,
+			userId,
+		);
+
+		if (!resolvedGame) {
+			return;
+		}
+
+		if (resolvedGame.status === GameStatus.ABORTED) {
+			this.server.to(room).emit('gameUpdate', resolvedGame);
+			this.server.to(room).emit('gameCancelled');
+			return;
+		}
+
+		if (resolvedGame.status === GameStatus.FINISHED) {
+			this.server.to(room).emit('gameEnd', {
+				winnerId: resolvedGame.winnerId,
+				reason: resolvedGame.endReason,
+			});
+			this.server.to(room).emit('gameUpdate', resolvedGame);
+		}
 	}
 
 	@UseGuards(WsJwtGuard)
@@ -114,9 +145,24 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const room = `game:${gameId}`;
 
 		try {
-			await this.gameService.cancelGame(gameId, userId);
+			const updatedGame = await this.gameService.cancelGame(
+				gameId,
+				userId,
+			);
 
-			this.server.to(room).emit('gameCancelled');
+			if (updatedGame.status === GameStatus.ABORTED) {
+				this.server.to(room).emit('gameUpdate', updatedGame);
+				this.server.to(room).emit('gameCancelled');
+				return;
+			}
+
+			if (updatedGame.status === GameStatus.FINISHED) {
+				this.server.to(room).emit('gameEnd', {
+					winnerId: updatedGame.winnerId,
+					reason: updatedGame.endReason,
+				});
+				this.server.to(room).emit('gameUpdate', updatedGame);
+			}
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) });
 		}

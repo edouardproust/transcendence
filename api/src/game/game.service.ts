@@ -51,11 +51,23 @@ export class GameService {
 				mode: GameMode.ONLINE,
 				blackId: null,
 			},
+			include: {
+				white: {
+					select: {
+						username: true,
+						elo: true,
+					},
+				},
+			},
 			orderBy: { createdAt: 'desc' },
 			take: 20,
 		});
 
-		return games;
+		return games.map((game) => ({
+			...game,
+			creatorUsername: game.white?.username ?? null,
+			creatorElo: game.white?.elo ?? null,
+		}));
 	}
 
 	/**
@@ -243,19 +255,35 @@ export class GameService {
 			throw new ForbiddenException('You are not a player in this game');
 		}
 
-		if (game.status !== GameStatus.WAITING) {
-			throw new BadRequestException('Cannot cancel a started game');
+		if (game.status === GameStatus.WAITING) {
+			const updatedGame = await this.prisma.game.update({
+				where: { id: gameId },
+				data: {
+					status: GameStatus.ABORTED,
+					winnerId: null,
+					drawOfferedBy: null,
+				},
+			});
+
+			return { ...updatedGame, endReason: 'cancelled' as const };
 		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			throw new BadRequestException('Game cannot be cancelled');
+		}
+
+		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
 
 		const updatedGame = await this.prisma.game.update({
 			where: { id: gameId },
 			data: {
-				status: GameStatus.ABORTED,
-				winnerId: null,
+				status: GameStatus.FINISHED,
+				winnerId,
+				drawOfferedBy: null,
 			},
 		});
 
-		return { ...updatedGame, endReason: 'cancelled' };
+		return { ...updatedGame, endReason: 'resignation' as const };
 	}
 
 	/**
@@ -391,6 +419,57 @@ export class GameService {
 		});
 
 		return { ...updatedGame, endReason: 'resignation' as const };
+	}
+
+	/**
+	 * Resolve a game when a player disconnects.
+	 * Waiting games are aborted, ongoing games are awarded to the remaining player.
+	 *
+	 * @param gameId Game id
+	 * @param userId Id of the disconnected user
+	 * @returns The updated game, or null if nothing had to be resolved
+	 */
+	async handlePlayerDisconnect(gameId: string, userId: string) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+		if (!game) {
+			return null;
+		}
+
+		if (game.whiteId !== userId && game.blackId !== userId) {
+			return null;
+		}
+
+		if (game.status === GameStatus.WAITING) {
+			const updatedGame = await this.prisma.game.update({
+				where: { id: gameId },
+				data: {
+					status: GameStatus.ABORTED,
+					winnerId: null,
+					drawOfferedBy: null,
+				},
+			});
+
+			return { ...updatedGame, endReason: 'cancelled' as const };
+		}
+
+		if (game.status !== GameStatus.ONGOING) {
+			return null;
+		}
+
+		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.FINISHED,
+				winnerId,
+				drawOfferedBy: null,
+			},
+		});
+
+		return { ...updatedGame, endReason: 'disconnect' as const };
 	}
 
 	/**

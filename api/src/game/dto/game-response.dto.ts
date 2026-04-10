@@ -36,6 +36,12 @@ export class GameResponseDto {
 	@ApiProperty({ example: EXAMPLES.timeControl })
 	timeControl: string;
 
+	@ApiPropertyOptional({ example: EXAMPLES.username, nullable: true })
+	creatorUsername?: string | null;
+
+	@ApiPropertyOptional({ example: EXAMPLES.elo, nullable: true })
+	creatorElo?: number | null;
+
 	@ApiProperty({ example: EXAMPLES.date })
 	createdAt: Date;
 

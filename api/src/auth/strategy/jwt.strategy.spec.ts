@@ -1,4 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { Role } from '../../prisma/generated/enums';
 import { JwtStrategy } from './jwt.strategy';
 
 describe('JwtStrategy', () => {
@@ -6,7 +7,7 @@ describe('JwtStrategy', () => {
 	let usersService: { findOneById: jest.Mock };
 	const mockUser = {
 		id: 'user-123',
-		role: 'USER',
+		role: Role.USER,
 	};
 
 	beforeEach(() => {

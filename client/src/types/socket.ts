@@ -4,7 +4,7 @@ export interface ServerToClientEvents {
   gameUpdate: (data: GameUpdateData) => void;
   gameEnd: (data: GameEndData) => void;
   error: (message: string) => void;
-  playerJoined: (data: { playerId: string; color: 'white' | 'black' }) => void;
+  playerJoined: (data: { playerId: string; status: string }) => void;
   playerDisconnected: (data: { playerId: string }) => void;
   playerReconnected: (data: { playerId: string }) => void;
   drawOffered: (data: { playerId: string }) => void;

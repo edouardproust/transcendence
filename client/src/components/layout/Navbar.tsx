@@ -2,10 +2,11 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useThemeStore } from '@/stores/themeStore';
+import { useGameStore } from '@/features/game/gameStore';
 import { Button } from '../ui/Button';
 import { authService } from '@/services/authService';
-// import { disconnectSocket } from '@/engine/socket';
-// import { disconnectPresenceSocket } from '@/engine/presenceSocket';
+import { disconnectSocket } from '@/engine/socket';
+import { disconnectPresenceSocket } from '@/engine/presenceSocket';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -18,8 +19,9 @@ export const Navbar: React.FC = () => {
     } catch (error) {
       console.error('Logout request failed:', error);
     } finally {
-      // disconnectSocket();
-      // disconnectPresenceSocket();
+      disconnectSocket();
+      disconnectPresenceSocket();
+      useGameStore.getState().reset();
       logout();
       navigate('/login', { replace: true });
     }

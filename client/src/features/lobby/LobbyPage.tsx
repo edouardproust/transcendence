@@ -104,6 +104,9 @@ export const LobbyPage: React.FC = () => {
                   <div>
                     <p className="font-medium">Partida #{game.id.slice(0, 8)}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Creador: {game.creatorUsername || 'Jugador'} • ELO: {game.creatorElo ?? 'N/A'}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Control: {game.timeControl} • Esperando oponente...
                     </p>
                   </div>
