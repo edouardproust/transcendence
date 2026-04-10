@@ -142,6 +142,7 @@ describe('Game (e2e)', () => {
 			expect(service.startGame).toHaveBeenCalledWith(
 				EXAMPLES.gameId,
 				EXAMPLES.id,
+				{},
 			);
 		});
 	});

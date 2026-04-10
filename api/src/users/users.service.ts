@@ -3,6 +3,7 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
+import { Chess } from 'chess.js';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -25,6 +26,98 @@ export class UsersService {
 		private readonly prismaService: PrismaService,
 		private readonly storageService: StorageService,
 	) {}
+
+	private getPgnResultToken(pgn: string | null | undefined) {
+		const trimmed = String(pgn ?? '').trim();
+		if (!trimmed) return null;
+
+		const tokens = trimmed.split(/\s+/);
+		const lastToken = tokens[tokens.length - 1];
+
+		return lastToken === '1-0' ||
+			lastToken === '0-1' ||
+			lastToken === '1/2-1/2'
+			? lastToken
+			: null;
+	}
+
+	private loadFinishedGameState(game: {
+		currentFen: string;
+		pgn: string;
+	}) {
+		const chess = new Chess();
+
+		try {
+			if (game.pgn?.trim()) {
+				chess.loadPgn(game.pgn);
+				return chess;
+			}
+		} catch {}
+
+		try {
+			if (game.currentFen?.trim()) {
+				chess.load(game.currentFen);
+				return chess;
+			}
+		} catch {}
+
+		return null;
+	}
+
+	private classifyFinishedGameOutcome(
+		game: {
+			whiteId: string | null;
+			blackId: string | null;
+			winnerId: string | null;
+			currentFen: string;
+			pgn: string;
+		},
+		userId: string,
+	): 'win' | 'loss' | 'draw' {
+		if (game.winnerId === userId) {
+			return 'win';
+		}
+
+		if (game.winnerId && game.winnerId !== userId) {
+			return 'loss';
+		}
+
+		const playerSide =
+			game.whiteId === userId ? 'w' : game.blackId === userId ? 'b' : null;
+		const resultToken = this.getPgnResultToken(game.pgn);
+
+		if (resultToken === '1/2-1/2') {
+			return 'draw';
+		}
+
+		if (playerSide && resultToken === '1-0') {
+			return playerSide === 'w' ? 'win' : 'loss';
+		}
+
+		if (playerSide && resultToken === '0-1') {
+			return playerSide === 'b' ? 'win' : 'loss';
+		}
+
+		const chess = this.loadFinishedGameState(game);
+		if (!chess) {
+			return 'draw';
+		}
+
+		if (playerSide && chess.isCheckmate()) {
+			return chess.turn() === playerSide ? 'loss' : 'win';
+		}
+
+		if (
+			chess.isDraw() ||
+			chess.isStalemate() ||
+			chess.isInsufficientMaterial() ||
+			chess.isThreefoldRepetition()
+		) {
+			return 'draw';
+		}
+
+		return 'draw';
+	}
 
 	mapUser(user: {
 		username: string;
@@ -203,24 +296,31 @@ export class UsersService {
 		});
 		if (!user) throw new NotFoundException('User not found');
 
-		const [totalGames, wins, draws] = await Promise.all([
-			this.prismaService.game.count({
-				where: {
-					OR: [{ whiteId: id }, { blackId: id }],
-					status: GameStatus.FINISHED,
-				},
-			}),
-			this.prismaService.game.count({
-				where: { winnerId: id },
-			}),
-			this.prismaService.game.count({
-				where: {
-					OR: [{ whiteId: id }, { blackId: id }],
-					status: GameStatus.FINISHED,
-					winnerId: null,
-				},
-			}),
-		]);
+		const finishedGames = await this.prismaService.game.findMany({
+			where: {
+				OR: [{ whiteId: id }, { blackId: id }],
+				status: GameStatus.FINISHED,
+			},
+			select: {
+				whiteId: true,
+				blackId: true,
+				winnerId: true,
+				currentFen: true,
+				pgn: true,
+			},
+		});
+
+		let wins = 0;
+		let draws = 0;
+
+		for (const game of finishedGames) {
+			const outcome = this.classifyFinishedGameOutcome(game, id);
+
+			if (outcome === 'win') wins += 1;
+			if (outcome === 'draw') draws += 1;
+		}
+
+		const totalGames = finishedGames.length;
 
 		return {
 			...this.mapUser(user),

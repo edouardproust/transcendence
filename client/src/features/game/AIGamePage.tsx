@@ -1,25 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGameStore } from './gameStore';
-import { StockfishEngine } from '@/engine/stockfish';
-import { gameService } from '@/services/gameService';
-import { Move, PlayerColor } from '@/types/game';
-import { GameLayout } from './shared/GameLayout';
-import { GameHeader } from './shared/GameHeader';
-import { Button } from '@/components/ui/Button';
-import { useAuthStore } from '@/features/auth/authStore';
-import { exportGameTxt } from './utils/exportGameTxt';
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useGameStore } from "./gameStore";
+import { StockfishEngine } from "@/engine/stockfish";
+import { gameService } from "@/services/gameService";
+import { Move, PlayerColor } from "@/types/game";
+import { GameLayout } from "./shared/GameLayout";
+import { GameHeader } from "./shared/GameHeader";
+import { Button } from "@/components/ui/Button";
+import { pushToast } from "@/components/ui/ToastProvider";
+import { useAuthStore } from "@/features/auth/authStore";
+import { exportGameTxt } from "./utils/exportGameTxt";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface AIGamePageProps {
   gameId: string;
 }
 
-const FILES = 'abcdefgh';
-const RANKS = '12345678';
-const PROMOTION_OPTIONS: Array<'q' | 'r' | 'b' | 'n'> = ['q', 'r', 'b', 'n'];
+const FILES = "abcdefgh";
+const RANKS = "12345678";
+const PROMOTION_OPTIONS: Array<"q" | "r" | "b" | "n"> = ["q", "r", "b", "n"];
+const AI_LEVEL_STORAGE_PREFIX = "ai-level:";
 
 const normalizePlayerColor = (value: string | null | undefined): PlayerColor =>
-  value === 'black' ? 'black' : 'white';
+  value === "black" ? "black" : "white";
+
+const normalizeAiLevel = (value: string | null | undefined) => {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (Number.isNaN(parsed)) return 10;
+  return Math.max(1, Math.min(20, parsed));
+};
+
+const appendPgnResultToken = (
+  pgn: string,
+  resultToken: "1-0" | "0-1" | "1/2-1/2",
+) => {
+  const trimmed = pgn.trim();
+
+  if (
+    trimmed.endsWith("1-0") ||
+    trimmed.endsWith("0-1") ||
+    trimmed.endsWith("1/2-1/2")
+  ) {
+    return trimmed.replace(/(1-0|0-1|1\/2-1\/2)\s*$/, resultToken).trim();
+  }
+
+  return trimmed ? `${trimmed} ${resultToken}` : resultToken;
+};
 
 export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const navigate = useNavigate();
@@ -46,17 +72,28 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [stockfish, setStockfish] = useState<StockfishEngine | null>(null);
   const [isAiThinking, setIsAiThinking] = useState(false);
-  const [aiLevel, setAiLevel] = useState<number>(10);
-  const [selectedPlayerColor, setSelectedPlayerColor] = useState<PlayerColor>('white');
+  const [aiLevel, setAiLevel] = useState<number>(() =>
+    normalizeAiLevel(
+      window.localStorage.getItem(`${AI_LEVEL_STORAGE_PREFIX}${gameId}`),
+    ),
+  );
+  const [selectedPlayerColor, setSelectedPlayerColor] =
+    useState<PlayerColor>("white");
   const [untimedMode] = useState<boolean>(true);
   const [isStartingGame, setIsStartingGame] = useState(false);
-  const pendingAiMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const aiThinkWindowRef = useRef<{ requestedAt: number; minDelayMs: number } | null>(null);
+  const pendingAiMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const aiThinkWindowRef = useRef<{
+    requestedAt: number;
+    minDelayMs: number;
+  } | null>(null);
   const gameEndAlertShownRef = useRef(false);
   const gameResultPersistedRef = useRef(false);
   const lastCheckAlertKeyRef = useRef<string | null>(null);
 
   const aiColorStorageKey = `ai-player-color:${gameId}`;
+  const aiLevelStorageKey = `${AI_LEVEL_STORAGE_PREFIX}${gameId}`;
   const humanColor: PlayerColor = playerColor || selectedPlayerColor;
 
   const clearPendingAiMove = () => {
@@ -67,6 +104,10 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
 
   const persistPlayerColor = (color: PlayerColor) => {
     window.localStorage.setItem(aiColorStorageKey, color);
+  };
+
+  const persistAiLevel = (level: number) => {
+    window.localStorage.setItem(aiLevelStorageKey, String(level));
   };
 
   const readStoredPlayerColor = (): PlayerColor =>
@@ -96,39 +137,57 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       return false;
     }
 
-    let message = 'Partida finalizada.';
+    let message = "Partida finalizada.";
     let winnerId: string | null = null;
+    let resultToken: "1-0" | "0-1" | "1/2-1/2" = "1/2-1/2";
     if (chess.isCheckmate()) {
       // In checkmate, side to move is the loser.
-      const humanSide = humanColor === 'white' ? 'w' : 'b';
-      const aiSide = humanSide === 'w' ? 'b' : 'w';
+      const humanSide = humanColor === "white" ? "w" : "b";
+      const aiSide = humanSide === "w" ? "b" : "w";
       const loserSide = chess.turn();
       const playerWon = loserSide === aiSide;
       winnerId = playerWon ? user?.id || null : null;
-      message =
-        playerWon
-          ? '♔ Jaque mate. Ganaste a la IA.'
-          : '♚ Jaque mate. Ganó la IA.';
+      resultToken = playerWon
+        ? humanColor === "white"
+          ? "1-0"
+          : "0-1"
+        : humanColor === "white"
+          ? "0-1"
+          : "1-0";
+      message = playerWon
+        ? "♔ Jaque mate. Ganaste a la IA."
+        : "♚ Jaque mate. Ganó la IA.";
     } else if (chess.isDraw() || chess.isStalemate()) {
-      message = 'Tablas. No hay ganador.';
+      message = "Tablas. No hay ganador.";
     }
 
     if (!gameEndAlertShownRef.current) {
-      alert(message);
+      pushToast(
+        message,
+        winnerId ? "success" : resultToken === "1/2-1/2" ? "info" : "error",
+      );
       gameEndAlertShownRef.current = true;
     }
 
     if (!gameResultPersistedRef.current && state.gameId) {
       gameResultPersistedRef.current = true;
-      void gameService.finishGame(state.gameId, {
-        winnerId,
-        currentFen: state.fen,
-        pgn: state.pgn,
-      }).catch((error) => {
-        gameResultPersistedRef.current = false;
-        console.error('[AIGame] Error saving finished game:', error);
-        alert('La partida terminó, pero no se pudo guardar el resultado.');
-      });
+      void gameService
+        .finishGame(state.gameId, {
+          winnerId,
+          currentFen: state.fen,
+          pgn: appendPgnResultToken(state.pgn, resultToken),
+        })
+        .catch((error) => {
+          gameResultPersistedRef.current = false;
+          console.error("[AIGame] Error saving finished game:", error);
+          pushToast(
+            getApiErrorMessage(
+              error,
+              "La partida terminó, pero no se pudo guardar el resultado.",
+            ),
+            "error",
+          );
+        });
     }
 
     endGame();
@@ -142,7 +201,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     pendingAiMoveTimeoutRef.current = null;
 
     if (!moved) {
-      console.warn('[AIGame] AI move was invalid');
+      console.warn("[AIGame] AI move was invalid");
       return;
     }
 
@@ -163,14 +222,17 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
         const piece = chess.getPiece(from);
         if (!piece) continue;
 
-        const pieceSide: 'w' | 'b' = piece === piece.toUpperCase() ? 'w' : 'b';
+        const pieceSide: "w" | "b" = piece === piece.toUpperCase() ? "w" : "b";
         if (pieceSide !== aiTurn) continue;
 
         const targets = chess.getLegalTargets(from);
         for (const to of targets) {
-          const isPromotion = piece.toLowerCase() === 'p' && (to[1] === '1' || to[1] === '8');
+          const isPromotion =
+            piece.toLowerCase() === "p" && (to[1] === "1" || to[1] === "8");
           const promotion = isPromotion
-            ? PROMOTION_OPTIONS[Math.floor(Math.random() * PROMOTION_OPTIONS.length)]
+            ? PROMOTION_OPTIONS[
+                Math.floor(Math.random() * PROMOTION_OPTIONS.length)
+              ]
             : undefined;
 
           candidates.push({ from, to, promotion });
@@ -186,12 +248,12 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   };
 
   const requestAiMove = () => {
-    if (status !== 'active' || isAiThinking) {
+    if (status !== "active" || isAiThinking) {
       return;
     }
 
     const state = useGameStore.getState();
-    const humanTurn = humanColor === 'white' ? 'w' : 'b';
+    const humanTurn = humanColor === "white" ? "w" : "b";
     if (state.turn === humanTurn) {
       return;
     }
@@ -232,13 +294,23 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
         const game = await gameService.getGame(gameId);
         const storedColor = readStoredPlayerColor();
         setSelectedPlayerColor(storedColor);
-        initGame(gameId, 'ai', storedColor, game.currentFen, game.pgn, game.status);
+        initGame(
+          gameId,
+          "ai",
+          storedColor,
+          game.currentFen,
+          game.pgn,
+          game.status,
+        );
         setIsLoading(false);
         gameResultPersistedRef.current = false;
       } catch (error) {
-        console.error('Error loading game:', error);
-        alert('Error al cargar la partida');
-        navigate('/lobby');
+        console.error("Error loading game:", error);
+        pushToast(
+          getApiErrorMessage(error, "Error al cargar la partida"),
+          "error",
+        );
+        navigate("/lobby");
       }
     };
 
@@ -261,7 +333,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
               return;
             }
 
-            if (!bestMove || bestMove.length < 4 || bestMove === '(none)') {
+            if (!bestMove || bestMove.length < 4 || bestMove === "(none)") {
               setIsAiThinking(false);
               aiThinkWindowRef.current = null;
               return;
@@ -274,7 +346,10 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
             };
 
             const elapsed = Date.now() - thinkWindow.requestedAt;
-            const remainingDelay = Math.max(0, thinkWindow.minDelayMs - elapsed);
+            const remainingDelay = Math.max(
+              0,
+              thinkWindow.minDelayMs - elapsed,
+            );
 
             if (remainingDelay === 0) {
               applyAiMove(aiMove);
@@ -288,8 +363,8 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
           });
         })
         .catch((error) => {
-          console.error('[AIGame] Stockfish error:', error);
-          alert('Error al inicializar el motor de IA');
+          console.error("[AIGame] Stockfish error:", error);
+          pushToast("Error al inicializar el motor de IA", "error");
         });
     }
 
@@ -303,12 +378,12 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   }, [stockfish, makeMove]);
 
   useEffect(() => {
-    if (status !== 'active') {
+    if (status !== "active") {
       clearPendingAiMove();
       aiThinkWindowRef.current = null;
       setIsAiThinking(false);
       lastCheckAlertKeyRef.current = null;
-      if (status === 'waiting') {
+      if (status === "waiting") {
         gameEndAlertShownRef.current = false;
       }
       return;
@@ -318,7 +393,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   }, [status, turn, aiLevel, stockfish, humanColor, isAiThinking]);
 
   useEffect(() => {
-    if (status !== 'active') {
+    if (status !== "active") {
       lastCheckAlertKeyRef.current = null;
       return;
     }
@@ -337,8 +412,13 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     }
 
     lastCheckAlertKeyRef.current = key;
-    const humanSide = humanColor === 'white' ? 'w' : 'b';
-    alert(checkedSide === humanSide ? '⚠️ Jaque a tu rey' : '⚠️ Has puesto en jaque a la IA');
+    const humanSide = humanColor === "white" ? "w" : "b";
+    pushToast(
+      checkedSide === humanSide
+        ? "⚠️ Jaque a tu rey"
+        : "⚠️ Has puesto en jaque a la IA",
+      "info",
+    );
   }, [status, fen, turn, humanColor]);
 
   const handleMove = (move: Move): boolean => {
@@ -355,13 +435,19 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
     try {
       setIsStartingGame(true);
       persistPlayerColor(selectedPlayerColor);
+      persistAiLevel(aiLevel);
       useGameStore.setState({ playerColor: selectedPlayerColor });
 
-      const startedGame = await gameService.startGame(gameId);
+      const startedGame = await gameService.startGame(gameId, {
+        playerColor: selectedPlayerColor,
+      });
       useGameStore.setState({ status: startedGame.status });
     } catch (error) {
-      console.error('[AIGame] Error starting game:', error);
-      alert('No se pudo iniciar la partida');
+      console.error("[AIGame] Error starting game:", error);
+      pushToast(
+        getApiErrorMessage(error, "No se pudo iniciar la partida"),
+        "error",
+      );
     } finally {
       setIsStartingGame(false);
     }
@@ -379,27 +465,36 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
         await gameService.finishGame(state.gameId, {
           winnerId: null,
           currentFen: state.fen,
-          pgn: state.pgn,
+          pgn: appendPgnResultToken(
+            state.pgn,
+            humanColor === "white" ? "0-1" : "1-0",
+          ),
         });
       } catch (error) {
         gameResultPersistedRef.current = false;
-        console.error('[AIGame] Error saving resignation:', error);
-        alert('La partida terminó, pero no se pudo guardar el resultado.');
+        console.error("[AIGame] Error saving resignation:", error);
+        pushToast(
+          getApiErrorMessage(
+            error,
+            "La partida terminó, pero no se pudo guardar el resultado.",
+          ),
+          "error",
+        );
       }
     }
 
     reset();
-    navigate('/lobby');
+    navigate("/lobby");
   };
 
   const handleLeave = () => {
     reset();
-    navigate('/lobby');
+    navigate("/lobby");
   };
 
   const handleExportTxt = () => {
     exportGameTxt({
-      profileName: user?.username || 'Jugador',
+      profileName: user?.username || "Jugador",
       mode,
       status,
       playerColor: humanColor,
@@ -408,15 +503,15 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   };
 
   const board2DThemeLabels = {
-    classic: 'Clasico',
-    wood: 'Madera',
-    ocean: 'Oceano',
-    slate: 'Pizarra',
+    classic: "Clasico",
+    wood: "Madera",
+    ocean: "Oceano",
+    slate: "Pizarra",
   } as const;
 
   const board3DThemeLabels = {
-    wood: 'Madera',
-    obsidian: 'Obsidiana',
+    wood: "Madera",
+    obsidian: "Obsidiana",
   } as const;
 
   if (isLoading) {
@@ -430,56 +525,60 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   // Construir acciones del header
   const headerActions = [];
 
-  if (status === 'active') {
+  if (status === "active") {
     headerActions.push({
-      label: 'Rendirse',
+      label: "Rendirse",
       onClick: handleResign,
-      variant: 'danger' as const,
+      variant: "danger" as const,
     });
   }
 
   headerActions.push({
-    label: boardView === '3d' ? 'Vista 2D' : 'Vista 3D',
-    onClick: () => setBoardView(boardView === '3d' ? '2d' : '3d'),
-    variant: 'secondary' as const,
+    label: boardView === "3d" ? "Vista 2D" : "Vista 3D",
+    onClick: () => setBoardView(boardView === "3d" ? "2d" : "3d"),
+    variant: "secondary" as const,
   });
 
   headerActions.push({
     label:
-      boardView === '2d'
+      boardView === "2d"
         ? `Tema 2D: ${board2DThemeLabels[board2DTheme]}`
         : `Tema 3D: ${board3DThemeLabels[board3DTheme]}`,
-    onClick: boardView === '2d' ? cycleBoard2DTheme : cycleBoard3DTheme,
-    variant: 'secondary' as const,
+    onClick: boardView === "2d" ? cycleBoard2DTheme : cycleBoard3DTheme,
+    variant: "secondary" as const,
   });
 
   headerActions.push({
-    label: 'Descargar TXT',
+    label: "Descargar TXT",
     onClick: handleExportTxt,
-    variant: 'primary' as const,
+    variant: "primary" as const,
   });
 
   headerActions.push({
-    label: status === 'waiting' ? 'Cancelar' : 'Salir',
+    label: status === "waiting" ? "Cancelar" : "Salir",
     onClick: handleLeave,
-    variant: 'secondary' as const,
+    variant: "secondary" as const,
   });
 
   const subtitle =
-    status === 'active'
-      ? `Nivel: ${aiLevel}/20 | Juegas: ${humanColor === 'white' ? 'Blancas' : 'Negras'} | ${untimedMode ? 'Sin tiempo' : 'Con reloj'}`
+    status === "active"
+      ? `Nivel: ${aiLevel}/20 | Juegas: ${humanColor === "white" ? "Blancas" : "Negras"} | ${untimedMode ? "Sin tiempo" : "Con reloj"}`
       : undefined;
 
   return (
     <GameLayout
       onMove={handleMove}
-      gameFinished={status === 'finished'}
+      gameFinished={status === "finished"}
       clockEnabled={!untimedMode}
     >
-      <GameHeader title="🤖 Vs Computadora" subtitle={subtitle} actions={headerActions} />
+      <GameHeader
+        title="🤖 Vs Computadora"
+        subtitle={subtitle}
+        actions={headerActions}
+      />
 
       {/* Configuración inicial */}
-      {status === 'waiting' && (
+      {status === "waiting" && (
         <div className="mb-4 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
           <h3 className="font-bold mb-2">Configurar dificultad</h3>
           <div className="flex items-center gap-4">
@@ -489,17 +588,28 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
               min="1"
               max="20"
               value={aiLevel}
-              onChange={(e) => setAiLevel(parseInt(e.target.value, 10))}
+              onChange={(e) => {
+                const nextLevel = normalizeAiLevel(e.target.value);
+                setAiLevel(nextLevel);
+                persistAiLevel(nextLevel);
+              }}
               className="flex-1"
             />
             <span className="font-bold">{aiLevel}</span>
           </div>
           <p className="text-xs text-gray-600 mt-2">
-            Nivel 1 = Basico | 2-7 = Principiante | 8-14 = Intermedio | 15-20 = Maestro
+            Nivel 1 = Basico | 2-7 = Principiante | 8-14 = Intermedio | 15-20 =
+            Maestro
+          </p>
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            Tus preferencias de dificultad, color y tablero se guardan para la
+            proxima partida.
           </p>
 
           <div className="mt-3">
-            <label className="block text-sm font-medium mb-1">Color de piezas</label>
+            <label className="block text-sm font-medium mb-1">
+              Color de piezas
+            </label>
             <select
               value={selectedPlayerColor}
               onChange={(e) => {
@@ -519,8 +629,12 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
             </p>
           </div>
 
-          <Button className="mt-3" onClick={handleStartGame} disabled={isStartingGame}>
-            {isStartingGame ? 'Iniciando...' : 'Iniciar Partida'}
+          <Button
+            className="mt-3"
+            onClick={handleStartGame}
+            disabled={isStartingGame}
+          >
+            {isStartingGame ? "Iniciando..." : "Iniciar Partida"}
           </Button>
         </div>
       )}
@@ -528,7 +642,9 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       {/* IA pensando */}
       {isAiThinking && (
         <div className="mb-4 p-3 bg-blue-100 border border-blue-400 rounded text-center">
-          <p className="text-blue-800">🤔 La IA está pensando (Nivel {aiLevel})...</p>
+          <p className="text-blue-800">
+            🤔 La IA está pensando (Nivel {aiLevel})...
+          </p>
         </div>
       )}
     </GameLayout>

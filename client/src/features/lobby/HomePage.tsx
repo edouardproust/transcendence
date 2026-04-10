@@ -9,7 +9,7 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="dark:bg-gray-800 max-w-4xl mx-auto text-center mt-20">
-      <h1 className="text-6xl font-bold mb-6">♔ Ajedrez Web</h1>
+      <h1 className="text-6xl font-bold mb-6">♔ Chess 42</h1>
       <p className="text-xl text-gray-600 mb-8">
         Juega ajedrez online con otros jugadores o practica contra la computadora
       </p>

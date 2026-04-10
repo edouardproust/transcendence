@@ -103,7 +103,11 @@ export class GameService {
 	 * @throws {BadRequestException} If game is not in WAITING status
 	 * @throws {ForbiddenException} If user is not a player in this game
 	 */
-	async startGame(gameId: string, userId: string) {
+	async startGame(
+		gameId: string,
+		userId: string,
+		options?: { playerColor?: 'white' | 'black' },
+	) {
 		const game = await this.prisma.game.findUnique({
 			where: { id: gameId },
 		});
@@ -118,6 +122,30 @@ export class GameService {
 
 		if (game.status !== GameStatus.WAITING) {
 			throw new BadRequestException('Game cannot be started');
+		}
+
+		if (game.mode === GameMode.AI) {
+			if (userId !== game.whiteId && userId !== game.blackId) {
+				throw new ForbiddenException('User is not a player');
+			}
+
+			const preferredColor =
+				options?.playerColor === 'black' ||
+				(!options?.playerColor && game.blackId === userId && !game.whiteId)
+					? 'black'
+					: 'white';
+
+			return this.prisma.game.update({
+				where: { id: gameId },
+				data: {
+					status: GameStatus.ONGOING,
+					whiteId: preferredColor === 'white' ? userId : null,
+					blackId: preferredColor === 'black' ? userId : null,
+					currentFen: new Chess().fen(),
+					pgn: '',
+					drawOfferedBy: null,
+				},
+			});
 		}
 
 		if (!game.blackId && userId !== game.whiteId) {
@@ -146,6 +174,7 @@ export class GameService {
 				status: GameStatus.ONGOING,
 				currentFen: new Chess().fen(),
 				pgn: '',
+				drawOfferedBy: null,
 			},
 		});
 	}

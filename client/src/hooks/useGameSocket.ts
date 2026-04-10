@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { connectSocket, disconnectSocket } from '@/engine/socket';
-import { useAuthStore } from '@/features/auth/authStore';
-import { useGameStore } from '@/features/game/gameStore';
-import { gameService } from '@/services/gameService';
+import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { connectSocket, disconnectSocket } from "@/engine/socket";
+import { pushToast } from "@/components/ui/ToastProvider";
+import { useAuthStore } from "@/features/auth/authStore";
+import { useGameStore } from "@/features/game/gameStore";
+import { gameService } from "@/services/gameService";
 
 type GameSocketErrorPayload = string | { message?: string };
 type ChatMessagePayload = {
@@ -23,34 +24,39 @@ interface UseGameSocketOptions {
 }
 
 const normalizeGameStatus = (status: string | null | undefined) => {
-  const normalized = String(status || '').toLowerCase();
+  const normalized = String(status || "").toLowerCase();
 
-  if (normalized === 'ongoing' || normalized === 'active') return 'active';
-  if (normalized === 'finished') return 'finished';
-  if (normalized === 'cancelled' || normalized === 'aborted') return 'cancelled';
-  return 'waiting';
+  if (normalized === "ongoing" || normalized === "active") return "active";
+  if (normalized === "finished") return "finished";
+  if (normalized === "cancelled" || normalized === "aborted")
+    return "cancelled";
+  return "waiting";
 };
 
 const normalizeGameUpdatePayload = (data: any) => {
   const fen =
-    typeof data?.fen === 'string' && data.fen
+    typeof data?.fen === "string" && data.fen
       ? data.fen
-      : typeof data?.currentFen === 'string' && data.currentFen
+      : typeof data?.currentFen === "string" && data.currentFen
         ? data.currentFen
         : undefined;
-  const status = data?.status == null ? undefined : normalizeGameStatus(data.status);
+  const status =
+    data?.status == null ? undefined : normalizeGameStatus(data.status);
 
   return {
     fen,
-    pgn: typeof data?.pgn === 'string' ? data.pgn : undefined,
-    turn: fen ? (fen.split(' ')[1] === 'b' ? 'b' : 'w') : undefined,
+    pgn: typeof data?.pgn === "string" ? data.pgn : undefined,
+    turn: fen ? (fen.split(" ")[1] === "b" ? "b" : "w") : undefined,
     status,
     lastMove: data?.lastMove,
     timeLeft: data?.timeLeft,
   };
 };
 
-export const useGameSocket = (gameId: string | null, options?: UseGameSocketOptions) => {
+export const useGameSocket = (
+  gameId: string | null,
+  options?: UseGameSocketOptions,
+) => {
   const navigate = useNavigate();
   const { token } = useAuthStore();
   const lastCheckAlertKeyRef = useRef<string | null>(null);
@@ -64,15 +70,17 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
     const socket = connectSocket(token);
 
     const joinGame = () => {
-      socket.emit('joinGame', { gameId });
+      socket.emit("joinGame", { gameId });
     };
 
     const handleGameUpdate = (data: any) => {
-      useGameStore.getState().updateFromServer(normalizeGameUpdatePayload(data));
+      useGameStore
+        .getState()
+        .updateFromServer(normalizeGameUpdatePayload(data));
 
       const state = useGameStore.getState();
       const chess = state.chess;
-      if (!chess || state.status !== 'active') {
+      if (!chess || state.status !== "active") {
         lastCheckAlertKeyRef.current = null;
         return;
       }
@@ -90,14 +98,21 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
 
       lastCheckAlertKeyRef.current = key;
       const myColor =
-        state.playerColor === 'white' ? 'w' : state.playerColor === 'black' ? 'b' : null;
+        state.playerColor === "white"
+          ? "w"
+          : state.playerColor === "black"
+            ? "b"
+            : null;
       const isMyKingInCheck = myColor ? checkedSide === myColor : false;
-      alert(isMyKingInCheck ? '⚠️ Jaque a tu rey' : '⚠️ Jaque al rey rival');
+      pushToast(
+        isMyKingInCheck ? "⚠️ Jaque a tu rey" : "⚠️ Jaque al rey rival",
+        "info",
+      );
     };
 
     const handlePlayerJoined = (data: { playerId: string; status: string }) => {
       useGameStore.setState({
-        status: data.status === 'FINISHED' ? 'finished' : 'active',
+        status: data.status === "FINISHED" ? "finished" : "active",
       });
       optionsRef.current?.onPlayerJoined?.();
     };
@@ -107,45 +122,56 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
       lastCheckAlertKeyRef.current = null;
 
       const myUserId = useAuthStore.getState().user?.id;
-      const iWon = Boolean(data.winnerId && myUserId && data.winnerId === myUserId);
+      const iWon = Boolean(
+        data.winnerId && myUserId && data.winnerId === myUserId,
+      );
       const hasWinner = Boolean(data.winnerId);
 
-      let message = 'Partida finalizada';
+      let message = "Partida finalizada";
 
-      if (data.reason === 'checkmate') {
+      if (data.reason === "checkmate") {
         message = hasWinner
           ? iWon
-            ? '♔ Jaque mate. Ganaste la partida.'
-            : '♚ Jaque mate. Ganó tu oponente.'
-          : 'Jaque mate';
+            ? "♔ Jaque mate. Ganaste la partida."
+            : "♚ Jaque mate. Ganó tu oponente."
+          : "Jaque mate";
       }
 
-      if (data.reason === 'resignation') {
+      if (data.reason === "resignation") {
         message = hasWinner
           ? iWon
-            ? 'Ganaste por rendición del oponente.'
-            : 'Perdiste por rendición.'
-          : 'La partida terminó por rendición.';
+            ? "Ganaste por rendición del oponente."
+            : "Perdiste por rendición."
+          : "La partida terminó por rendición.";
       }
 
       if (
-        data.reason === 'draw' ||
-        data.reason === 'stalemate' ||
-        data.reason === 'repetition' ||
-        data.reason === 'insufficient'
+        data.reason === "draw" ||
+        data.reason === "stalemate" ||
+        data.reason === "repetition" ||
+        data.reason === "insufficient"
       ) {
-        message = 'Tablas. No hay ganador.';
+        message = "Tablas. No hay ganador.";
       }
 
-      if (data.reason === 'disconnect') {
+      if (data.reason === "disconnect") {
         message = hasWinner
           ? iWon
-            ? 'Ganaste por desconexión del oponente.'
-            : 'Perdiste por desconexión.'
-          : 'La partida terminó por desconexión.';
+            ? "Ganaste por desconexión del oponente."
+            : "Perdiste por desconexión."
+          : "La partida terminó por desconexión.";
       }
 
-      alert(message);
+      pushToast(
+        message,
+        data.reason === "checkmate" ||
+          data.reason === "resignation" ||
+          data.reason === "disconnect"
+          ? hasWinner && iWon
+            ? "success"
+            : "error"
+          : "info",
+      );
     };
 
     const handleDrawOffered = (data: { playerId: string }) => {
@@ -162,79 +188,85 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
 
     const handleGameCancelled = () => {
       useGameStore.getState().reset();
-      alert('La partida fue cancelada');
-      navigate('/lobby');
+      pushToast("La partida fue cancelada", "info");
+      navigate("/lobby");
     };
 
     const handleError = (payload: GameSocketErrorPayload) => {
-      const message = typeof payload === 'string' ? payload : payload?.message || 'Socket error';
+      const message =
+        typeof payload === "string"
+          ? payload
+          : payload?.message || "Socket error";
 
-      console.error('[SOCKET]', message);
+      console.error("[SOCKET]", message);
 
-      if (message === 'Game room is full') {
+      if (message === "Game room is full") {
         useGameStore.getState().reset();
-        alert('La partida ya tiene dos jugadores. Volviendo al lobby.');
-        navigate('/lobby');
+        pushToast(
+          "La partida ya tiene dos jugadores. Volviendo al lobby.",
+          "error",
+        );
+        navigate("/lobby");
         return;
       }
 
-      if (message === 'Not your turn' || message === 'Illegal move') {
+      if (message === "Not your turn" || message === "Illegal move") {
         // Re-sync against server authority to recover from client/server drift.
         void (async () => {
           try {
             const game = await gameService.getGame(gameId);
-            const turn = game.currentFen.split(' ')[1] === 'b' ? 'b' : 'w';
+            const turn = game.currentFen.split(" ")[1] === "b" ? "b" : "w";
             const gameStore = useGameStore.getState();
             gameStore.updateGame(game.currentFen, game.pgn, turn);
             useGameStore.setState({ status: game.status });
           } catch (syncError) {
-            console.error('[SOCKET] failed to resync game state', syncError);
+            console.error("[SOCKET] failed to resync game state", syncError);
           }
         })();
       }
 
       const handledByPage = optionsRef.current?.onError?.(message) === true;
       if (!handledByPage && !optionsRef.current?.suppressErrorAlerts) {
-        alert(message);
+        pushToast(message, "error");
       }
     };
 
     const handlePlayerDisconnected = () => {
-      alert('Tu oponente se desconecto. Esperando reconexion...');
+      pushToast("Tu oponente se desconecto. Esperando reconexion...", "info");
     };
 
     const handlePlayerReconnected = () => {
-      alert('Tu oponente se reconecto');
+      pushToast("Tu oponente se reconecto", "success");
     };
 
-    socket.on('gameUpdate', handleGameUpdate);
-    socket.on('playerJoined', handlePlayerJoined);
-    socket.on('gameEnd', handleGameEnd);
-    socket.on('gameCancelled', handleGameCancelled);
-    socket.on('drawOffered', handleDrawOffered);
-    socket.on('drawDeclined', handleDrawDeclined);
-    socket.on('chatMessage', handleChatMessage);
-    socket.on('error', handleError);
-    socket.on('playerDisconnected', handlePlayerDisconnected);
-    socket.on('playerReconnected', handlePlayerReconnected);
-    socket.on('connect', joinGame);
+    socket.on("gameUpdate", handleGameUpdate);
+    socket.on("playerJoined", handlePlayerJoined);
+    socket.on("gameEnd", handleGameEnd);
+    socket.on("gameCancelled", handleGameCancelled);
+    socket.on("drawOffered", handleDrawOffered);
+    socket.on("drawDeclined", handleDrawDeclined);
+    socket.on("chatMessage", handleChatMessage);
+    socket.on("error", handleError);
+    socket.on("playerDisconnected", handlePlayerDisconnected);
+    socket.on("playerReconnected", handlePlayerReconnected);
+    socket.on("connect", joinGame);
 
     if (socket.connected) {
       joinGame();
     }
 
     return () => {
-      socket.off('gameUpdate', handleGameUpdate);
-      socket.off('playerJoined', handlePlayerJoined);
-      socket.off('gameEnd', handleGameEnd);
-      socket.off('gameCancelled', handleGameCancelled);
-      socket.off('drawOffered', handleDrawOffered);
-      socket.off('drawDeclined', handleDrawDeclined);
-      socket.off('chatMessage', handleChatMessage);
-      socket.off('error', handleError);
-      socket.off('playerDisconnected', handlePlayerDisconnected);
-      socket.off('playerReconnected', handlePlayerReconnected);
-      socket.off('connect', joinGame);
+      socket.off("gameUpdate", handleGameUpdate);
+      socket.off("playerJoined", handlePlayerJoined);
+      socket.off("gameEnd", handleGameEnd);
+      socket.off("gameCancelled", handleGameCancelled);
+      socket.off("drawOffered", handleDrawOffered);
+      socket.off("drawDeclined", handleDrawDeclined);
+      socket.off("chatMessage", handleChatMessage);
+      socket.off("error", handleError);
+      socket.off("playerDisconnected", handlePlayerDisconnected);
+      socket.off("playerReconnected", handlePlayerReconnected);
+      socket.off("connect", joinGame);
       disconnectSocket();
     };
   }, [gameId, token, navigate]);

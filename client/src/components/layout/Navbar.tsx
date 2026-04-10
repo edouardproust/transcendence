@@ -29,7 +29,7 @@ export const Navbar: React.FC = () => {
     <nav className="bg-gray-800 dark:bg-gray-950 text-white p-4 border-b border-gray-700 dark:border-gray-800">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold hover:text-gray-300 transition">
-          ♔ Ajedrez Web
+          ♔ Chess 42
         </Link>
         
         <div className="flex items-center gap-4">

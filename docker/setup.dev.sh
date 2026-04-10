@@ -7,7 +7,7 @@ SSL_DIR="./docker/nginx/ssl"
 ssl_generator="./docker/nginx/generate-ssl.sh"
 required_vars=(PROJECT_NAME POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET CORS_ORIGIN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION S3_BUCKET S3_ENDPOINT S3_PUBLIC_URL)
 
-project_name=${project_name:-"Checkio"}
+project_name=${project_name:-"Chess 42"}
 postgres_db=${postgres_db:-"checkio"}
 postgres_user=${postgres_user:-"testuser"}
 postgres_pswd=${postgres_pswd:-"testuser123"}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { uiPalette, uiRadius } from './designSystem';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -17,12 +18,12 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   type = 'button',
 }) => {
-  const baseStyles = 'px-4 py-2 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = `px-4 py-2 ${uiRadius.md} font-medium transition disabled:opacity-50 disabled:cursor-not-allowed`;
   
   const variants = {
-    primary: 'bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white',
-    secondary: 'bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white',
-    danger: 'bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 text-white',
+    primary: uiPalette.primaryAction,
+    secondary: uiPalette.secondaryAction,
+    danger: uiPalette.dangerAction,
   };
 
   return (

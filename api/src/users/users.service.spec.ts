@@ -15,7 +15,7 @@ import {
 	usersFixture,
 } from './users.service.mock';
 import { StorageServiceMock } from '../storage/storage.service.mock';
-import { DEFAULTS } from '../common/constants';
+import { DEFAULTS, EXAMPLES } from '../common/constants';
 import { StorageService } from '../storage/storage.service';
 
 jest.mock('bcrypt', () => ({
@@ -259,14 +259,34 @@ describe('UsersService', () => {
 		});
 	});
 	describe('findProfileById', () => {
+		const makeGame = (
+			override: Partial<{
+				whiteId: string | null;
+				blackId: string | null;
+				winnerId: string | null;
+				currentFen: string;
+				pgn: string;
+			}> = {},
+		) => ({
+			whiteId: userInDb.id,
+			blackId: 'opponent-id',
+			winnerId: null,
+			currentFen: EXAMPLES.initialFen,
+			pgn: '',
+			...override,
+		});
+
 		it('should return user profile with game stats', async () => {
 			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
 				userInDb,
 			);
-			jest.spyOn(prismaService.game, 'count')
-				.mockResolvedValueOnce(10) // totalGames
-				.mockResolvedValueOnce(6) // wins
-				.mockResolvedValueOnce(2); // draws
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
+				makeGame({ winnerId: userInDb.id }), // win
+				makeGame({ winnerId: userInDb.id }), // win
+				makeGame({ winnerId: 'opponent-id' }), // loss
+				makeGame({ pgn: '1. e4 e5 1/2-1/2' }), // draw via PGN token
+				makeGame({ pgn: '' }), // draw fallback
+			] as any);
 
 			const result = await service.findProfileById(userInDb.id);
 
@@ -275,9 +295,9 @@ describe('UsersService', () => {
 				omit: { password: true, email: true },
 			});
 			expect(result).toMatchObject({
-				totalGames: 10,
-				wins: 6,
-				losses: 2,
+				totalGames: 5,
+				wins: 2,
+				losses: 1,
 				draws: 2,
 			});
 		});
@@ -286,7 +306,7 @@ describe('UsersService', () => {
 			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
 				userInDb,
 			);
-			jest.spyOn(prismaService.game, 'count').mockResolvedValue(0);
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([]);
 
 			await service.findProfileById(userInDb.id, true);
 
