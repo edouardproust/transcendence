@@ -38,7 +38,7 @@ export interface GameState {
   timeLeft: {
     white: number;
     black: number;
-  };
+  } | null;
 }
 
 export interface Move {
