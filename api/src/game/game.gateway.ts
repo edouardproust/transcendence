@@ -15,8 +15,11 @@ import { UsersService } from '../users/users.service';
 
 @WebSocketGateway({
 	cors: {
-		origin: ['http://localhost:8080', 'https://localhost:8443'],
+		origin: process.env.WS_CORS_ORIGIN
+			? process.env.WS_CORS_ORIGIN.split(',')
+			: ['http://localhost:8080', 'https://localhost:8443'],
 		methods: ['GET', 'POST'],
+		credentials: true,
 	},
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
