@@ -11,6 +11,7 @@ import { GameStatus, GameMode } from '../prisma/generated/enums';
 import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
 import { getInitialTimeLeft } from './utils/time-control.utils';
+import { updateElo, GameOutcome } from './utils/elo.utils';
 
 /**
  * Service handling chess game lifecycle and move validation.
@@ -240,6 +241,13 @@ export class GameService {
 			},
 		});
 
+		const outcome = dto.winnerId === game.whiteId
+			? GameOutcome.WHITE_WINS
+			: dto.winnerId === game.blackId
+				? GameOutcome.BLACK_WINS
+				: GameOutcome.DRAW;
+		await updateElo(this.prisma, game.whiteId!, game.blackId!, outcome);
+
 		return updatedGame;
 	}
 
@@ -390,6 +398,15 @@ export class GameService {
 			},
 		});
 
+		if (status === GameStatus.FINISHED && game.whiteId && game.blackId) {
+			const outcome = winnerId === game.whiteId
+				? GameOutcome.WHITE_WINS
+				: winnerId === game.blackId
+					? GameOutcome.BLACK_WINS
+					: GameOutcome.DRAW;
+			await updateElo(this.prisma, game.whiteId, game.blackId, outcome);
+		}
+
 		return { ...updatedGame, endReason };
 	}
 
@@ -428,6 +445,13 @@ export class GameService {
 				winnerId,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			const outcome = winnerId === game.whiteId
+				? GameOutcome.WHITE_WINS
+				: GameOutcome.BLACK_WINS;
+			await updateElo(this.prisma, game.whiteId, game.blackId, outcome);
+		}
 
 		return { ...updatedGame, endReason: 'resignation' as const };
 	}
@@ -479,6 +503,13 @@ export class GameService {
 				drawOfferedBy: null,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			const outcome = winnerId === game.whiteId
+				? GameOutcome.WHITE_WINS
+				: GameOutcome.BLACK_WINS;
+			await updateElo(this.prisma, game.whiteId, game.blackId, outcome);
+		}
 
 		return { ...updatedGame, endReason: 'disconnect' as const };
 	}
@@ -554,6 +585,10 @@ export class GameService {
 				winnerId: null,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			await updateElo(this.prisma, game.whiteId, game.blackId, GameOutcome.DRAW);
+		}
 
 		return { ...updatedGame, endReason: 'draw' as const };
 	}
