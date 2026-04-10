@@ -357,10 +357,10 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     });
 
   const requestLeaveWithConfirmation = async (
-  action: ExitAction,
-  options?: { navigateOnSuccess?: boolean }
-) => {
-	const shouldNavigate = options?.navigateOnSuccess ?? true;
+    action: ExitAction,
+    options?: { navigateOnSuccess?: boolean },
+  ) => {
+    const shouldNavigate = options?.navigateOnSuccess ?? true;
     if (isLeavingGame) return;
 
     const socket = getOrCreateSocket();
@@ -397,11 +397,11 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       }
 
       if (result.resolvedStatus === "cancelled") {
-		reset();
-		if (shouldNavigate) navigate("/lobby");
-		} else if (result.resolvedStatus === "finished") {
-		if (shouldNavigate) navigate("/lobby");
-		}
+        reset();
+        if (shouldNavigate) navigate("/lobby");
+      } else if (result.resolvedStatus === "finished") {
+        if (shouldNavigate) navigate("/lobby");
+      }
     } finally {
       if (isMountedRef.current) {
         setIsLeavingGame(false);
@@ -410,12 +410,12 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   };
 
   const handleResign = async () => {
-  if (status !== "active" || !hasOpponent) return;
+    if (status !== "active" || !hasOpponent) return;
 
-  await requestLeaveWithConfirmation("resign", {
-    navigateOnSuccess: false,
-  });
-};
+    await requestLeaveWithConfirmation("resign", {
+      navigateOnSuccess: false,
+    });
+  };
 
   const handleOfferDraw = () => {
     if (isLeavingGame) return;
@@ -449,18 +449,18 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   };
 
   const handleLeave = async () => {
-  if (status === "finished" || status === "cancelled") {
-    reset();
-    navigate("/lobby");
-    return;
-  }
+    if (status === "finished" || status === "cancelled") {
+      reset();
+      navigate("/lobby");
+      return;
+    }
 
-  const action: ExitAction = status === "waiting" ? "cancel" : "resign";
+    const action: ExitAction = status === "waiting" ? "cancel" : "resign";
 
-  await requestLeaveWithConfirmation(action, {
-    navigateOnSuccess: true,
-  });
-};
+    await requestLeaveWithConfirmation(action, {
+      navigateOnSuccess: true,
+    });
+  };
 
   const handleSendMessage = () => {
     if (isLeavingGame) return;
