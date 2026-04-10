@@ -1,13 +1,14 @@
 import { io, Socket } from 'socket.io-client';
+import { ServerToClientEvents, ClientToServerEvents } from '@/types/socket';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 if (!SOCKET_URL) {
   throw new Error('VITE_SOCKET_URL is not defined in environment variables');
 }
 
-let socketInstance: Socket | null = null;
+let socketInstance: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
-export const connectSocket = (token: string): Socket => {
+export const connectSocket = (token: string): Socket<ServerToClientEvents, ClientToServerEvents> => {
   if (socketInstance) {
     socketInstance.auth = { token };
 
@@ -41,4 +42,4 @@ export const disconnectSocket = () => {
   socketInstance = null;
 };
 
-export const getSocket = () => socketInstance;
+export const getSocket = (): Socket<ServerToClientEvents, ClientToServerEvents> | null => socketInstance;
