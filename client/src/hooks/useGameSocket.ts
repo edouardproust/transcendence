@@ -95,9 +95,9 @@ export const useGameSocket = (gameId: string | null, options?: UseGameSocketOpti
       alert(isMyKingInCheck ? '⚠️ Jaque a tu rey' : '⚠️ Jaque al rey rival');
     };
 
-    const handlePlayerJoined = () => {
+    const handlePlayerJoined = (data: { playerId: string; status: string }) => {
       useGameStore.setState({
-        status: 'active',
+        status: data.status === 'FINISHED' ? 'finished' : 'active',
       });
       optionsRef.current?.onPlayerJoined?.();
     };
