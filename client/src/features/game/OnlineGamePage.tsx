@@ -400,6 +400,8 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       if (result.resolvedStatus === "cancelled") {
         reset();
         navigate("/lobby");
+      } else if (result.resolvedStatus === "finished") {
+        navigate("/lobby");
       }
     } finally {
       if (isMountedRef.current) {
