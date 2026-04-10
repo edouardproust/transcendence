@@ -17,6 +17,7 @@ import { GameStatus } from '../prisma/generated/enums';
 
 @WebSocketGateway({
 	cors: {
+<<<<<<< HEAD
 		origin: process.env.CORS_ORIGIN
 			? process.env.CORS_ORIGIN.split(',')
 			: ['http://localhost:8080', 'https://localhost:8443'],
