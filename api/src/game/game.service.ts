@@ -10,6 +10,7 @@ import { Chess } from 'chess.js';
 import { GameStatus, GameMode } from '../prisma/generated/enums';
 import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
+import { getInitialTimeLeft } from './utils/time-control.utils';
 
 /**
  * Service handling chess game lifecycle and move validation.
@@ -187,6 +188,16 @@ export class GameService {
 				currentFen: new Chess().fen(),
 				pgn: '',
 				drawOfferedBy: null,
+				...(() => {
+					const initialTimes = getInitialTimeLeft(game.timeControl);
+					if (initialTimes) {
+						return {
+							whiteTimeLeft: initialTimes.white,
+							blackTimeLeft: initialTimes.black,
+						};
+					}
+					return {};
+				})(),
 			},
 		});
 	}
@@ -585,5 +596,31 @@ export class GameService {
 		});
 
 		return updatedGame;
+	}
+
+	async decrementTime(gameId: string, turn: 'w' | 'b', seconds: number) {
+		const game = await this.prisma.game.findUnique({
+			where: { id: gameId },
+		});
+
+		if (!game || game.status !== GameStatus.ONGOING) {
+			return game;
+		}
+
+		const updates: Record<string, number> = {};
+		if (turn === 'w' && game.whiteTimeLeft) {
+			updates.whiteTimeLeft = Math.max(0, game.whiteTimeLeft - seconds);
+		} else if (turn === 'b' && game.blackTimeLeft) {
+			updates.blackTimeLeft = Math.max(0, game.blackTimeLeft - seconds);
+		}
+
+		if (Object.keys(updates).length === 0) {
+			return game;
+		}
+
+		return this.prisma.game.update({
+			where: { id: gameId },
+			data: updates,
+		});
 	}
 }

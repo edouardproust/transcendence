@@ -29,6 +29,8 @@ export const ongoingGameFixture = {
 	blackId: EXAMPLES.id2,
 	currentFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	pgn: '',
+	whiteTimeLeft: 600,
+	blackTimeLeft: 600,
 };
 
 export const GameServiceMock = {
@@ -44,5 +46,9 @@ export const GameServiceMock = {
 		resignGame: jest.fn(),
 		handlePlayerDisconnect: jest.fn(),
 		makeMove: jest.fn(),
+		decrementTime: jest.fn(),
+		offerDraw: jest.fn(),
+		acceptDraw: jest.fn(),
+		declineDraw: jest.fn(),
 	},
 };

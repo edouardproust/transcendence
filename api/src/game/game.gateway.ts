@@ -2,10 +2,10 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 	OnGatewayConnection,
+	OnGatewayDisconnect,
 	SubscribeMessage,
 	MessageBody,
 	ConnectedSocket,
-	OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
@@ -14,6 +14,14 @@ import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 import { UsersService } from '../users/users.service';
 import { getErrorMessage } from '../common/utils/error.utils';
 import { GameStatus } from '../prisma/generated/enums';
+import { parseTimeControl } from './utils/time-control.utils';
+
+interface GameTimer {
+	intervalId: ReturnType<typeof setInterval>;
+	gameId: string;
+	currentTurn: 'w' | 'b';
+	lastTick: number;
+}
 
 @WebSocketGateway({
 	cors: {
@@ -33,10 +41,97 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		{ gameId: string; userId: string }
 	>();
 
+	private gameTimers = new Map<string, GameTimer>();
+	private gameTurnMap = new Map<string, 'w' | 'b'>();
+
 	constructor(
 		private readonly gameService: GameService,
 		private readonly usersService: UsersService,
 	) {}
+
+	public startGameTimer(gameId: string, timeControl: string) {
+		const parsed = parseTimeControl(timeControl);
+		if (!parsed) return;
+
+		this.stopGameTimer(gameId);
+
+		const intervalId = setInterval(async () => {
+			const timer = this.gameTimers.get(gameId);
+			if (!timer) return;
+
+			const now = Date.now();
+			const elapsed = Math.floor((now - timer.lastTick) / 1000);
+			timer.lastTick = now;
+
+			const currentTurn = this.gameTurnMap.get(gameId) || 'w';
+
+			try {
+				const updatedGame = await this.gameService.decrementTime(
+					gameId,
+					currentTurn,
+					elapsed,
+				);
+
+				if (
+					!updatedGame ||
+					updatedGame.whiteTimeLeft == null ||
+					updatedGame.blackTimeLeft == null
+				) {
+					this.stopGameTimer(gameId);
+					return;
+				}
+
+				if (
+					updatedGame.whiteTimeLeft <= 0 ||
+					updatedGame.blackTimeLeft <= 0
+				) {
+					this.stopGameTimer(gameId);
+					this.server.to(`game:${gameId}`).emit('gameEnd', {
+						winnerId:
+							updatedGame.whiteTimeLeft <= 0
+								? updatedGame.blackId
+								: updatedGame.whiteId,
+						reason: 'timeout',
+					});
+					return;
+				}
+
+				this.server.to(`game:${gameId}`).emit('gameUpdate', {
+					timeLeft: {
+						white: updatedGame.whiteTimeLeft,
+						black: updatedGame.blackTimeLeft,
+					},
+					turn: currentTurn,
+				});
+			} catch (error) {
+				this.stopGameTimer(gameId);
+			}
+		}, 1000);
+
+		this.gameTimers.set(gameId, {
+			intervalId,
+			gameId,
+			currentTurn: 'w',
+			lastTick: Date.now(),
+		});
+	}
+
+	public stopGameTimer(gameId: string) {
+		const timer = this.gameTimers.get(gameId);
+		if (timer) {
+			clearInterval(timer.intervalId);
+			this.gameTimers.delete(gameId);
+		}
+	}
+
+	public updateGameTurn(gameId: string, turn: 'w' | 'b') {
+		this.gameTurnMap.set(gameId, turn);
+		const timer = this.gameTimers.get(gameId);
+		if (timer) {
+			timer.currentTurn = turn;
+			timer.lastTick = Date.now();
+		}
+	}
 
 	handleConnection(client: Socket) {
 		if (process.env.NODE_ENV != 'production') {
@@ -57,9 +152,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const { gameId, userId } = session;
 		this.socketGameMap.delete(client.id);
 
-		const hasAnotherSocketForSameUser = [...this.socketGameMap.values()].some(
+		const hasAnotherSocketForSameUser = [
+			...this.socketGameMap.values(),
+		].some(
 			(activeSession) =>
-				activeSession.gameId === gameId && activeSession.userId === userId,
+				activeSession.gameId === gameId &&
+				activeSession.userId === userId,
 		);
 
 		if (hasAnotherSocketForSameUser) {
@@ -111,7 +209,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client.to(room).emit('playerReconnected', { playerId: userId });
 
 			const game = await this.gameService.getGame(gameId);
-			client.emit('gameUpdate', game);
+			client.emit('gameUpdate', {
+				...game,
+				timeLeft: {
+					white: game.whiteTimeLeft,
+					black: game.blackTimeLeft,
+				},
+			});
 
 			return;
 		}
@@ -127,6 +231,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.server.to(room).emit('playerJoined', {
 				playerId: userId,
 				status: updatedGame.status,
+			});
+			this.server.to(room).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
 			});
 		} else if (sockets.length > 2) {
 			client.leave(room);
@@ -149,6 +260,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				gameId,
 				userId,
 			);
+
+			this.stopGameTimer(gameId);
 
 			if (updatedGame.status === GameStatus.ABORTED) {
 				this.server.to(room).emit('gameUpdate', updatedGame);
@@ -186,15 +299,33 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				userId,
 			);
 			if (updatedGame.status === 'FINISHED') {
+				this.stopGameTimer(data.gameId);
 				this.server.to(`game:${data.gameId}`).emit('gameEnd', {
 					winnerId: updatedGame.winnerId,
 					reason: updatedGame.endReason,
 				});
 			}
 
-			this.server
-				.to(`game:${data.gameId}`)
-				.emit('gameUpdate', updatedGame);
+			const nextTurn =
+				updatedGame.currentFen?.split(' ')[1] === 'b' ? 'b' : 'w';
+
+			// Start timer on first move, set initial turn
+			const existingTimer = this.gameTimers.get(data.gameId);
+			if (!existingTimer) {
+				this.startGameTimer(
+					data.gameId,
+					updatedGame.timeControl || '10+0',
+				);
+			}
+			this.updateGameTurn(data.gameId, nextTurn);
+
+			this.server.to(`game:${data.gameId}`).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) }); // we keep it simple for now, we could work on a better error handling strategy later
 		}
@@ -235,6 +366,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				userId,
 			);
 
+			this.stopGameTimer(gameId);
 			this.server.to(room).emit('drawAccepted');
 
 			this.server.to(room).emit('gameEnd', {
@@ -242,7 +374,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				reason: updatedGame.endReason,
 			});
 
-			this.server.to(room).emit('gameUpdate', updatedGame);
+			this.server.to(room).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) });
 		}
@@ -283,11 +421,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				userId,
 			);
 
+			this.stopGameTimer(gameId);
 			this.server.to(room).emit('gameEnd', {
 				winnerId: updatedGame.winnerId,
 				reason: updatedGame.endReason,
 			});
-			this.server.to(room).emit('gameUpdate', updatedGame);
+			this.server.to(room).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) });
 		}

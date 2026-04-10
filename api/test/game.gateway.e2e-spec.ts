@@ -88,7 +88,15 @@ describe('GameGateway (e2e)', () => {
 			);
 
 			client.on('gameUpdate', (data) => {
-				expect(data).toEqual(serializeGame(ongoingGameFixture));
+				expect(data).toEqual(
+					expect.objectContaining({
+						...serializeGame(ongoingGameFixture),
+						timeLeft: {
+							white: ongoingGameFixture.whiteTimeLeft,
+							black: ongoingGameFixture.blackTimeLeft,
+						},
+					}),
+				);
 				expect(gameService.makeMove).toHaveBeenCalled();
 				done();
 			});

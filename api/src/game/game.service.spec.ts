@@ -386,11 +386,7 @@ describe('GameService', () => {
 			);
 
 			await expect(
-				service.makeMove(
-					EXAMPLES.gameId,
-					{ move: { from: 'e2', to: 'e4' } },
-					EXAMPLES.id2,
-				), // black player, but white's turn
+				service.makeMove(EXAMPLES.gameId, { move: 'e4' }, EXAMPLES.id2),
 			).rejects.toThrow(BadRequestException);
 		});
 

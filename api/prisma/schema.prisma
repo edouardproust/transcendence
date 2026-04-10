@@ -76,7 +76,9 @@ model Game {
     currentFen String @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     pgn        String @default("")
 
-    timeControl String @default("unlimited")
+    timeControl   String @default("unlimited")
+    whiteTimeLeft Int?
+    blackTimeLeft Int?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
