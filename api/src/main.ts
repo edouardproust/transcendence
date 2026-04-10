@@ -39,8 +39,14 @@ async function bootstrap() {
 	await app.listen(port);
 
 	// Ensure default avatar exists in S3/MinIO
-	const storageService = app.get(StorageService);
-	await storageService.ensureDefaultAssets();
+	try {
+		const storageService = app.get(StorageService);
+		await storageService.ensureDefaultAssets();
+	} catch (e) {
+		console.warn(
+			'Storage unavailable at startup, assets will be uploaded on first use.',
+		);
+	}
 
 	// Development logs
 	if (isDev) {

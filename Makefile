@@ -54,5 +54,8 @@ fclean: # Stop all containers, remove volumes and images, and prune system
 nginx-reload: # Test Nginx configuration and reload nginx if valid
 	$(DOCKER_COMPOSE) exec nginx sh -c "nginx -t && nginx -s reload"
 
-prisma-studio: # Dev only: visualize database in the web browser.
+db: # Dev only: visualize database in the web browser using Prisma Studio
 	$(DOCKER_COMPOSE) exec api sh -c "npx prisma studio --browser none --port 3030"
+
+seed: # Seed the database according to NODE_ENV
+	$(DOCKER_COMPOSE) exec api npx prisma db seed
