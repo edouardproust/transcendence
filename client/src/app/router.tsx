@@ -14,6 +14,7 @@ import { AdminUsers } from '@/features/admin/AdminUsers';
 import { AdminGames } from '@/features/admin/AdminGames';
 import { ProtectedAdminRoute } from '@/app/ProtectedAdminRoute';
 import { ProtectedRoute } from './ProtectedRoute';
+import { Navigate } from 'react-router-dom';
 
 export const AppRouter: React.FC = () => {
   return (
@@ -68,6 +69,7 @@ export const AppRouter: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
     </BrowserRouter>

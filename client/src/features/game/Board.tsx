@@ -193,7 +193,7 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
       {status === 'waiting' && (
         <div className="mb-3 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded text-center">
           <p className="text-yellow-800 dark:text-yellow-200 font-medium">
-            ⏳ Esperando que se una un oponente...
+            ⏳ {mode !== 'ai' ? 'Esperando que se una un oponente...' : 'Elige el nivel de IA...'}
           </p>
         </div>
       )}

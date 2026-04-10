@@ -131,10 +131,10 @@ export const LobbyPage: React.FC = () => {
                   className="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
                 >
                   <div>
-                    <p className="font-medium">Partida #{game.id.slice(0, 8)}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="font-medium">
                       Creador: {game.creatorUsername || 'Jugador'} • ELO: {game.creatorElo ?? 'N/A'}
                     </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Partida #{game.id.slice(0, 8)}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Control: {game.timeControl} • Esperando oponente...
                     </p>
