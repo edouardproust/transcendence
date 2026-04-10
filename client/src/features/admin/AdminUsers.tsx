@@ -1,25 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { adminService } from '@/services/adminService';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { pushToast } from '@/components/ui/ToastProvider';
-import { useAuthStore } from '@/features/auth/authStore';
-import { AdminUser, AdminUserSortField, SortOrder } from '@/types/admin';
-import { getApiErrorMessage } from '@/utils/apiError';
+import React, { useEffect, useState } from "react";
+import { adminService } from "@/services/adminService";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { pushToast } from "@/components/ui/ToastProvider";
+import { useAuthStore } from "@/features/auth/authStore";
+import { AdminUser, AdminUserSortField, SortOrder } from "@/types/admin";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export const AdminUsers: React.FC = () => {
   const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
-  const [search, setSearch] = useState('');
-  const [appliedSearch, setAppliedSearch] = useState('');
-  const [sortBy, setSortBy] = useState<AdminUserSortField>('createdAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    totalPages: 1,
+  });
+  const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [sortBy, setSortBy] = useState<AdminUserSortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
-  const [editElo, setEditElo] = useState('');
-  const [editRole, setEditRole] = useState<'USER' | 'ADMIN'>('USER');
+  const [editElo, setEditElo] = useState("");
+  const [editRole, setEditRole] = useState<"USER" | "ADMIN">("USER");
 
   useEffect(() => {
     void loadUsers();
@@ -29,17 +33,22 @@ export const AdminUsers: React.FC = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await adminService.getUsers(pagination.page, appliedSearch, sortBy, sortOrder);
+      const data = await adminService.getUsers(
+        pagination.page,
+        appliedSearch,
+        sortBy,
+        sortOrder,
+      );
       setUsers(data.users);
       setPagination(data.pagination);
     } catch (error: any) {
-      console.error('Error loading users:', error);
+      console.error("Error loading users:", error);
       const backendMessage = error.response?.data?.message;
       setUsers([]);
       setErrorMessage(
         Array.isArray(backendMessage)
-          ? backendMessage.join(', ')
-          : backendMessage || 'No se pudieron cargar los usuarios.'
+          ? backendMessage.join(", ")
+          : backendMessage || "No se pudieron cargar los usuarios.",
       );
     } finally {
       setIsLoading(false);
@@ -50,7 +59,7 @@ export const AdminUsers: React.FC = () => {
     const normalizedSearch = search.trim();
 
     if (normalizedSearch.length === 1) {
-      pushToast('Ingresa al menos 2 caracteres para buscar.', 'error');
+      pushToast("Ingresa al menos 2 caracteres para buscar.", "error");
       return;
     }
 
@@ -73,25 +82,30 @@ export const AdminUsers: React.FC = () => {
         elo: Number.isNaN(parsedElo) ? undefined : parsedElo,
         role: editingUser.id === currentUser?.id ? undefined : editRole,
       });
-      pushToast('Usuario actualizado', 'success');
+      pushToast("Usuario actualizado", "success");
       setEditingUser(null);
       void loadUsers();
     } catch (error: any) {
-      pushToast(getApiErrorMessage(error, 'Error actualizando usuario'), 'error');
+      pushToast(
+        getApiErrorMessage(error, "Error actualizando usuario"),
+        "error",
+      );
     }
   };
 
   const handleDelete = async (userId: string, username: string) => {
-    if (!confirm(`¿Eliminar usuario ${username}? Esta acción es irreversible.`)) {
+    if (
+      !confirm(`¿Eliminar usuario ${username}? Esta acción es irreversible.`)
+    ) {
       return;
     }
 
     try {
       await adminService.deleteUser(userId);
-      pushToast('Usuario eliminado', 'success');
+      pushToast("Usuario eliminado", "success");
       void loadUsers();
     } catch (error: any) {
-      pushToast(getApiErrorMessage(error, 'Error eliminando usuario'), 'error');
+      pushToast(getApiErrorMessage(error, "Error eliminando usuario"), "error");
     }
   };
 
@@ -107,9 +121,15 @@ export const AdminUsers: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-          <div className="text-xl font-semibold text-red-700">Error cargando usuarios</div>
+          <div className="text-xl font-semibold text-red-700">
+            Error cargando usuarios
+          </div>
           <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
-          <Button className="mt-4" variant="danger" onClick={() => void loadUsers()}>
+          <Button
+            className="mt-4"
+            variant="danger"
+            onClick={() => void loadUsers()}
+          >
             Reintentar
           </Button>
         </div>
@@ -131,7 +151,7 @@ export const AdminUsers: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'Enter') handleSearch();
+              if (e.key === "Enter") handleSearch();
             }}
           />
           <select
@@ -162,7 +182,8 @@ export const AdminUsers: React.FC = () => {
           <Button onClick={handleSearch}>Buscar</Button>
         </div>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Busqueda con paginacion, filtros y ordenacion por usuario, email, ELO, rol o fecha.
+          Busqueda con paginacion, filtros y ordenacion por usuario, email, ELO,
+          rol o fecha.
         </p>
       </div>
 
@@ -172,13 +193,27 @@ export const AdminUsers: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Usuario</th>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Email</th>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">ELO</th>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Rol</th>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Partidas</th>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Registrado</th>
-                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">Acciones</th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  Usuario
+                </th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  Email
+                </th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  ELO
+                </th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  Rol
+                </th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  Partidas
+                </th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  Registrado
+                </th>
+                <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -212,12 +247,14 @@ export const AdminUsers: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        user.role === 'ADMIN'
-                          ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                      }`}>
-                        {user.role === 'ADMIN' ? '👑 Admin' : '👤 User'}
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          user.role === "ADMIN"
+                            ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                        }`}
+                      >
+                        {user.role === "ADMIN" ? "👑 Admin" : "👤 User"}
                       </span>
                       {isCurrentUser && (
                         <span className="ml-2 px-2 py-1 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
@@ -242,7 +279,9 @@ export const AdminUsers: React.FC = () => {
                         <Button
                           variant="danger"
                           disabled={isCurrentUser}
-                          onClick={() => void handleDelete(user.id, user.username)}
+                          onClick={() =>
+                            void handleDelete(user.id, user.username)
+                          }
                         >
                           Eliminar
                         </Button>
@@ -265,7 +304,10 @@ export const AdminUsers: React.FC = () => {
               variant="secondary"
               disabled={pagination.page === 1}
               onClick={() =>
-                setPagination((current) => ({ ...current, page: current.page - 1 }))
+                setPagination((current) => ({
+                  ...current,
+                  page: current.page - 1,
+                }))
               }
             >
               Anterior
@@ -277,7 +319,10 @@ export const AdminUsers: React.FC = () => {
               variant="secondary"
               disabled={pagination.page === pagination.totalPages}
               onClick={() =>
-                setPagination((current) => ({ ...current, page: current.page + 1 }))
+                setPagination((current) => ({
+                  ...current,
+                  page: current.page + 1,
+                }))
               }
             >
               Siguiente
@@ -312,7 +357,9 @@ export const AdminUsers: React.FC = () => {
                 </label>
                 <select
                   value={editRole}
-                  onChange={(e) => setEditRole(e.target.value as 'USER' | 'ADMIN')}
+                  onChange={(e) =>
+                    setEditRole(e.target.value as "USER" | "ADMIN")
+                  }
                   disabled={editingUser.id === currentUser?.id}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
@@ -331,10 +378,7 @@ export const AdminUsers: React.FC = () => {
               <Button onClick={() => void handleSaveEdit()}>
                 Guardar Cambios
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setEditingUser(null)}
-              >
+              <Button variant="secondary" onClick={() => setEditingUser(null)}>
                 Cancelar
               </Button>
             </div>
