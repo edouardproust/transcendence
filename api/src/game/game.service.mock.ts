@@ -46,5 +46,6 @@ export const GameServiceMock = {
 		resignGame: jest.fn(),
 		handlePlayerDisconnect: jest.fn(),
 		makeMove: jest.fn(),
+		decrementTime: jest.fn(),
 	},
 };
