@@ -110,9 +110,9 @@ export const useGameSocket = (
       );
     };
 
-    const handlePlayerJoined = () => {
+    const handlePlayerJoined = (data: { playerId: string; status: string }) => {
       useGameStore.setState({
-        status: "active",
+        status: data.status === "FINISHED" ? "finished" : "active",
       });
       optionsRef.current?.onPlayerJoined?.();
     };
@@ -172,18 +172,6 @@ export const useGameSocket = (
             : "error"
           : "info",
       );
-    };
-
-    const handleDrawOffered = (data: { playerId: string }) => {
-      optionsRef.current?.onDrawOffered?.(data);
-    };
-
-    const handleDrawDeclined = () => {
-      optionsRef.current?.onDrawDeclined?.();
-    };
-
-    const handleChatMessage = (data: ChatMessagePayload) => {
-      optionsRef.current?.onChatMessage?.(data);
     };
 
     const handleDrawOffered = (data: { playerId: string }) => {

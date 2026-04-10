@@ -5,24 +5,26 @@ import {
 	OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { UseGuards, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { getErrorMessage } from '../common/utils/error.utils';
 
 @WebSocketGateway({
 	cors: {
-		origin:
-			process.env.WS_CORS_ORIGIN
-				? process.env.WS_CORS_ORIGIN.split(',')
-				: ['http://localhost:8080', 'https://localhost:8443'],
+		origin: process.env.CORS_ORIGIN
+			? process.env.CORS_ORIGIN.split(',')
+			: ['http://localhost:8080', 'https://localhost:8443'],
 		methods: ['GET', 'POST'],
 		credentials: true,
 	},
 	namespace: '/presence',
 })
-export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class PresenceGateway
+	implements OnGatewayConnection, OnGatewayDisconnect
+{
 	@WebSocketServer()
-	server: Server;
+	server!: Server;
 
 	private userSocketCount = new Map<string, number>();
 	private socketUserMap = new Map<string, string>();
@@ -32,7 +34,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 		private readonly jwtService: JwtService,
 	) {}
 
-	private extractUserFromSocket(client: Socket): { sub: string; username: string } {
+	private extractUserFromSocket(client: Socket): {
+		sub: string;
+		username: string;
+	} {
 		const token =
 			client.handshake.auth?.token ||
 			client.handshake.headers?.authorization?.replace('Bearer ', '');
@@ -43,7 +48,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 		try {
 			const payload = this.jwtService.verify(token);
-			return { sub: payload.sub, username: payload.username || payload.sub };
+			return {
+				sub: payload.sub,
+				username: payload.username || payload.sub,
+			};
 		} catch {
 			throw new UnauthorizedException('Invalid token');
 		}
@@ -78,7 +86,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 				);
 			}
 		} catch (error) {
-			console.error('[PRESENCE] Connection error:', error.message);
+			console.error(
+				'[PRESENCE] Connection error:',
+				getErrorMessage(error),
+			);
 			client.disconnect();
 		}
 	}

@@ -12,16 +12,20 @@ import { GameService } from './game.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 import { UsersService } from '../users/users.service';
+import { getErrorMessage } from '../common/utils/error.utils';
 
 @WebSocketGateway({
 	cors: {
-		origin: ['http://localhost:8080', 'https://localhost:8443'],
+		origin: process.env.CORS_ORIGIN
+			? process.env.CORS_ORIGIN.split(',')
+			: ['http://localhost:8080', 'https://localhost:8443'],
 		methods: ['GET', 'POST'],
+		credentials: true,
 	},
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
-	server: Server;
+	server!: Server;
 
 	private socketGameMap = new Map<
 		string,
@@ -114,7 +118,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 			this.server.to(room).emit('gameCancelled');
 		} catch (error) {
-			client.emit('error', { message: error.message });
+			client.emit('error', { message: getErrorMessage(error) });
 		}
 	}
 
@@ -146,7 +150,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				.to(`game:${data.gameId}`)
 				.emit('gameUpdate', updatedGame);
 		} catch (error) {
-			client.emit('error', { message: error.message }); // we keep it simple for now, we could work on a better error handling strategy later
+			client.emit('error', { message: getErrorMessage(error) }); // we keep it simple for now, we could work on a better error handling strategy later
 		}
 	}
 
@@ -166,7 +170,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				playerId: userId,
 			});
 		} catch (error) {
-			client.emit('error', { message: error.message });
+			client.emit('error', { message: getErrorMessage(error) });
 		}
 	}
 
@@ -194,7 +198,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 			this.server.to(room).emit('gameUpdate', updatedGame);
 		} catch (error) {
-			client.emit('error', { message: error.message });
+			client.emit('error', { message: getErrorMessage(error) });
 		}
 	}
 
@@ -214,7 +218,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				playerId: userId,
 			});
 		} catch (error) {
-			client.emit('error', { message: error.message });
+			client.emit('error', { message: getErrorMessage(error) });
 		}
 	}
 
@@ -239,7 +243,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			this.server.to(room).emit('gameUpdate', updatedGame);
 		} catch (error) {
-			client.emit('error', { message: error.message });
+			client.emit('error', { message: getErrorMessage(error) });
 		}
 	}
 
@@ -258,21 +262,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			username: dbUser.username,
 			message: data.message,
 			timestamp: new Date().toISOString(),
-		});
-	}
-
-	@UseGuards(WsJwtGuard)
-	@SubscribeMessage('ping')
-	async handlePing(@ConnectedSocket() client: Socket) {
-		const user = client.data.user;
-		if (process.env.NODE_ENV != 'production') {
-			console.log(`Received ping from user ${user.sub}`);
-		}
-		client.emit('pong', {
-			message: 'pong',
-			userId: user.sub,
-			username: user.username,
-			timestamp: Date.now(),
 		});
 	}
 }
