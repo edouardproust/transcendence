@@ -11,6 +11,7 @@ import { GameStatus, GameMode } from '../prisma/generated/enums';
 import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
 import { getInitialTimeLeft } from './utils/time-control.utils';
+import { updateElo, GameOutcome } from './utils/elo.utils';
 
 /**
  * Service handling chess game lifecycle and move validation.
@@ -240,6 +241,18 @@ export class GameService {
 			},
 		});
 
+		if (game.whiteId && game.blackId) {
+			let outcome: GameOutcome;
+			if (dto.winnerId === game.whiteId) {
+				outcome = GameOutcome.WHITE_WINS;
+			} else if (dto.winnerId === game.blackId) {
+				outcome = GameOutcome.BLACK_WINS;
+			} else {
+				outcome = GameOutcome.DRAW;
+			}
+			await updateElo(this.prisma, game.whiteId, game.blackId, outcome);
+		}
+
 		return updatedGame;
 	}
 
@@ -284,6 +297,8 @@ export class GameService {
 		}
 
 		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
+		const winnerOutcome =
+			game.whiteId === userId ? GameOutcome.BLACK_WINS : GameOutcome.WHITE_WINS;
 
 		const updatedGame = await this.prisma.game.update({
 			where: { id: gameId },
@@ -293,6 +308,10 @@ export class GameService {
 				drawOfferedBy: null,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			await updateElo(this.prisma, game.whiteId, game.blackId, winnerOutcome);
+		}
 
 		return { ...updatedGame, endReason: 'resignation' as const };
 	}
@@ -390,6 +409,18 @@ export class GameService {
 			},
 		});
 
+		if (status === GameStatus.FINISHED && game.whiteId && game.blackId) {
+			let outcome: GameOutcome;
+			if (winnerId === game.whiteId) {
+				outcome = GameOutcome.WHITE_WINS;
+			} else if (winnerId === game.blackId) {
+				outcome = GameOutcome.BLACK_WINS;
+			} else {
+				outcome = GameOutcome.DRAW;
+			}
+			await updateElo(this.prisma, game.whiteId, game.blackId, outcome);
+		}
+
 		return { ...updatedGame, endReason };
 	}
 
@@ -420,6 +451,8 @@ export class GameService {
 		}
 
 		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
+		const winnerOutcome =
+			game.whiteId === userId ? GameOutcome.BLACK_WINS : GameOutcome.WHITE_WINS;
 
 		const updatedGame = await this.prisma.game.update({
 			where: { id: gameId },
@@ -428,6 +461,10 @@ export class GameService {
 				winnerId,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			await updateElo(this.prisma, game.whiteId, game.blackId, winnerOutcome);
+		}
 
 		return { ...updatedGame, endReason: 'resignation' as const };
 	}
@@ -470,6 +507,8 @@ export class GameService {
 		}
 
 		const winnerId = game.whiteId === userId ? game.blackId : game.whiteId;
+		const winnerOutcome =
+			game.whiteId === userId ? GameOutcome.BLACK_WINS : GameOutcome.WHITE_WINS;
 
 		const updatedGame = await this.prisma.game.update({
 			where: { id: gameId },
@@ -479,6 +518,10 @@ export class GameService {
 				drawOfferedBy: null,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			await updateElo(this.prisma, game.whiteId, game.blackId, winnerOutcome);
+		}
 
 		return { ...updatedGame, endReason: 'disconnect' as const };
 	}
@@ -554,6 +597,10 @@ export class GameService {
 				winnerId: null,
 			},
 		});
+
+		if (game.whiteId && game.blackId) {
+			await updateElo(this.prisma, game.whiteId, game.blackId, GameOutcome.DRAW);
+		}
 
 		return { ...updatedGame, endReason: 'draw' as const };
 	}
