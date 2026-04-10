@@ -114,7 +114,13 @@ describe('GameService', () => {
 	describe('getActiveGames', () => {
 		it('should return waiting online games', async () => {
 			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
-				gameFixture,
+				{
+					...gameFixture,
+					white: {
+						username: EXAMPLES.username,
+						elo: EXAMPLES.elo,
+					},
+				},
 			] as any);
 
 			const result = await service.getActiveGames();
@@ -131,6 +137,8 @@ describe('GameService', () => {
 			);
 			expect(result).toHaveLength(1);
 			expect(result[0].status).toBe(GameStatus.WAITING);
+			expect(result[0].creatorUsername).toBe(EXAMPLES.username);
+			expect(result[0].creatorElo).toBe(EXAMPLES.elo);
 		});
 	});
 
@@ -336,7 +344,7 @@ describe('GameService', () => {
 
 			const result = await service.makeMove(
 				EXAMPLES.gameId,
-				{ move: 'e4' },
+				{ move: { from: 'e2', to: 'e4' } },
 				EXAMPLES.id,
 			);
 
@@ -350,7 +358,11 @@ describe('GameService', () => {
 			);
 
 			await expect(
-				service.makeMove('missing-id', { move: 'e4' }, EXAMPLES.id),
+				service.makeMove(
+					'missing-id',
+					{ move: { from: 'e2', to: 'e4' } },
+					EXAMPLES.id,
+				),
 			).rejects.toThrow(NotFoundException);
 		});
 
@@ -360,7 +372,11 @@ describe('GameService', () => {
 			);
 
 			await expect(
-				service.makeMove(EXAMPLES.gameId, { move: 'e4' }, EXAMPLES.id),
+				service.makeMove(
+					EXAMPLES.gameId,
+					{ move: { from: 'e2', to: 'e4' } },
+					EXAMPLES.id,
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -370,7 +386,11 @@ describe('GameService', () => {
 			);
 
 			await expect(
-				service.makeMove(EXAMPLES.gameId, { move: 'e4' }, EXAMPLES.id2), // black player, but white's turn
+				service.makeMove(
+					EXAMPLES.gameId,
+					{ move: { from: 'e2', to: 'e4' } },
+					EXAMPLES.id2,
+				), // black player, but white's turn
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -380,7 +400,11 @@ describe('GameService', () => {
 			);
 
 			await expect(
-				service.makeMove(EXAMPLES.gameId, { move: 'e9' }, EXAMPLES.id),
+				service.makeMove(
+					EXAMPLES.gameId,
+					{ move: { from: 'e9', to: 'e4' } },
+					EXAMPLES.id,
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 	});
@@ -677,10 +701,89 @@ describe('GameService', () => {
 			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
 				ongoingGame as any,
 			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue({
+				...ongoingGame,
+				status: GameStatus.FINISHED,
+				winnerId: 'opponent-id',
+			} as any);
 
-			await expect(
-				service.cancelGame(ongoingGame.id, EXAMPLES.id),
-			).rejects.toThrow('Cannot cancel a started game');
+			const result = await service.cancelGame(ongoingGame.id, EXAMPLES.id);
+
+			expect(prismaService.game.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					where: { id: ongoingGame.id },
+					data: expect.objectContaining({
+						status: GameStatus.FINISHED,
+						winnerId: 'opponent-id',
+					}),
+				}),
+			);
+			expect(result.status).toBe(GameStatus.FINISHED);
+			expect(result.winnerId).toBe('opponent-id');
+		});
+	});
+
+	describe('handlePlayerDisconnect', () => {
+		it('should abort a waiting game when a player disconnects', async () => {
+			const waitingGame = {
+				...gameFixture,
+				status: GameStatus.WAITING,
+				whiteId: EXAMPLES.id,
+				blackId: null,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				waitingGame as any,
+			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue({
+				...waitingGame,
+				status: GameStatus.ABORTED,
+				winnerId: null,
+			} as any);
+
+			const result = await service.handlePlayerDisconnect(
+				waitingGame.id,
+				EXAMPLES.id,
+			);
+
+			expect(result?.status).toBe(GameStatus.ABORTED);
+			expect(result?.winnerId).toBeNull();
+			expect(result?.endReason).toBe('cancelled');
+		});
+
+		it('should award the opponent on ongoing disconnect', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+				winnerId: EXAMPLES.id2,
+			} as any);
+
+			const result = await service.handlePlayerDisconnect(
+				ongoingGameFixture.id,
+				EXAMPLES.id,
+			);
+
+			expect(result?.status).toBe(GameStatus.FINISHED);
+			expect(result?.winnerId).toBe(EXAMPLES.id2);
+			expect(result?.endReason).toBe('disconnect');
+		});
+
+		it('should return null when the game is already finished', async () => {
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+			} as any);
+
+			const result = await service.handlePlayerDisconnect(
+				ongoingGameFixture.id,
+				EXAMPLES.id,
+			);
+
+			expect(result).toBeNull();
+			expect(prismaService.game.update).not.toHaveBeenCalled();
 		});
 	});
 });

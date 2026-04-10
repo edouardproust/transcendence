@@ -104,7 +104,7 @@ describe('GameController', () => {
 	describe('makeMove', () => {
 		it('should call service.makeMove with id, dto and userId', async () => {
 			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
-			const dto = { move: 'e4' };
+			const dto = { move: { from: 'e2', to: 'e4' } };
 			jest.spyOn(gameService, 'makeMove').mockResolvedValue(gameFixture);
 			await controller.makeMove(EXAMPLES.gameId, dto, user);
 			expect(gameService.makeMove).toHaveBeenCalledWith(

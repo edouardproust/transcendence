@@ -273,7 +273,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
         };
 
         const handleGameEnd = () => {
-          if (action === "resign") {
+          if (action === "resign" || action === "cancel") {
             finish({ ok: true });
           }
         };
@@ -287,6 +287,11 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
 
             if (action === "cancel") {
               if (game.status === "cancelled") {
+                finish({ ok: true });
+                return;
+              }
+
+              if (game.status === "finished") {
                 finish({ ok: true });
                 return;
               }
@@ -428,8 +433,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   };
 
   const handleLeave = async () => {
-    const action: ExitAction =
-      status === "waiting" || !hasOpponent ? "cancel" : "resign";
+    const action: ExitAction = status === "waiting" ? "cancel" : "resign";
     await requestLeaveWithConfirmation(action);
   };
 

@@ -9,6 +9,8 @@ export interface Game {
   id: string;
   whitePlayerId: string;
   blackPlayerId: string | null;
+  creatorUsername?: string | null;
+  creatorElo?: number | null;
   currentFen: string;
   pgn: string;
   status: GameStatus;
