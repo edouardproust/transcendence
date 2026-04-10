@@ -263,19 +263,4 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			timestamp: new Date().toISOString(),
 		});
 	}
-
-	@UseGuards(WsJwtGuard)
-	@SubscribeMessage('ping')
-	async handlePing(@ConnectedSocket() client: Socket) {
-		const user = client.data.user;
-		if (process.env.NODE_ENV != 'production') {
-			console.log(`Received ping from user ${user.sub}`);
-		}
-		client.emit('pong', {
-			message: 'pong',
-			userId: user.sub,
-			username: user.username,
-			timestamp: Date.now(),
-		});
-	}
 }

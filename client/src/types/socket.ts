@@ -24,7 +24,6 @@ export interface ClientToServerEvents {
   acceptDraw: (gameId: string) => void;
   declineDraw: (gameId: string) => void;
   chatMessage: (data: { gameId: string; message: string }) => void;
-  ping: () => void;
 }
 
 export interface GameUpdateData {
