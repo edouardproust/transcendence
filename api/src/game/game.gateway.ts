@@ -72,7 +72,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					elapsed,
 				);
 
-				if (!updatedGame.whiteTimeLeft || !updatedGame.blackTimeLeft) {
+				if (!updatedGame || !updatedGame.whiteTimeLeft || !updatedGame.blackTimeLeft) {
 					this.stopGameTimer(gameId);
 					return;
 				}
