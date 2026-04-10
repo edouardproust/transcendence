@@ -12,8 +12,8 @@ import { getErrorMessage } from '../common/utils/error.utils';
 
 @WebSocketGateway({
 	cors: {
-		origin: process.env.WS_CORS_ORIGIN
-			? process.env.WS_CORS_ORIGIN.split(',')
+		origin: process.env.CORS_ORIGIN
+			? process.env.CORS_ORIGIN.split(',')
 			: ['http://localhost:8080', 'https://localhost:8443'],
 		methods: ['GET', 'POST'],
 		credentials: true,
