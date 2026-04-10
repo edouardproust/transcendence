@@ -201,7 +201,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client.to(room).emit('playerReconnected', { playerId: userId });
 
 			const game = await this.gameService.getGame(gameId);
-			client.emit('gameUpdate', game);
+			client.emit('gameUpdate', {
+				...game,
+				timeLeft: {
+					white: game.whiteTimeLeft,
+					black: game.blackTimeLeft,
+				},
+			});
 
 			return;
 		}
@@ -218,6 +224,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				playerId: userId,
 				status: updatedGame.status,
 			});
+			this.server.to(room).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
+			this.startGameTimer(gameId, updatedGame.timeControl);
+			this.updateGameTurn(gameId, 'w');
 		} else if (sockets.length > 2) {
 			client.leave(room);
 			this.socketGameMap.delete(client.id);
@@ -239,6 +254,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				gameId,
 				userId,
 			);
+
+			this.stopGameTimer(gameId);
 
 			if (updatedGame.status === GameStatus.ABORTED) {
 				this.server.to(room).emit('gameUpdate', updatedGame);
@@ -276,15 +293,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				userId,
 			);
 			if (updatedGame.status === 'FINISHED') {
+				this.stopGameTimer(data.gameId);
 				this.server.to(`game:${data.gameId}`).emit('gameEnd', {
 					winnerId: updatedGame.winnerId,
 					reason: updatedGame.endReason,
 				});
 			}
 
+			const nextTurn = updatedGame.currentFen?.split(' ')[1] === 'b' ? 'b' : 'w';
+			this.updateGameTurn(data.gameId, nextTurn);
+
 			this.server
 				.to(`game:${data.gameId}`)
-				.emit('gameUpdate', updatedGame);
+				.emit('gameUpdate', {
+					...updatedGame,
+					timeLeft: {
+						white: updatedGame.whiteTimeLeft,
+						black: updatedGame.blackTimeLeft,
+					},
+				});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) }); // we keep it simple for now, we could work on a better error handling strategy later
 		}
@@ -325,6 +352,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				userId,
 			);
 
+			this.stopGameTimer(gameId);
 			this.server.to(room).emit('drawAccepted');
 
 			this.server.to(room).emit('gameEnd', {
@@ -332,7 +360,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				reason: updatedGame.endReason,
 			});
 
-			this.server.to(room).emit('gameUpdate', updatedGame);
+			this.server.to(room).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) });
 		}
@@ -373,11 +407,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				userId,
 			);
 
+			this.stopGameTimer(gameId);
 			this.server.to(room).emit('gameEnd', {
 				winnerId: updatedGame.winnerId,
 				reason: updatedGame.endReason,
 			});
-			this.server.to(room).emit('gameUpdate', updatedGame);
+			this.server.to(room).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) });
 		}
