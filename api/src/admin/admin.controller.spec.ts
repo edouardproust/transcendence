@@ -51,6 +51,31 @@ describe('AdminController', () => {
 				dto,
 			);
 		});
+
+		it('should throw ForbiddenException when admin tries to remove their own role', async () => {
+			await expect(
+				controller.updateUser(
+					userFixture.id,
+					{ role: Role.USER },
+					{
+						id: userFixture.id,
+						role: Role.ADMIN,
+					},
+				),
+			).rejects.toThrow(ForbiddenException);
+		});
+
+		it('should allow admin to update their own non-role fields', async () => {
+			const dto: UpdateUserAdminDto = { elo: 1400 };
+			await controller.updateUser(userFixture.id, dto, {
+				id: userFixture.id,
+				role: Role.ADMIN,
+			});
+			expect(usersService.updateOneById).toHaveBeenCalledWith(
+				userFixture.id,
+				dto,
+			);
+		});
 	});
 
 	describe('deleteUser', () => {

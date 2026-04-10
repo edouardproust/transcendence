@@ -66,4 +66,5 @@ export const EXAMPLES = {
 	lastSeen: '2024-01-15T14:30:00.000Z',
 	timeControl: '10+0',
 	gameId: '11111111-1111-1111-1111-111111111111',
+	initialFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 };

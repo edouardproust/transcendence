@@ -9,7 +9,6 @@ describe('PresenceGateway', () => {
 	let gateway: PresenceGateway;
 	let usersService: UsersService;
 	let jwtService: JwtService;
-	let consoleErrorSpy: jest.SpyInstance;
 
 	const mockServer = {
 		emit: jest.fn(),
@@ -27,7 +26,8 @@ describe('PresenceGateway', () => {
 	} as unknown as Socket;
 
 	beforeEach(async () => {
-		consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+		jest.spyOn(console, 'log').mockImplementation(() => undefined);
+		jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -60,7 +60,7 @@ describe('PresenceGateway', () => {
 	});
 
 	afterEach(() => {
-		consoleErrorSpy.mockRestore();
+		jest.restoreAllMocks();
 	});
 
 	it('should be defined', () => {
@@ -132,8 +132,14 @@ describe('PresenceGateway', () => {
 
 	describe('handleDisconnect', () => {
 		it('should NOT update DB if other sockets still connected', async () => {
-			const client1 = { ...mockClient, id: 'client-1' } as unknown as Socket;
-			const client2 = { ...mockClient, id: 'client-2' } as unknown as Socket;
+			const client1 = {
+				...mockClient,
+				id: 'client-1',
+			} as unknown as Socket;
+			const client2 = {
+				...mockClient,
+				id: 'client-2',
+			} as unknown as Socket;
 
 			await gateway.handleConnection(client1);
 			await gateway.handleConnection(client2);
@@ -175,8 +181,14 @@ describe('PresenceGateway', () => {
 		});
 
 		it('should NOT emit user_status if other tabs still open', async () => {
-			const client1 = { ...mockClient, id: 'client-1' } as unknown as Socket;
-			const client2 = { ...mockClient, id: 'client-2' } as unknown as Socket;
+			const client1 = {
+				...mockClient,
+				id: 'client-1',
+			} as unknown as Socket;
+			const client2 = {
+				...mockClient,
+				id: 'client-2',
+			} as unknown as Socket;
 
 			await gateway.handleConnection(client1);
 			await gateway.handleConnection(client2);
@@ -192,7 +204,9 @@ describe('PresenceGateway', () => {
 				id: 'unknown-client',
 			} as unknown as Socket;
 
-			await expect(gateway.handleDisconnect(unknownClient)).resolves.not.toThrow();
+			await expect(
+				gateway.handleDisconnect(unknownClient),
+			).resolves.not.toThrow();
 		});
 	});
 

@@ -36,12 +36,8 @@ export class AdminGamesQueryDto {
 	})
 	@IsOptional()
 	@IsIn(['createdAt', 'updatedAt', 'status', 'mode', 'timeControl'])
-	sortBy?:
-		| 'createdAt'
-		| 'updatedAt'
-		| 'status'
-		| 'mode'
-		| 'timeControl' = 'createdAt';
+	sortBy?: 'createdAt' | 'updatedAt' | 'status' | 'mode' | 'timeControl' =
+		'createdAt';
 
 	@ApiPropertyOptional({ example: 'desc', enum: ['asc', 'desc'] })
 	@IsOptional()

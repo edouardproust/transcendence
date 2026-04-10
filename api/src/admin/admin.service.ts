@@ -8,6 +8,7 @@ import { AdminUsersResponseDto } from './dtos/admin-users-response.dto';
 import { isPrismaError, PrismaErrorCode } from '../prisma/prisma.error';
 import { GameStatus } from '../prisma/generated/enums';
 import { Prisma } from '../prisma/generated/client';
+import { DEFAULTS } from '../common/constants';
 
 @Injectable()
 export class AdminService {
@@ -38,12 +39,12 @@ export class AdminService {
 	 */
 	async getUsers(query: AdminUsersQueryDto): Promise<AdminUsersResponseDto> {
 		const {
-			page = 1,
-			limit = 20,
+			page = DEFAULTS.pagination.page,
+			limit = DEFAULTS.pagination.limit,
 			search,
 			sortBy = 'createdAt',
 			sortOrder = 'desc',
-		} = query; // TODO: replace by DEFAULTS values
+		} = query;
 		const skip = (page - 1) * limit;
 		const userOrderBy = {
 			[sortBy]: sortOrder,
@@ -116,8 +117,8 @@ export class AdminService {
 	 */
 	async getGames(query: AdminGamesQueryDto): Promise<AdminGamesResponseDto> {
 		const {
-			page = 1,
-			limit = 20,
+			page = DEFAULTS.pagination.page,
+			limit = DEFAULTS.pagination.limit,
 			status,
 			sortBy = 'createdAt',
 			sortOrder = 'desc',
