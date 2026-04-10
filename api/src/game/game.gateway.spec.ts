@@ -130,12 +130,11 @@ describe('GameGateway', () => {
 
 			await gateway.handleMove(moveData, mockClient);
 
-			expect(mockClient.emit).toHaveBeenCalledWith('error', {
-				message: 'Invalid move',
-			});
+		expect(mockClient.emit).toHaveBeenCalledWith('error', {
+			message: 'Invalid move',
 		});
 	});
-
+	});
 	describe('handleCancelGame', () => {
 		it('should emit gameCancelled when a waiting game is aborted', async () => {
 			jest.spyOn(gameService, 'cancelGame').mockResolvedValue({
@@ -197,6 +196,112 @@ describe('GameGateway', () => {
 				winnerId: ongoingGameFixture.blackId,
 				reason: 'disconnect',
 			});
+		});
+	});
+
+	describe('timer functions', () => {
+		it('should start game timer with valid time control', () => {
+			jest.spyOn(global, 'setInterval');
+			gateway.startGameTimer('game-123', '10+0');
+		});
+
+		it('should not start timer for unlimited time control', () => {
+			jest.spyOn(global, 'setInterval');
+			gateway.startGameTimer('game-123', 'unlimited');
+		});
+
+		it('should stop game timer', () => {
+			gateway.startGameTimer('game-123', '10+0');
+			gateway.stopGameTimer('game-123');
+		});
+
+		it('should update game turn', () => {
+			gateway.updateGameTurn('game-123', 'w');
+			gateway.updateGameTurn('game-123', 'b');
+		});
+	describe('handleCancelGame', () => {
+		it('should emit gameCancelled when a waiting game is aborted', async () => {
+			jest.spyOn(gameService, 'cancelGame').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.ABORTED,
+				winnerId: null,
+				endReason: 'cancelled',
+			} as any);
+
+			await gateway.handleCancelGame(ongoingGameFixture.id, mockClient);
+
+			expect(mockServer.to).toHaveBeenCalledWith(
+				`game:${ongoingGameFixture.id}`,
+			);
+			expect(mockServer.emit).toHaveBeenCalledWith(
+				'gameCancelled',
+			);
+		});
+
+		it('should emit gameEnd when an active game is cancelled by a player', async () => {
+			jest.spyOn(gameService, 'cancelGame').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+				winnerId: ongoingGameFixture.blackId,
+				endReason: 'resignation',
+			} as any);
+
+			await gateway.handleCancelGame(ongoingGameFixture.id, mockClient);
+
+			expect(mockServer.emit).toHaveBeenCalledWith('gameEnd', {
+				winnerId: ongoingGameFixture.blackId,
+				reason: 'resignation',
+			});
+		});
+	});
+
+	describe('handleDisconnect', () => {
+		it('should finish the game on disconnect and emit gameEnd', async () => {
+			jest.spyOn(gameService, 'handlePlayerDisconnect').mockResolvedValue({
+				...ongoingGameFixture,
+				status: GameStatus.FINISHED,
+				winnerId: ongoingGameFixture.blackId,
+				endReason: 'disconnect',
+			} as any);
+
+			await gateway.handleJoinGame(
+				{ gameId: ongoingGameFixture.id },
+				mockClient,
+			);
+			jest.clearAllMocks();
+
+			await gateway.handleDisconnect(mockClient);
+
+			expect(gameService.handlePlayerDisconnect).toHaveBeenCalledWith(
+				ongoingGameFixture.id,
+				ongoingGameFixture.whiteId,
+			);
+			expect(mockServer.emit).toHaveBeenCalledWith('gameEnd', {
+				winnerId: ongoingGameFixture.blackId,
+				reason: 'disconnect',
+			});
+		});
+	});
+
+	describe('timer functions', () => {
+		it('should start game timer with valid time control', () => {
+			jest.spyOn(global, 'setInterval');
+			gateway.startGameTimer('game-123', '10+0');
+		});
+
+		it('should not start timer for unlimited time control', () => {
+			jest.spyOn(global, 'setInterval');
+			gateway.startGameTimer('game-123', 'unlimited');
+		});
+
+		it('should stop game timer', () => {
+			gateway.startGameTimer('game-123', '10+0');
+			gateway.stopGameTimer('game-123');
+		});
+
+		it('should update game turn', () => {
+			gateway.updateGameTurn('game-123', 'w');
+			gateway.updateGameTurn('game-123', 'b');
 		});
 	});
 });
