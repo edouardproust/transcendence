@@ -10,6 +10,7 @@ interface Board3DProps {
   canPlay: boolean;
   playerColor: 'white' | 'black' | null;
   lastMove?: Move | null;
+  checkedKingSquare?: string | null;
   theme: Board3DTheme;
   onMove: (move: Move) => boolean;
   getLegalTargets: (square: string) => string[];
@@ -32,6 +33,7 @@ interface Board3DPalette {
   legalTargetSquare: string;
   lastMoveFromSquare: string;
   lastMoveToSquare: string;
+  checkSquare: string;
   floor: string;
 }
 
@@ -47,6 +49,7 @@ const board3DPalettes: Record<Board3DTheme, Board3DPalette> = {
     legalTargetSquare: '#7dd3fc',
     lastMoveFromSquare: '#fbbf24',
     lastMoveToSquare: '#22c55e',
+    checkSquare: '#ef4444',
     floor: '#8d7b69',
   },
   obsidian: {
@@ -59,6 +62,7 @@ const board3DPalettes: Record<Board3DTheme, Board3DPalette> = {
     legalTargetSquare: '#86efac',
     lastMoveFromSquare: '#f59e0b',
     lastMoveToSquare: '#16a34a',
+    checkSquare: '#ef4444',
     floor: '#9ca3af',
   },
 };
@@ -170,12 +174,21 @@ const PieceMesh: React.FC<{
   symbol: string;
   position: [number, number, number];
   selected: boolean;
+  inCheck: boolean;
   onClick: () => void;
-}> = ({ symbol, position, selected, onClick }) => {
+}> = ({ symbol, position, selected, inCheck, onClick }) => {
   const color: 'white' | 'black' = symbol === symbol.toUpperCase() ? 'white' : 'black';
   const type = pieceTypeFromSymbol(symbol);
   const mainMat = pieceMaterialProps(color, selected);
   const accentMat = accentMaterialProps(color);
+  const effectiveMainMat = inCheck
+    ? {
+        ...mainMat,
+        color: '#ef4444',
+        emissive: '#7f1d1d',
+        emissiveIntensity: 0.36,
+      }
+    : mainMat;
 
   return (
     <group
@@ -187,7 +200,7 @@ const PieceMesh: React.FC<{
     >
       <mesh castShadow receiveShadow position={[0, 0.05, 0]}>
         <cylinderGeometry args={[0.36, 0.42, 0.1, 28]} />
-        <meshStandardMaterial {...mainMat} />
+        <meshStandardMaterial {...effectiveMainMat} />
       </mesh>
       <mesh castShadow receiveShadow position={[0, 0.12, 0]}>
         <cylinderGeometry args={[0.29, 0.34, 0.07, 28]} />
@@ -198,11 +211,11 @@ const PieceMesh: React.FC<{
         <>
           <mesh castShadow receiveShadow position={[0, 0.28, 0]}>
             <cylinderGeometry args={[0.18, 0.22, 0.26, 24]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.48, 0]}>
             <sphereGeometry args={[0.16, 24, 24]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
         </>
       )}
@@ -211,7 +224,7 @@ const PieceMesh: React.FC<{
         <>
           <mesh castShadow receiveShadow position={[0, 0.34, 0]}>
             <cylinderGeometry args={[0.2, 0.24, 0.42, 28]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.57, 0]}>
             <cylinderGeometry args={[0.26, 0.24, 0.08, 28]} />
@@ -220,7 +233,7 @@ const PieceMesh: React.FC<{
           {[-0.16, -0.05, 0.05, 0.16].map((x, idx) => (
             <mesh key={idx} castShadow receiveShadow position={[x, 0.66, 0]}>
               <boxGeometry args={[0.07, 0.07, 0.2]} />
-              <meshStandardMaterial {...mainMat} />
+              <meshStandardMaterial {...effectiveMainMat} />
             </mesh>
           ))}
         </>
@@ -230,15 +243,15 @@ const PieceMesh: React.FC<{
         <>
           <mesh castShadow receiveShadow position={[0, 0.3, 0]}>
             <cylinderGeometry args={[0.18, 0.24, 0.34, 24]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0.03, 0.53, 0]}>
             <boxGeometry args={[0.2, 0.24, 0.14]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0.07, 0.66, 0]} rotation={[0, 0, -0.3]}>
             <coneGeometry args={[0.12, 0.28, 18]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0.14, 0.73, 0]}>
             <sphereGeometry args={[0.08, 20, 20]} />
@@ -251,11 +264,11 @@ const PieceMesh: React.FC<{
         <>
           <mesh castShadow receiveShadow position={[0, 0.31, 0]}>
             <cylinderGeometry args={[0.16, 0.22, 0.34, 24]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.55, 0]}>
             <sphereGeometry args={[0.14, 24, 24]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.7, 0]}>
             <coneGeometry args={[0.08, 0.18, 20]} />
@@ -268,7 +281,7 @@ const PieceMesh: React.FC<{
         <>
           <mesh castShadow receiveShadow position={[0, 0.33, 0]}>
             <cylinderGeometry args={[0.18, 0.24, 0.4, 26]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.58, 0]}>
             <cylinderGeometry args={[0.24, 0.2, 0.1, 26]} />
@@ -277,7 +290,7 @@ const PieceMesh: React.FC<{
           {[-0.16, -0.08, 0, 0.08, 0.16].map((x, idx) => (
             <mesh key={idx} castShadow receiveShadow position={[x, 0.7, 0]}>
               <coneGeometry args={[0.05, 0.12, 12]} />
-              <meshStandardMaterial {...mainMat} />
+              <meshStandardMaterial {...effectiveMainMat} />
             </mesh>
           ))}
           <mesh castShadow receiveShadow position={[0, 0.78, 0]}>
@@ -291,7 +304,7 @@ const PieceMesh: React.FC<{
         <>
           <mesh castShadow receiveShadow position={[0, 0.33, 0]}>
             <cylinderGeometry args={[0.18, 0.24, 0.4, 26]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.6, 0]}>
             <cylinderGeometry args={[0.22, 0.19, 0.14, 24]} />
@@ -299,11 +312,11 @@ const PieceMesh: React.FC<{
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.76, 0]}>
             <boxGeometry args={[0.06, 0.2, 0.06]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
           <mesh castShadow receiveShadow position={[0, 0.79, 0]}>
             <boxGeometry args={[0.18, 0.05, 0.05]} />
-            <meshStandardMaterial {...mainMat} />
+            <meshStandardMaterial {...effectiveMainMat} />
           </mesh>
         </>
       )}
@@ -317,6 +330,7 @@ const Board3DScene: React.FC<{
   legalTargets: string[];
   lastMoveFrom: string | null;
   lastMoveTo: string | null;
+  checkedKingSquare: string | null;
   boardOrientation: 'white' | 'black';
   theme: Board3DTheme;
   onSquareClick: (square: string) => void;
@@ -326,6 +340,7 @@ const Board3DScene: React.FC<{
   legalTargets,
   lastMoveFrom,
   lastMoveTo,
+  checkedKingSquare,
   boardOrientation,
   theme,
   onSquareClick,
@@ -360,10 +375,15 @@ const Board3DScene: React.FC<{
         const isTarget = legalTargets.includes(item.square);
         const isLastMoveFrom = lastMoveFrom === item.square;
         const isLastMoveTo = lastMoveTo === item.square;
+        const isCheckSquare = checkedKingSquare === item.square;
         const color = isSelected
-          ? palette.selectedSquare
+          ? isCheckSquare
+            ? palette.checkSquare
+            : palette.selectedSquare
           : isTarget
             ? palette.legalTargetSquare
+            : isCheckSquare
+              ? palette.checkSquare
             : isLastMoveTo
               ? palette.lastMoveToSquare
               : isLastMoveFrom
@@ -396,6 +416,7 @@ const Board3DScene: React.FC<{
             symbol={p.piece}
             position={pos}
             selected={selectedSquare === p.square}
+            inCheck={checkedKingSquare === p.square}
             onClick={() => onSquareClick(p.square)}
           />
         );
@@ -410,6 +431,7 @@ export const Board3D: React.FC<Board3DProps> = ({
   canPlay,
   playerColor,
   lastMove,
+  checkedKingSquare = null,
   theme,
   onMove,
   getLegalTargets,
@@ -433,6 +455,11 @@ export const Board3D: React.FC<Board3DProps> = ({
     setSelectedSquare(null);
     setLegalTargets([]);
   };
+
+  React.useEffect(() => {
+    clearSelection();
+    setPendingPromotion(null);
+  }, [fen]);
 
   const handlePromotionSelection = (promotion: PromotionChoice) => {
     if (!pendingPromotion) return;
@@ -531,6 +558,7 @@ export const Board3D: React.FC<Board3DProps> = ({
           legalTargets={legalTargets}
           lastMoveFrom={lastMove?.from || null}
           lastMoveTo={lastMove?.to || null}
+          checkedKingSquare={checkedKingSquare}
           boardOrientation={boardOrientation}
           theme={theme}
           onSquareClick={handleSquareClick}

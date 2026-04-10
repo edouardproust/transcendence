@@ -204,7 +204,12 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
     socket: ReturnType<typeof getSocket>,
     actionAlreadyEmitted: boolean,
   ) =>
-    new Promise<{ ok: boolean; message?: string; alreadyNotified?: boolean }>(
+    new Promise<{
+      ok: boolean;
+      message?: string;
+      alreadyNotified?: boolean;
+      resolvedStatus?: "cancelled" | "finished";
+    }>(
       (resolve) => {
         let settled = false;
         let pollInFlight = false;
@@ -243,6 +248,7 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
           ok: boolean;
           message?: string;
           alreadyNotified?: boolean;
+          resolvedStatus?: "cancelled" | "finished";
         }) => {
           if (settled) return;
           settled = true;
@@ -269,12 +275,12 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
         };
 
         const handleGameCancelled = () => {
-          finish({ ok: true });
+          finish({ ok: true, resolvedStatus: "cancelled" });
         };
 
         const handleGameEnd = () => {
           if (action === "resign" || action === "cancel") {
-            finish({ ok: true });
+            finish({ ok: true, resolvedStatus: "finished" });
           }
         };
 
@@ -287,12 +293,12 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
 
             if (action === "cancel") {
               if (game.status === "cancelled") {
-                finish({ ok: true });
+                finish({ ok: true, resolvedStatus: "cancelled" });
                 return;
               }
 
               if (game.status === "finished") {
-                finish({ ok: true });
+                finish({ ok: true, resolvedStatus: "finished" });
                 return;
               }
 
@@ -312,7 +318,11 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
               action === "resign" &&
               (game.status === "finished" || game.status === "cancelled")
             ) {
-              finish({ ok: true });
+              finish({
+                ok: true,
+                resolvedStatus:
+                  game.status === "cancelled" ? "cancelled" : "finished",
+              });
             }
           } catch (error: any) {
             const message = error.response?.data?.message;
@@ -387,8 +397,10 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
         return;
       }
 
-      reset();
-      navigate("/lobby");
+      if (result.resolvedStatus === "cancelled") {
+        reset();
+        navigate("/lobby");
+      }
     } finally {
       if (isMountedRef.current) {
         setIsLeavingGame(false);
