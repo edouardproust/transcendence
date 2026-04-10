@@ -9,7 +9,7 @@ interface GameLayoutProps {
   children?: React.ReactNode; // Para banners adicionales
   gameFinished?: boolean;
   clockEnabled?: boolean;
-  isYhinking?: boolean;
+  isThinking?: boolean;
   aiLevel?: number;
 }
 
