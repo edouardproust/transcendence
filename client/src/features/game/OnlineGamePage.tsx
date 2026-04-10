@@ -209,157 +209,152 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
       message?: string;
       alreadyNotified?: boolean;
       resolvedStatus?: "cancelled" | "finished";
-    }>(
-      (resolve) => {
-        let settled = false;
-        let pollInFlight = false;
-        let actionEmitted = actionAlreadyEmitted;
-        let socketErrorMessage: string | null = null;
-        let pollTimer: number | null = null;
-        let timeoutTimer: number | null = null;
+    }>((resolve) => {
+      let settled = false;
+      let pollInFlight = false;
+      let actionEmitted = actionAlreadyEmitted;
+      let socketErrorMessage: string | null = null;
+      let pollTimer: number | null = null;
+      let timeoutTimer: number | null = null;
 
-        const emitWhenPossible = () => {
-          if (settled || actionEmitted) return;
+      const emitWhenPossible = () => {
+        if (settled || actionEmitted) return;
 
-          if (!emitExitAction(action, socket)) {
-            return;
-          }
+        if (!emitExitAction(action, socket)) {
+          return;
+        }
 
-          actionEmitted = true;
-        };
+        actionEmitted = true;
+      };
 
-        const cleanup = () => {
-          if (pollTimer !== null) {
-            window.clearInterval(pollTimer);
-          }
-          if (timeoutTimer !== null) {
-            window.clearTimeout(timeoutTimer);
-          }
-          socket?.off("connect", handleSocketConnect);
-          socket?.off("error", handleSocketError);
-          socket?.off("gameCancelled", handleGameCancelled);
-          socket?.off("gameEnd", handleGameEnd);
-          if (activeLeaveWaitCleanupRef.current === cleanup) {
-            activeLeaveWaitCleanupRef.current = null;
-          }
-        };
+      const cleanup = () => {
+        if (pollTimer !== null) {
+          window.clearInterval(pollTimer);
+        }
+        if (timeoutTimer !== null) {
+          window.clearTimeout(timeoutTimer);
+        }
+        socket?.off("connect", handleSocketConnect);
+        socket?.off("error", handleSocketError);
+        socket?.off("gameCancelled", handleGameCancelled);
+        socket?.off("gameEnd", handleGameEnd);
+        if (activeLeaveWaitCleanupRef.current === cleanup) {
+          activeLeaveWaitCleanupRef.current = null;
+        }
+      };
 
-        const finish = (result: {
-          ok: boolean;
-          message?: string;
-          alreadyNotified?: boolean;
-          resolvedStatus?: "cancelled" | "finished";
-        }) => {
-          if (settled) return;
-          settled = true;
-          cleanup();
-          resolve(result);
-        };
+      const finish = (result: {
+        ok: boolean;
+        message?: string;
+        alreadyNotified?: boolean;
+        resolvedStatus?: "cancelled" | "finished";
+      }) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(result);
+      };
 
-        const handleSocketConnect = () => {
-          emitWhenPossible();
-        };
+      const handleSocketConnect = () => {
+        emitWhenPossible();
+      };
 
-        const handleSocketError = (payload: unknown) => {
-          const message = getSocketErrorMessage(payload);
-          if (!message) return;
+      const handleSocketError = (payload: unknown) => {
+        const message = getSocketErrorMessage(payload);
+        if (!message) return;
 
-          socketErrorMessage = message;
+        socketErrorMessage = message;
 
-          if (
-            action === "cancel" &&
-            message === "Cannot cancel a started game"
-          ) {
-            finish({ ok: false, message, alreadyNotified: true });
-          }
-        };
+        if (action === "cancel" && message === "Cannot cancel a started game") {
+          finish({ ok: false, message, alreadyNotified: true });
+        }
+      };
 
-        const handleGameCancelled = () => {
-          finish({ ok: true, resolvedStatus: "cancelled" });
-        };
+      const handleGameCancelled = () => {
+        finish({ ok: true, resolvedStatus: "cancelled" });
+      };
 
-        const handleGameEnd = () => {
-          if (action === "resign" || action === "cancel") {
-            finish({ ok: true, resolvedStatus: "finished" });
-          }
-        };
+      const handleGameEnd = () => {
+        if (action === "resign" || action === "cancel") {
+          finish({ ok: true, resolvedStatus: "finished" });
+        }
+      };
 
-        const pollGameStatus = async () => {
-          if (pollInFlight || settled) return;
-          pollInFlight = true;
+      const pollGameStatus = async () => {
+        if (pollInFlight || settled) return;
+        pollInFlight = true;
 
-          try {
-            const game = await gameService.getGame(gameId);
+        try {
+          const game = await gameService.getGame(gameId);
 
-            if (action === "cancel") {
-              if (game.status === "cancelled") {
-                finish({ ok: true, resolvedStatus: "cancelled" });
-                return;
-              }
-
-              if (game.status === "finished") {
-                finish({ ok: true, resolvedStatus: "finished" });
-                return;
-              }
-
-              if (game.status === "active") {
-                finish({
-                  ok: false,
-                  message:
-                    socketErrorMessage ||
-                    "No se pudo cancelar. La partida ya comenzó.",
-                  alreadyNotified: Boolean(socketErrorMessage),
-                });
-                return;
-              }
+          if (action === "cancel") {
+            if (game.status === "cancelled") {
+              finish({ ok: true, resolvedStatus: "cancelled" });
+              return;
             }
 
-            if (
-              action === "resign" &&
-              (game.status === "finished" || game.status === "cancelled")
-            ) {
-              finish({
-                ok: true,
-                resolvedStatus:
-                  game.status === "cancelled" ? "cancelled" : "finished",
-              });
+            if (game.status === "finished") {
+              finish({ ok: true, resolvedStatus: "finished" });
+              return;
             }
-          } catch (error: any) {
-            const message = error.response?.data?.message;
-            if (
-              typeof message === "string" &&
-              message.toLowerCase().includes("not found")
-            ) {
+
+            if (game.status === "active") {
               finish({
                 ok: false,
-                message: "La partida ya no está disponible.",
+                message:
+                  socketErrorMessage ||
+                  "No se pudo cancelar. La partida ya comenzó.",
+                alreadyNotified: Boolean(socketErrorMessage),
               });
+              return;
             }
-          } finally {
-            pollInFlight = false;
           }
-        };
 
-        socket?.on("connect", handleSocketConnect);
-        socket?.on("error", handleSocketError);
-        socket?.on("gameCancelled", handleGameCancelled);
-        socket?.on("gameEnd", handleGameEnd);
+          if (
+            action === "resign" &&
+            (game.status === "finished" || game.status === "cancelled")
+          ) {
+            finish({
+              ok: true,
+              resolvedStatus:
+                game.status === "cancelled" ? "cancelled" : "finished",
+            });
+          }
+        } catch (error: any) {
+          const message = error.response?.data?.message;
+          if (
+            typeof message === "string" &&
+            message.toLowerCase().includes("not found")
+          ) {
+            finish({
+              ok: false,
+              message: "La partida ya no está disponible.",
+            });
+          }
+        } finally {
+          pollInFlight = false;
+        }
+      };
 
-        activeLeaveWaitCleanupRef.current = cleanup;
-        emitWhenPossible();
+      socket?.on("connect", handleSocketConnect);
+      socket?.on("error", handleSocketError);
+      socket?.on("gameCancelled", handleGameCancelled);
+      socket?.on("gameEnd", handleGameEnd);
+
+      activeLeaveWaitCleanupRef.current = cleanup;
+      emitWhenPossible();
+      void pollGameStatus();
+      pollTimer = window.setInterval(() => {
         void pollGameStatus();
-        pollTimer = window.setInterval(() => {
-          void pollGameStatus();
-        }, 400);
-        timeoutTimer = window.setTimeout(() => {
-          finish({
-            ok: false,
-            message:
-              "No se pudo confirmar el estado con el servidor. Inténtalo de nuevo.",
-          });
-        }, 5000);
-      },
-    );
+      }, 400);
+      timeoutTimer = window.setTimeout(() => {
+        finish({
+          ok: false,
+          message:
+            "No se pudo confirmar el estado con el servidor. Inténtalo de nuevo.",
+        });
+      }, 5000);
+    });
 
   const requestLeaveWithConfirmation = async (action: ExitAction) => {
     if (isLeavingGame) return;
@@ -447,6 +442,11 @@ export const OnlineGamePage: React.FC<OnlineGamePageProps> = ({ gameId }) => {
   };
 
   const handleLeave = async () => {
+    if (status === "finished" || status === "cancelled") {
+      reset();
+      navigate("/lobby");
+      return;
+    }
     const action: ExitAction = status === "waiting" ? "cancel" : "resign";
     await requestLeaveWithConfirmation(action);
   };
