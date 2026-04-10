@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Game, CreateGameRequest } from '@/types/game';
+import { Game, CreateGameRequest, PlayerColor } from '@/types/game';
 
 const DEFAULT_INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 type ApiGameMode = 'ONLINE' | 'AI';
@@ -67,8 +67,8 @@ export const gameService = {
     return response.data.map(mapGameFromAPI);
   },
 
-  async startGame(gameId: string): Promise<Game> {
-    const response = await api.post(`/games/${gameId}/start`);
+  async startGame(gameId: string, data?: { playerColor?: PlayerColor }): Promise<Game> {
+    const response = await api.post(`/games/${gameId}/start`, data ?? {});
     return mapGameFromAPI(response.data);
   },
 

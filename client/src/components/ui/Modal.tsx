@@ -1,4 +1,5 @@
 import React from 'react';
+import { uiPalette, uiRadius, uiShadow, uiTypography } from './designSystem';
 
 interface ModalProps {
   isOpen: boolean;
@@ -24,9 +25,9 @@ export const Modal: React.FC<ModalProps> = ({
       />
       
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div className={`relative ${uiPalette.surface} ${uiRadius.md} ${uiShadow.modal} max-w-md w-full mx-4 p-6`}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className={`text-xl ${uiTypography.heading} ${uiPalette.textPrimary}`}>
             {title}
           </h2>
           <button
@@ -36,7 +37,7 @@ export const Modal: React.FC<ModalProps> = ({
             ×
           </button>
         </div>
-        <div className="text-gray-700 dark:text-gray-300">
+        <div className={uiPalette.textSecondary}>
           {children}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { uiRadius } from './designSystem';
 
 type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 
@@ -17,7 +18,7 @@ export const Badge: React.FC<BadgeProps> = ({ children, tone = 'neutral' }) => {
   };
 
   return (
-    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${tones[tone]}`}>
+    <span className={`inline-flex items-center px-2 py-1 ${uiRadius.md} text-xs font-semibold ${tones[tone]}`}>
       {children}
     </span>
   );

@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { gameService } from '@/services/gameService';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { pushToast } from '@/components/ui/ToastProvider';
 import { useAuthStore } from '@/features/auth/authStore';
 import { Game } from '@/types/game';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ export const LobbyPage: React.FC = () => {
       navigate(`/game/${game.id}`);
     } catch (error) {
       console.error('Error creating game:', error);
-      alert('Error al crear la partida');
+      pushToast(getApiErrorMessage(error, 'Error al crear la partida'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +68,7 @@ export const LobbyPage: React.FC = () => {
       navigate(`/game/${game.id}`);
     } catch (error) {
       console.error('Error creating game:', error);
-      alert('Error al crear la partida');
+      pushToast(getApiErrorMessage(error, 'Error al crear la partida'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -130,6 +132,9 @@ export const LobbyPage: React.FC = () => {
               <h3 className="font-bold mb-2">🤖 Vs Computadora (IA)</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Practica contra Stockfish (motor de ajedrez)
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                Vista 2D/3D, temas del tablero, color y dificultad se recuerdan entre partidas.
               </p>
               <Button onClick={handleCreateAIGame} disabled={isLoading}>
                 {isLoading ? 'Creando...' : 'Jugar vs IA'}

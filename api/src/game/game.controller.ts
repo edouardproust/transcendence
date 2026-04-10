@@ -23,6 +23,7 @@ import { RequestUser } from '../auth/interfaces/request-user.interface';
 import { GameResponseDto } from './dto/game-response.dto';
 import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
+import { StartGameDto } from './dto/start-game.dto';
 
 @Controller('games')
 @UseGuards(JwtAuthGuard)
@@ -128,9 +129,10 @@ export class GameController {
 	})
 	async startGame(
 		@Param('id', ParseUUIDPipe) id: string,
+		@Body() dto: StartGameDto,
 		@CurrentUser() user: RequestUser,
 	): Promise<GameResponseDto> {
-		return this.gameService.startGame(id, user.id);
+		return this.gameService.startGame(id, user.id, dto);
 	}
 
 	@Post(':id/finish')

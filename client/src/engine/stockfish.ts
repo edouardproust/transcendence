@@ -7,26 +7,23 @@ export class StockfishEngine {
     return new Promise((resolve, reject) => {
       try {
         this.worker = new Worker('/stockfish.js');
-        
+
         this.worker.onmessage = (e) => {
           const message = e.data;
-          console.log('Stockfish:', message);
-          
+
           if (typeof message === 'string') {
             if (message.includes('uciok')) {
               this.isReady = true;
               this.worker?.postMessage('isready');
             }
-            
+
             if (message.includes('readyok')) {
-              console.log('✓ Stockfish ready');
               resolve();
             }
-            
+
             if (message.startsWith('bestmove')) {
               const parts = message.split(' ');
               const move = parts[1];
-              console.log('Stockfish best move:', move);
               if (this.onBestMoveCallback && move) {
                 this.onBestMoveCallback(move);
               }
@@ -39,7 +36,6 @@ export class StockfishEngine {
           reject(error);
         };
 
-        console.log('Initializing Stockfish...');
         this.worker.postMessage('uci');
       } catch (error) {
         console.error('Failed to initialize Stockfish:', error);
@@ -53,7 +49,6 @@ export class StockfishEngine {
       console.warn('Stockfish not ready');
       return;
     }
-    console.log('Setting position:', fen);
     this.worker.postMessage(`position fen ${fen}`);
   }
 
@@ -77,7 +72,6 @@ export class StockfishEngine {
       this.worker.postMessage('setoption name UCI_LimitStrength value false');
     }
 
-    console.log('Calculating move, level/depth:', normalizedLevel, depth);
     this.worker.postMessage(`go depth ${depth}`);
   }
 

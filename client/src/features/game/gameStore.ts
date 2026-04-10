@@ -13,6 +13,28 @@ import { ChessClient } from '@/engine/chessClient';
 
 const board2DThemes: Board2DTheme[] = ['classic', 'wood', 'ocean', 'slate'];
 const board3DThemes: Board3DTheme[] = ['wood', 'obsidian'];
+const boardViewModes: BoardViewMode[] = ['2d', '3d'];
+
+const STORAGE_KEYS = {
+  boardView: 'game-preferences:boardView',
+  board2DTheme: 'game-preferences:board2DTheme',
+  board3DTheme: 'game-preferences:board3DTheme',
+} as const;
+
+const readStoredPreference = <T extends string>(
+  key: string,
+  allowedValues: readonly T[],
+  fallback: T
+): T => {
+  if (typeof window === 'undefined') return fallback;
+  const value = window.localStorage.getItem(key);
+  return allowedValues.includes(value as T) ? (value as T) : fallback;
+};
+
+const persistPreference = (key: string, value: string) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(key, value);
+};
 
 interface GameStore extends GameState {
   chess: ChessClient | null;
@@ -36,7 +58,7 @@ interface GameStore extends GameState {
   reset: () => void;
 }
 
-const initialState: GameState = {
+const createInitialState = (): GameState => ({
   gameId: null,
   fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
   pgn: '',
@@ -47,17 +69,17 @@ const initialState: GameState = {
   isConnected: false,
   mode: 'online',
   playerColor: null,
-  boardView: '2d',
-  board2DTheme: 'classic',
-  board3DTheme: 'wood',
+  boardView: readStoredPreference(STORAGE_KEYS.boardView, boardViewModes, '2d'),
+  board2DTheme: readStoredPreference(STORAGE_KEYS.board2DTheme, board2DThemes, 'classic'),
+  board3DTheme: readStoredPreference(STORAGE_KEYS.board3DTheme, board3DThemes, 'wood'),
   timeLeft: {
     white: 600,
     black: 600,
   },
-};
+});
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  ...initialState,
+  ...createInitialState(),
   chess: null,
 
   initGame: (gameId, mode, playerColor, initialFen, initialPgn, initialStatus) => {
@@ -161,6 +183,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setBoardView: (mode) => {
+    persistPreference(STORAGE_KEYS.boardView, mode);
     set({ boardView: mode });
   },
 
@@ -168,6 +191,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const currentTheme = get().board2DTheme;
     const currentIndex = board2DThemes.indexOf(currentTheme);
     const nextIndex = (currentIndex + 1) % board2DThemes.length;
+    persistPreference(STORAGE_KEYS.board2DTheme, board2DThemes[nextIndex]);
     set({ board2DTheme: board2DThemes[nextIndex] });
   },
 
@@ -175,6 +199,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const currentTheme = get().board3DTheme;
     const currentIndex = board3DThemes.indexOf(currentTheme);
     const nextIndex = (currentIndex + 1) % board3DThemes.length;
+    persistPreference(STORAGE_KEYS.board3DTheme, board3DThemes[nextIndex]);
     set({ board3DTheme: board3DThemes[nextIndex] });
   },
 
@@ -191,6 +216,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   reset: () => {
-    set({ ...initialState, chess: null });
+    set({ ...createInitialState(), chess: null });
   },
 }));

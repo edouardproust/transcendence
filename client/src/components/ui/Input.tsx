@@ -1,4 +1,5 @@
 import React from 'react';
+import { uiPalette, uiRadius, uiTypography } from './designSystem';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
   label?: string;
@@ -21,7 +22,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+        <label className={`block mb-1 ${uiTypography.label} ${uiPalette.textSecondary}`}>
           {label}
         </label>
       )}
@@ -33,7 +34,7 @@ export const Input: React.FC<InputProps> = ({
         required={required}
         minLength={minLength}
         {...rest}
-        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+        className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 ${uiRadius.md} ${uiPalette.focusRing} bg-white dark:bg-gray-800 ${uiPalette.textPrimary}`}
       />
       {error && (
         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>

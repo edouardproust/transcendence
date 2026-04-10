@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { gameService } from '@/services/gameService';
+import { pushToast } from '@/components/ui/ToastProvider';
 import { AIGamePage } from './AIGamePage';
 import { OnlineGamePage } from './OnlineGamePage';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const GamePage: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -23,7 +25,7 @@ export const GamePage: React.FC = () => {
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading game:', error);
-        alert('Error al cargar la partida');
+        pushToast(getApiErrorMessage(error, 'Error al cargar la partida'), 'error');
         navigate('/lobby');
       }
     };
