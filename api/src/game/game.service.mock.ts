@@ -29,6 +29,8 @@ export const ongoingGameFixture = {
 	blackId: EXAMPLES.id2,
 	currentFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	pgn: '',
+	whiteTimeLeft: 600,
+	blackTimeLeft: 600,
 };
 
 export const GameServiceMock = {

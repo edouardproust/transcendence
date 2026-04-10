@@ -113,7 +113,13 @@ describe('GameGateway', () => {
 			);
 			expect(mockServer.emit).toHaveBeenCalledWith(
 				'gameUpdate',
-				ongoingGameFixture,
+				expect.objectContaining({
+					...ongoingGameFixture,
+					timeLeft: {
+						white: ongoingGameFixture.whiteTimeLeft,
+						black: ongoingGameFixture.blackTimeLeft,
+					},
+				}),
 			);
 		});
 
