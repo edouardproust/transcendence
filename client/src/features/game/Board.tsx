@@ -77,6 +77,23 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
   const canPlay = status === 'active' && isMyTurn();
   const chessboardKey = `chessboard-${gameId ?? 'none'}-${playerColor ?? 'none'}-${status}-${canPlay ? 'play' : 'wait'}`;
   const active2DTheme = board2DThemes[board2DTheme];
+  const checkedKingSquare = React.useMemo(() => {
+    if (!chess?.inCheck()) return null;
+
+    const kingSymbol = turn === 'w' ? 'K' : 'k';
+    const files = 'abcdefgh';
+
+    for (let rank = 1; rank <= 8; rank += 1) {
+      for (const file of files) {
+        const square = `${file}${rank}`;
+        if (chess.getPiece(square) === kingSymbol) {
+          return square;
+        }
+      }
+    }
+
+    return null;
+  }, [chess, fen, turn]);
   const lastMoveStyles = React.useMemo<Record<string, React.CSSProperties>>(() => {
     if (!lastMove?.from || !lastMove?.to) return {};
     return {
@@ -90,6 +107,16 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
       },
     };
   }, [lastMove]);
+  const checkStyles = React.useMemo<Record<string, React.CSSProperties>>(() => {
+    if (!checkedKingSquare) return {};
+
+    return {
+      [checkedKingSquare]: {
+        backgroundColor: 'rgba(239, 68, 68, 0.72)',
+        boxShadow: 'inset 0 0 0 3px rgba(127, 29, 29, 0.72)',
+      },
+    };
+  }, [checkedKingSquare]);
 
   const getLegalTargets = (square: string) => {
     if (!chess) return [];
@@ -178,6 +205,7 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           canPlay={canPlay}
           playerColor={playerColor}
           lastMove={lastMove}
+          checkedKingSquare={checkedKingSquare}
           theme={board3DTheme}
           onMove={onMove}
           getLegalTargets={getLegalTargets}
@@ -208,7 +236,7 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
             return getLegalTargets(sourceSquare).length > 0;
           }}
 
-          customSquareStyles={lastMoveStyles}
+          customSquareStyles={{ ...lastMoveStyles, ...checkStyles }}
         />
       )}
     </div>

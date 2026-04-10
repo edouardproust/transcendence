@@ -9,6 +9,8 @@ interface GameLayoutProps {
   children?: React.ReactNode; // Para banners adicionales
   gameFinished?: boolean;
   clockEnabled?: boolean;
+  isThinking?: boolean;
+  aiLevel?: number;
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ 
@@ -16,6 +18,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
   children,
   gameFinished = false,
   clockEnabled = false,
+  isThinking = false,
+  aiLevel,
 }) => {
   return (
     <div className="max-w-7xl mx-auto px-4">
@@ -35,6 +39,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
 
         <div className="space-y-4">
           <GameClock enabled={clockEnabled} />
+          {/* IA pensando */}
+          {isThinking && (
+            <div className="mb-4 p-3 bg-blue-100 border border-blue-400 rounded text-center">
+              <p className="text-blue-800">
+                🤔 La IA está pensando (Nivel {aiLevel})...
+              </p>
+            </div>
+          )}
           <MoveHistory />
         </div>
       </div>

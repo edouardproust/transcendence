@@ -231,10 +231,6 @@ export const useGameSocket = (
       }
     };
 
-    const handlePlayerDisconnected = () => {
-      pushToast("Tu oponente se desconecto. Esperando reconexion...", "info");
-    };
-
     const handlePlayerReconnected = () => {
       pushToast("Tu oponente se reconecto", "success");
     };
@@ -247,7 +243,6 @@ export const useGameSocket = (
     socket.on("drawDeclined", handleDrawDeclined);
     socket.on("chatMessage", handleChatMessage);
     socket.on("error", handleError);
-    socket.on("playerDisconnected", handlePlayerDisconnected);
     socket.on("playerReconnected", handlePlayerReconnected);
     socket.on("connect", joinGame);
 
@@ -264,7 +259,6 @@ export const useGameSocket = (
       socket.off("drawDeclined", handleDrawDeclined);
       socket.off("chatMessage", handleChatMessage);
       socket.off("error", handleError);
-      socket.off("playerDisconnected", handlePlayerDisconnected);
       socket.off("playerReconnected", handlePlayerReconnected);
       socket.off("connect", joinGame);
       disconnectSocket();
