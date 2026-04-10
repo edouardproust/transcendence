@@ -483,8 +483,8 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       }
     }
 
-    reset();
-    navigate("/lobby");
+    //reset();
+    //navigate("/lobby");
   };
 
   const handleLeave = () => {
