@@ -2,10 +2,10 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 	OnGatewayConnection,
+	OnGatewayDisconnect,
 	SubscribeMessage,
 	MessageBody,
 	ConnectedSocket,
-	OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
@@ -14,10 +14,17 @@ import { WsJwtGuard } from '../auth/guard/ws-jwt.guard';
 import { UsersService } from '../users/users.service';
 import { getErrorMessage } from '../common/utils/error.utils';
 import { GameStatus } from '../prisma/generated/enums';
+import { parseTimeControl } from './utils/time-control.utils';
+
+interface GameTimer {
+	intervalId: ReturnType<typeof setInterval>;
+	gameId: string;
+	currentTurn: 'w' | 'b';
+	lastTick: number;
+}
 
 @WebSocketGateway({
 	cors: {
-<<<<<<< HEAD
 		origin: process.env.CORS_ORIGIN
 			? process.env.CORS_ORIGIN.split(',')
 			: ['http://localhost:8080', 'https://localhost:8443'],
@@ -34,10 +41,92 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		{ gameId: string; userId: string }
 	>();
 
+	private gameTimers = new Map<string, GameTimer>();
+	private gameTurnMap = new Map<string, 'w' | 'b'>();
+
 	constructor(
 		private readonly gameService: GameService,
 		private readonly usersService: UsersService,
 	) {}
+
+	private startGameTimer(gameId: string, timeControl: string) {
+		const parsed = parseTimeControl(timeControl);
+		if (!parsed || parsed.increment === 0) return;
+
+		this.stopGameTimer(gameId);
+
+		const intervalId = setInterval(async () => {
+			const timer = this.gameTimers.get(gameId);
+			if (!timer) return;
+
+			const now = Date.now();
+			const elapsed = Math.floor((now - timer.lastTick) / 1000);
+			timer.lastTick = now;
+
+			const currentTurn = this.gameTurnMap.get(gameId) || 'w';
+
+			try {
+				const updatedGame = await this.gameService.decrementTime(
+					gameId,
+					currentTurn,
+					elapsed,
+				);
+
+				if (!updatedGame.whiteTimeLeft || !updatedGame.blackTimeLeft) {
+					this.stopGameTimer(gameId);
+					return;
+				}
+
+				this.server.to(`game:${gameId}`).emit('gameUpdate', {
+					timeLeft: {
+						white: updatedGame.whiteTimeLeft,
+						black: updatedGame.blackTimeLeft,
+					},
+					turn: currentTurn,
+				});
+
+				if (
+					updatedGame.whiteTimeLeft <= 0 ||
+					updatedGame.blackTimeLeft <= 0
+				) {
+					this.stopGameTimer(gameId);
+					this.server.to(`game:${gameId}`).emit('gameEnd', {
+						winnerId:
+							updatedGame.whiteTimeLeft <= 0
+								? updatedGame.blackId
+								: updatedGame.whiteId,
+						reason: 'timeout',
+					});
+				}
+			} catch (error) {
+				this.stopGameTimer(gameId);
+			}
+		}, 1000);
+
+		this.gameTimers.set(gameId, {
+			intervalId,
+			gameId,
+			currentTurn: 'w',
+			lastTick: Date.now(),
+		});
+	}
+
+	private stopGameTimer(gameId: string) {
+		const timer = this.gameTimers.get(gameId);
+		if (timer) {
+			clearInterval(timer.intervalId);
+			this.gameTimers.delete(gameId);
+		}
+	}
+
+	private updateGameTurn(gameId: string, turn: 'w' | 'b') {
+		this.gameTurnMap.set(gameId, turn);
+		const timer = this.gameTimers.get(gameId);
+		if (timer) {
+			timer.currentTurn = turn;
+			timer.lastTick = Date.now();
+		}
+	}
 
 	handleConnection(client: Socket) {
 		if (process.env.NODE_ENV != 'production') {
