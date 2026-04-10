@@ -387,31 +387,6 @@ export class GameService {
 					.replace(/\s*\*$/, ''),
 				status,
 				winnerId,
-				...(() => {
-					const timeControl = getInitialTimeLeft(game.timeControl);
-					if (!timeControl || !game.whiteTimeLeft || !game.blackTimeLeft) {
-						return {};
-					}
-
-					const increment = timeControl.increment;
-					const now = Date.now();
-
-					const lastMoveTimestamp = game.updatedAt?.getTime() || now;
-					const elapsedSeconds = Math.floor((now - lastMoveTimestamp) / 1000);
-
-					const isWhiteMove = userId === game.whiteId;
-					const newWhiteTime = isWhiteMove
-						? Math.max(0, (game.whiteTimeLeft || 0) - elapsedSeconds) + increment
-						: game.whiteTimeLeft;
-					const newBlackTime = !isWhiteMove
-						? Math.max(0, (game.blackTimeLeft || 0) - elapsedSeconds) + increment
-						: game.blackTimeLeft;
-
-					return {
-						whiteTimeLeft: newWhiteTime,
-						blackTimeLeft: newBlackTime,
-					};
-				})(),
 			},
 		});
 

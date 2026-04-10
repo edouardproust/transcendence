@@ -231,8 +231,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					black: updatedGame.blackTimeLeft,
 				},
 			});
-			this.startGameTimer(gameId, updatedGame.timeControl);
-			this.updateGameTurn(gameId, 'w');
 		} else if (sockets.length > 2) {
 			client.leave(room);
 			this.socketGameMap.delete(client.id);
@@ -301,6 +299,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 
 			const nextTurn = updatedGame.currentFen?.split(' ')[1] === 'b' ? 'b' : 'w';
+			
+			// Start timer on first move, set initial turn
+			const existingTimer = this.gameTimers.get(data.gameId);
+			if (!existingTimer) {
+				this.startGameTimer(data.gameId, updatedGame.timeControl || '10+0');
+			}
 			this.updateGameTurn(data.gameId, nextTurn);
 
 			this.server
