@@ -570,6 +570,8 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
       onMove={handleMove}
       gameFinished={status === "finished"}
       clockEnabled={!untimedMode}
+      isThinking={isAiThinking}
+      aiLevel={aiLevel}
     >
       <GameHeader
         title="🤖 Vs Computadora"
@@ -639,14 +641,7 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
         </div>
       )}
 
-      {/* IA pensando */}
-      {isAiThinking && (
-        <div className="mb-4 p-3 bg-blue-100 border border-blue-400 rounded text-center">
-          <p className="text-blue-800">
-            🤔 La IA está pensando (Nivel {aiLevel})...
-          </p>
-        </div>
-      )}
+      
     </GameLayout>
   );
 };
