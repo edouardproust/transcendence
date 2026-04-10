@@ -47,5 +47,8 @@ export const GameServiceMock = {
 		handlePlayerDisconnect: jest.fn(),
 		makeMove: jest.fn(),
 		decrementTime: jest.fn(),
+		offerDraw: jest.fn(),
+		acceptDraw: jest.fn(),
+		declineDraw: jest.fn(),
 	},
 };

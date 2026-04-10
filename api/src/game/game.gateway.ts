@@ -49,7 +49,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private readonly usersService: UsersService,
 	) {}
 
-	private startGameTimer(gameId: string, timeControl: string) {
+	public startGameTimer(gameId: string, timeControl: string) {
 		const parsed = parseTimeControl(timeControl);
 		if (!parsed) return;
 
@@ -72,18 +72,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					elapsed,
 				);
 
-				if (!updatedGame || !updatedGame.whiteTimeLeft || !updatedGame.blackTimeLeft) {
+				if (
+					!updatedGame ||
+					updatedGame.whiteTimeLeft == null ||
+					updatedGame.blackTimeLeft == null
+				) {
 					this.stopGameTimer(gameId);
 					return;
 				}
-
-				this.server.to(`game:${gameId}`).emit('gameUpdate', {
-					timeLeft: {
-						white: updatedGame.whiteTimeLeft,
-						black: updatedGame.blackTimeLeft,
-					},
-					turn: currentTurn,
-				});
 
 				if (
 					updatedGame.whiteTimeLeft <= 0 ||
@@ -97,7 +93,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 								: updatedGame.whiteId,
 						reason: 'timeout',
 					});
+					return;
 				}
+
+				this.server.to(`game:${gameId}`).emit('gameUpdate', {
+					timeLeft: {
+						white: updatedGame.whiteTimeLeft,
+						black: updatedGame.blackTimeLeft,
+					},
+					turn: currentTurn,
+				});
 			} catch (error) {
 				this.stopGameTimer(gameId);
 			}
@@ -111,7 +116,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		});
 	}
 
-	private stopGameTimer(gameId: string) {
+	public stopGameTimer(gameId: string) {
 		const timer = this.gameTimers.get(gameId);
 		if (timer) {
 			clearInterval(timer.intervalId);
@@ -119,7 +124,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	private updateGameTurn(gameId: string, turn: 'w' | 'b') {
+	public updateGameTurn(gameId: string, turn: 'w' | 'b') {
 		this.gameTurnMap.set(gameId, turn);
 		const timer = this.gameTimers.get(gameId);
 		if (timer) {
@@ -147,9 +152,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const { gameId, userId } = session;
 		this.socketGameMap.delete(client.id);
 
-		const hasAnotherSocketForSameUser = [...this.socketGameMap.values()].some(
+		const hasAnotherSocketForSameUser = [
+			...this.socketGameMap.values(),
+		].some(
 			(activeSession) =>
-				activeSession.gameId === gameId && activeSession.userId === userId,
+				activeSession.gameId === gameId &&
+				activeSession.userId === userId,
 		);
 
 		if (hasAnotherSocketForSameUser) {
@@ -298,24 +306,26 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 			}
 
-			const nextTurn = updatedGame.currentFen?.split(' ')[1] === 'b' ? 'b' : 'w';
-			
+			const nextTurn =
+				updatedGame.currentFen?.split(' ')[1] === 'b' ? 'b' : 'w';
+
 			// Start timer on first move, set initial turn
 			const existingTimer = this.gameTimers.get(data.gameId);
 			if (!existingTimer) {
-				this.startGameTimer(data.gameId, updatedGame.timeControl || '10+0');
+				this.startGameTimer(
+					data.gameId,
+					updatedGame.timeControl || '10+0',
+				);
 			}
 			this.updateGameTurn(data.gameId, nextTurn);
 
-			this.server
-				.to(`game:${data.gameId}`)
-				.emit('gameUpdate', {
-					...updatedGame,
-					timeLeft: {
-						white: updatedGame.whiteTimeLeft,
-						black: updatedGame.blackTimeLeft,
-					},
-				});
+			this.server.to(`game:${data.gameId}`).emit('gameUpdate', {
+				...updatedGame,
+				timeLeft: {
+					white: updatedGame.whiteTimeLeft,
+					black: updatedGame.blackTimeLeft,
+				},
+			});
 		} catch (error) {
 			client.emit('error', { message: getErrorMessage(error) }); // we keep it simple for now, we could work on a better error handling strategy later
 		}

@@ -11,19 +11,22 @@ describe('GameGateway', () => {
 	let gateway: GameGateway;
 	let gameService: GameService;
 
+	const fetchSocketsMock = jest.fn().mockResolvedValue([]);
 	const mockServer = {
 		to: jest.fn().mockReturnThis(),
 		emit: jest.fn(),
 		in: jest.fn().mockReturnValue({
-			fetchSockets: jest.fn().mockResolvedValue([]),
+			fetchSockets: fetchSocketsMock,
 		}),
 	};
 
+	const mockClientToEmit = jest.fn();
 	const mockClient = {
 		id: 'client-123',
 		join: jest.fn(),
 		leave: jest.fn(),
 		emit: jest.fn(),
+		to: jest.fn().mockReturnValue({ emit: mockClientToEmit }),
 		data: {
 			user: {
 				sub: ongoingGameFixture.whiteId,
@@ -60,6 +63,7 @@ describe('GameGateway', () => {
 		gateway.server = mockServer as unknown as Server;
 
 		jest.clearAllMocks();
+		fetchSocketsMock.mockResolvedValue([]);
 	});
 
 	afterEach(() => {
@@ -83,8 +87,7 @@ describe('GameGateway', () => {
 
 	describe('handleJoinGame', () => {
 		it('should make the client join the correct room', async () => {
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([]);
+			fetchSocketsMock.mockResolvedValue([]);
 
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
@@ -96,9 +99,19 @@ describe('GameGateway', () => {
 		});
 
 		it('should emit playerReconnected when user was already connected', async () => {
+			// Premier join pour enregistrer mockClient dans socketGameMap
+			fetchSocketsMock.mockResolvedValue([]);
+			await gateway.handleJoinGame(
+				{ gameId: ongoingGameFixture.id },
+				mockClient,
+			);
+
+			const mockClient2ToEmit = jest.fn();
 			const mockClient2 = {
 				...mockClient,
 				id: 'client-456',
+				emit: jest.fn(),
+				to: jest.fn().mockReturnValue({ emit: mockClient2ToEmit }),
 				data: {
 					user: {
 						sub: ongoingGameFixture.whiteId,
@@ -107,31 +120,36 @@ describe('GameGateway', () => {
 				},
 			} as unknown as Socket;
 
-			jest.spyOn(gameService, 'getGame').mockResolvedValue(ongoingGameFixture as any);
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([{ id: 'client-123' } as Socket]);
+			jest.spyOn(gameService, 'getGame').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-123' } as Socket,
+			]);
 
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
 				mockClient2,
 			);
 
-			expect(mockClient2.emit).toHaveBeenCalledWith('playerReconnected', {
-				playerId: ongoingGameFixture.whiteId,
-			});
-			expect(mockClient2.emit).toHaveBeenCalledWith(
+			expect(mockClient2ToEmit).toHaveBeenCalledWith(
+				'playerReconnected',
+				{
+					playerId: ongoingGameFixture.whiteId,
+				},
+			);
+			expect((mockClient2 as any).emit).toHaveBeenCalledWith(
 				'gameUpdate',
 				expect.objectContaining({ id: ongoingGameFixture.id }),
 			);
 		});
 
 		it('should emit error when game room is full', async () => {
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([
-					{ id: 'client-1' } as Socket,
-					{ id: 'client-2' } as Socket,
-					{ id: 'client-3' } as Socket,
-				]);
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-1' } as Socket,
+				{ id: 'client-2' } as Socket,
+				{ id: 'client-3' } as Socket,
+			]);
 
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
@@ -147,17 +165,52 @@ describe('GameGateway', () => {
 		});
 
 		it('should start game and emit events when second player joins', async () => {
-			jest.spyOn(gameService, 'startGame').mockResolvedValue(ongoingGameFixture as any);
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([{ id: 'client-1' } as Socket]);
+			jest.spyOn(gameService, 'startGame').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
 
+			// Premier joueur rejoint
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-123' } as Socket,
+			]);
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
 				mockClient,
 			);
 
+			jest.clearAllMocks();
+			jest.spyOn(gameService, 'startGame').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
+
+			// Deuxième joueur rejoint - fetchSockets retourne 2 sockets
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-123' } as Socket,
+				{ id: 'client-456' } as Socket,
+			]);
+
+			const mockClient2 = {
+				...mockClient,
+				id: 'client-456',
+				emit: jest.fn(),
+				to: jest.fn().mockReturnValue({ emit: jest.fn() }),
+				data: {
+					user: {
+						sub: ongoingGameFixture.blackId,
+						username: 'testUser2',
+					},
+				},
+			} as unknown as Socket;
+
+			await gateway.handleJoinGame(
+				{ gameId: ongoingGameFixture.id },
+				mockClient2,
+			);
+
 			expect(gameService.startGame).toHaveBeenCalled();
-			expect(mockServer.to).toHaveBeenCalledWith(`game:${ongoingGameFixture.id}`);
+			expect(mockServer.to).toHaveBeenCalledWith(
+				`game:${ongoingGameFixture.id}`,
+			);
 			expect(mockServer.emit).toHaveBeenCalledWith(
 				'playerJoined',
 				expect.objectContaining({ status: ongoingGameFixture.status }),
@@ -183,7 +236,8 @@ describe('GameGateway', () => {
 		it('should call gameService.makeMove and emit gameUpdate', async () => {
 			jest.spyOn(gameService, 'makeMove').mockResolvedValue({
 				...ongoingGameFixture,
-				currentFen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+				currentFen:
+					'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
 			} as any);
 
 			await gateway.handleMove(moveData, mockClient);
@@ -214,7 +268,9 @@ describe('GameGateway', () => {
 				winnerId: ongoingGameFixture.whiteId,
 				endReason: 'checkmate',
 			};
-			jest.spyOn(gameService, 'makeMove').mockResolvedValue(finishedGame as any);
+			jest.spyOn(gameService, 'makeMove').mockResolvedValue(
+				finishedGame as any,
+			);
 
 			await gateway.handleMove(moveData, mockClient);
 
@@ -238,7 +294,9 @@ describe('GameGateway', () => {
 
 		it('should start timer on first move', async () => {
 			const setIntervalSpy = jest.spyOn(global, 'setInterval');
-			jest.spyOn(gameService, 'makeMove').mockResolvedValue(ongoingGameFixture as any);
+			jest.spyOn(gameService, 'makeMove').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
 
 			await gateway.handleMove(moveData, mockClient);
 
@@ -260,9 +318,7 @@ describe('GameGateway', () => {
 			expect(mockServer.to).toHaveBeenCalledWith(
 				`game:${ongoingGameFixture.id}`,
 			);
-			expect(mockServer.emit).toHaveBeenCalledWith(
-				'gameCancelled',
-			);
+			expect(mockServer.emit).toHaveBeenCalledWith('gameCancelled');
 		});
 
 		it('should emit gameEnd when an active game is cancelled', async () => {
@@ -282,6 +338,7 @@ describe('GameGateway', () => {
 		});
 
 		it('should stop timer on cancel', async () => {
+			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 			const setIntervalSpy = jest.spyOn(global, 'setInterval');
 			jest.spyOn(gameService, 'cancelGame').mockResolvedValue({
 				...ongoingGameFixture,
@@ -293,7 +350,6 @@ describe('GameGateway', () => {
 
 			await gateway.handleCancelGame(ongoingGameFixture.id, mockClient);
 
-			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 			expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId);
 		});
 
@@ -318,11 +374,15 @@ describe('GameGateway', () => {
 				winnerId: ongoingGameFixture.blackId,
 				endReason: 'resignation',
 			};
-			jest.spyOn(gameService, 'resignGame').mockResolvedValue(resignedGame as any);
+			jest.spyOn(gameService, 'resignGame').mockResolvedValue(
+				resignedGame as any,
+			);
 
 			await gateway.handleResign(ongoingGameFixture.id, mockClient);
 
-			expect(mockServer.to).toHaveBeenCalledWith(`game:${ongoingGameFixture.id}`);
+			expect(mockServer.to).toHaveBeenCalledWith(
+				`game:${ongoingGameFixture.id}`,
+			);
 			expect(mockServer.emit).toHaveBeenCalledWith('gameEnd', {
 				winnerId: ongoingGameFixture.blackId,
 				reason: 'resignation',
@@ -339,15 +399,17 @@ describe('GameGateway', () => {
 		});
 
 		it('should stop timer on resignation', async () => {
+			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 			const setIntervalSpy = jest.spyOn(global, 'setInterval');
-			jest.spyOn(gameService, 'resignGame').mockResolvedValue(ongoingGameFixture as any);
+			jest.spyOn(gameService, 'resignGame').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
 
 			gateway.startGameTimer(ongoingGameFixture.id, '10+0');
 			const intervalId = setIntervalSpy.mock.results[0].value;
 
 			await gateway.handleResign(ongoingGameFixture.id, mockClient);
 
-			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 			expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId);
 		});
 
@@ -366,17 +428,18 @@ describe('GameGateway', () => {
 
 	describe('handleOfferDraw', () => {
 		it('should emit drawOffered to opponent', async () => {
-			jest.spyOn(gameService, 'offerDraw').mockResolvedValue(undefined as any);
+			jest.spyOn(gameService, 'offerDraw').mockResolvedValue(
+				undefined as any,
+			);
 
 			await gateway.handleOfferDraw(ongoingGameFixture.id, mockClient);
 
 			expect(mockClient.to).toHaveBeenCalledWith(
 				`game:${ongoingGameFixture.id}`,
 			);
-			expect(mockClient.to(`game:${ongoingGameFixture.id}`).emit).toHaveBeenCalledWith(
-				'drawOffered',
-				{ playerId: mockClient.data.user.sub },
-			);
+			expect(mockClientToEmit).toHaveBeenCalledWith('drawOffered', {
+				playerId: mockClient.data.user.sub,
+			});
 		});
 
 		it('should emit error if offerDraw throws', async () => {
@@ -400,11 +463,15 @@ describe('GameGateway', () => {
 				winnerId: null,
 				endReason: 'draw',
 			};
-			jest.spyOn(gameService, 'acceptDraw').mockResolvedValue(drawGame as any);
+			jest.spyOn(gameService, 'acceptDraw').mockResolvedValue(
+				drawGame as any,
+			);
 
 			await gateway.handleAcceptDraw(ongoingGameFixture.id, mockClient);
 
-			expect(mockServer.to).toHaveBeenCalledWith(`game:${ongoingGameFixture.id}`);
+			expect(mockServer.to).toHaveBeenCalledWith(
+				`game:${ongoingGameFixture.id}`,
+			);
 			expect(mockServer.emit).toHaveBeenCalledWith('drawAccepted');
 			expect(mockServer.emit).toHaveBeenCalledWith('gameEnd', {
 				winnerId: null,
@@ -422,39 +489,44 @@ describe('GameGateway', () => {
 		});
 
 		it('should stop timer on draw accepted', async () => {
+			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 			const setIntervalSpy = jest.spyOn(global, 'setInterval');
-			jest.spyOn(gameService, 'acceptDraw').mockResolvedValue(ongoingGameFixture as any);
+			jest.spyOn(gameService, 'acceptDraw').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
 
 			gateway.startGameTimer(ongoingGameFixture.id, '10+0');
 			const intervalId = setIntervalSpy.mock.results[0].value;
 
 			await gateway.handleAcceptDraw(ongoingGameFixture.id, mockClient);
 
-			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 			expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId);
 		});
 	});
 
 	describe('handleDeclineDraw', () => {
 		it('should emit drawDeclined to opponent', async () => {
-			jest.spyOn(gameService, 'declineDraw').mockResolvedValue(undefined as any);
+			jest.spyOn(gameService, 'declineDraw').mockResolvedValue(
+				undefined as any,
+			);
 
 			await gateway.handleDeclineDraw(ongoingGameFixture.id, mockClient);
 
 			expect(mockClient.to).toHaveBeenCalledWith(
 				`game:${ongoingGameFixture.id}`,
 			);
-			expect(mockClient.to(`game:${ongoingGameFixture.id}`).emit).toHaveBeenCalledWith(
-				'drawDeclined',
-				{ playerId: mockClient.data.user.sub },
-			);
+			expect(mockClientToEmit).toHaveBeenCalledWith('drawDeclined', {
+				playerId: mockClient.data.user.sub,
+			});
 		});
 	});
 
 	describe('handleChatMessage', () => {
 		it('should emit chatMessage to room with username', async () => {
 			const chatMessage = 'Hello opponent!';
-			jest.spyOn(gameService, 'getGame').mockResolvedValue(ongoingGameFixture as any);
+			jest.spyOn(gameService, 'getGame').mockResolvedValue(
+				ongoingGameFixture as any,
+			);
 
 			await gateway.handleChatMessage(
 				{ gameId: ongoingGameFixture.id, message: chatMessage },
@@ -464,7 +536,7 @@ describe('GameGateway', () => {
 			expect(mockClient.to).toHaveBeenCalledWith(
 				`game:${ongoingGameFixture.id}`,
 			);
-			expect(mockClient.to(`game:${ongoingGameFixture.id}`).emit).toHaveBeenCalledWith(
+			expect(mockClientToEmit).toHaveBeenCalledWith(
 				'chatMessage',
 				expect.objectContaining({
 					userId: mockClient.data.user.sub,
@@ -489,6 +561,8 @@ describe('GameGateway', () => {
 			const mockClient2 = {
 				...mockClient,
 				id: 'client-456',
+				emit: jest.fn(),
+				to: jest.fn().mockReturnValue({ emit: jest.fn() }),
 				data: {
 					user: {
 						sub: ongoingGameFixture.whiteId,
@@ -497,8 +571,9 @@ describe('GameGateway', () => {
 				},
 			} as unknown as Socket;
 
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([{ id: 'client-456' } as Socket]);
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-456' } as Socket,
+			]);
 
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
@@ -518,14 +593,17 @@ describe('GameGateway', () => {
 		});
 
 		it('should finish game on disconnect and emit gameEnd', async () => {
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([{ id: 'client-123' } as Socket]);
-			jest.spyOn(gameService, 'handlePlayerDisconnect').mockResolvedValue({
-				...ongoingGameFixture,
-				status: GameStatus.FINISHED,
-				winnerId: ongoingGameFixture.blackId,
-				endReason: 'disconnect',
-			} as any);
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-123' } as Socket,
+			]);
+			jest.spyOn(gameService, 'handlePlayerDisconnect').mockResolvedValue(
+				{
+					...ongoingGameFixture,
+					status: GameStatus.FINISHED,
+					winnerId: ongoingGameFixture.blackId,
+					endReason: 'disconnect',
+				} as any,
+			);
 
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
@@ -546,12 +624,15 @@ describe('GameGateway', () => {
 		});
 
 		it('should emit gameCancelled if game is aborted on disconnect', async () => {
-			jest.spyOn(mockServer.in('game:' + ongoingGameFixture.id), 'fetchSockets')
-				.mockResolvedValue([{ id: 'client-123' } as Socket]);
-			jest.spyOn(gameService, 'handlePlayerDisconnect').mockResolvedValue({
-				...ongoingGameFixture,
-				status: GameStatus.ABORTED,
-			} as any);
+			fetchSocketsMock.mockResolvedValue([
+				{ id: 'client-123' } as Socket,
+			]);
+			jest.spyOn(gameService, 'handlePlayerDisconnect').mockResolvedValue(
+				{
+					...ongoingGameFixture,
+					status: GameStatus.ABORTED,
+				} as any,
+			);
 
 			await gateway.handleJoinGame(
 				{ gameId: ongoingGameFixture.id },
@@ -636,6 +717,8 @@ describe('GameGateway', () => {
 			gateway.updateGameTurn('game-123', 'w');
 
 			jest.advanceTimersByTime(1000);
+			await Promise.resolve();
+			await Promise.resolve();
 
 			expect(gameService.decrementTime).toHaveBeenCalled();
 			expect(mockServer.emit).toHaveBeenCalledWith(
@@ -663,6 +746,8 @@ describe('GameGateway', () => {
 			gateway.startGameTimer('game-123', '10+0');
 
 			jest.advanceTimersByTime(1000);
+			await Promise.resolve();
+			await Promise.resolve();
 
 			expect(clearIntervalSpy).toHaveBeenCalled();
 			expect(mockServer.emit).toHaveBeenCalledWith('gameEnd', {
