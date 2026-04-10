@@ -112,7 +112,8 @@ export const useGameSocket = (
 
     const handlePlayerJoined = (data: { playerId: string; status: string }) => {
       useGameStore.setState({
-        status: data.status === "FINISHED" ? "finished" : "active",
+<<<<<<< HEAD
+        status: data.status === 'FINISHED' ? 'finished' : 'active',
       });
       optionsRef.current?.onPlayerJoined?.();
     };
