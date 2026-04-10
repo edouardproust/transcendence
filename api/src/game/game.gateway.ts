@@ -51,7 +51,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	private startGameTimer(gameId: string, timeControl: string) {
 		const parsed = parseTimeControl(timeControl);
-		if (!parsed || parsed.increment === 0) return;
+		if (!parsed) return;
 
 		this.stopGameTimer(gameId);
 

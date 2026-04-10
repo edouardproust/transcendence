@@ -13,7 +13,7 @@ export const parseTimeControl = (timeControl: string): TimeControl | null => {
     return null;
   }
 
-  const initial = parseInt(parts[0], 10);
+  const initial = parseInt(parts[0], 10) * 60; // Convert minutes to seconds
   const increment = parseInt(parts[1], 10);
 
   if (isNaN(initial) || isNaN(increment) || initial <= 0) {
