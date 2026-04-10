@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gameService } from '@/services/gameService';
 import { Button } from '@/components/ui/Button';
@@ -14,10 +14,17 @@ export const LobbyPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuthStore();
   const [games, setGames] = useState<Game[]>([]);
+  const requestVersionRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   const loadActiveGames = async () => {
+    const requestVersion = ++requestVersionRef.current;
+
     try {
       const activeGames = await gameService.getActiveGames();
+      if (!isMountedRef.current || requestVersion !== requestVersionRef.current) {
+        return;
+      }
 
       const availableGames = activeGames.filter(
         (game) =>
@@ -28,18 +35,40 @@ export const LobbyPage: React.FC = () => {
 
       setGames(availableGames);
     } catch (error) {
+      if (!isMountedRef.current || requestVersion !== requestVersionRef.current) {
+        return;
+      }
       console.error('Error loading games:', error);
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
     void loadActiveGames();
 
     const interval = window.setInterval(() => {
       void loadActiveGames();
-    }, 5000);
+    }, 2000);
 
-    return () => window.clearInterval(interval);
+    const handleWindowFocus = () => {
+      void loadActiveGames();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void loadActiveGames();
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      isMountedRef.current = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user?.id]);
 
   const handleCreateOnlineGame = async () => {
