@@ -30,7 +30,8 @@ async function main() {
 		//const games = await seedGames(prisma, admin, users);
 
 		console.log(
-			`\nDone. ${1 + users.length} users, ${games.length} games created.`,
+			`\nDone. ${1 + users.length} users created.`,
+			//+ `, ${games.length} games created.`,
 		);
 	}
 }
