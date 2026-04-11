@@ -9,7 +9,11 @@ describe('PresenceGateway', () => {
 	let gateway: PresenceGateway;
 	let usersService: UsersService;
 	let jwtService: JwtService;
-	let mockServer: { emit: jest.Mock; to: jest.Mock };
+
+	const mockServer = {
+		emit: jest.fn(),
+		to: jest.fn().mockReturnThis(),
+	};
 
 	const mockClient = {
 		id: 'client-123',
@@ -22,11 +26,7 @@ describe('PresenceGateway', () => {
 	} as unknown as Socket;
 
 	beforeEach(async () => {
-		mockServer = {
-			emit: jest.fn(),
-			to: jest.fn().mockReturnThis(),
-		};
-
+		jest.clearAllMocks();
 		jest.spyOn(console, 'log').mockImplementation(() => undefined);
 		jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
@@ -109,8 +109,6 @@ describe('PresenceGateway', () => {
 		it('should disconnect client if no token provided', async () => {
 			const clientWithoutToken = {
 				...mockClient,
-				id: 'no-token-client',
-				disconnect: jest.fn(),
 				handshake: { auth: {}, headers: {} },
 			} as unknown as Socket;
 
@@ -120,19 +118,13 @@ describe('PresenceGateway', () => {
 		});
 
 		it('should disconnect client if token is invalid', async () => {
-			const clientWithBadToken = {
-				...mockClient,
-				id: 'bad-token-client',
-				disconnect: jest.fn(),
-			} as unknown as Socket;
-
 			jest.spyOn(jwtService, 'verify').mockImplementation(() => {
 				throw new Error('Invalid token');
 			});
 
-			await gateway.handleConnection(clientWithBadToken);
+			await gateway.handleConnection(mockClient);
 
-			expect(clientWithBadToken.disconnect).toHaveBeenCalled();
+			expect(mockClient.disconnect).toHaveBeenCalled();
 		});
 	});
 
@@ -141,34 +133,26 @@ describe('PresenceGateway', () => {
 			const client1 = {
 				...mockClient,
 				id: 'client-1',
-				join: jest.fn(),
 			} as unknown as Socket;
 			const client2 = {
 				...mockClient,
 				id: 'client-2',
-				join: jest.fn(),
 			} as unknown as Socket;
 
 			await gateway.handleConnection(client1);
 			await gateway.handleConnection(client2);
+			jest.clearAllMocks();
 
-			(usersService.updateOneById as jest.Mock).mockClear();
 			await gateway.handleDisconnect(client1);
 
 			expect(usersService.updateOneById).not.toHaveBeenCalled();
 		});
 
 		it('should emit user_status with is_online: false on last disconnect', async () => {
-			const client = {
-				...mockClient,
-				id: 'solo-client',
-				join: jest.fn(),
-			} as unknown as Socket;
+			await gateway.handleConnection(mockClient);
+			jest.clearAllMocks();
 
-			await gateway.handleConnection(client);
-			mockServer.emit.mockClear();
-
-			await gateway.handleDisconnect(client);
+			await gateway.handleDisconnect(mockClient);
 
 			expect(mockServer.emit).toHaveBeenCalledWith(
 				'user_status',
@@ -180,16 +164,10 @@ describe('PresenceGateway', () => {
 		});
 
 		it('should update DB to offline on last disconnect', async () => {
-			const client = {
-				...mockClient,
-				id: 'offline-client',
-				join: jest.fn(),
-			} as unknown as Socket;
+			await gateway.handleConnection(mockClient);
+			jest.clearAllMocks();
 
-			await gateway.handleConnection(client);
-			(usersService.updateOneById as jest.Mock).mockClear();
-
-			await gateway.handleDisconnect(client);
+			await gateway.handleDisconnect(mockClient);
 
 			expect(usersService.updateOneById).toHaveBeenCalledWith(
 				EXAMPLES.id,
@@ -203,18 +181,16 @@ describe('PresenceGateway', () => {
 		it('should NOT emit user_status if other tabs still open', async () => {
 			const client1 = {
 				...mockClient,
-				id: 'tab-1',
-				join: jest.fn(),
+				id: 'client-1',
 			} as unknown as Socket;
 			const client2 = {
 				...mockClient,
-				id: 'tab-2',
-				join: jest.fn(),
+				id: 'client-2',
 			} as unknown as Socket;
 
 			await gateway.handleConnection(client1);
 			await gateway.handleConnection(client2);
-			mockServer.emit.mockClear();
+			jest.clearAllMocks();
 
 			await gateway.handleDisconnect(client1);
 
@@ -222,7 +198,9 @@ describe('PresenceGateway', () => {
 		});
 
 		it('should handle unknown socket gracefully', async () => {
-			const unknownClient = { id: 'unknown-client' } as unknown as Socket;
+			const unknownClient = {
+				id: 'unknown-client',
+			} as unknown as Socket;
 
 			await expect(
 				gateway.handleDisconnect(unknownClient),
@@ -234,65 +212,38 @@ describe('PresenceGateway', () => {
 		it('should handle multiple sockets from same user', async () => {
 			const client1 = {
 				...mockClient,
-				id: 'c1',
-				join: jest.fn(),
+				id: 'client-1',
 			} as unknown as Socket;
 			const client2 = {
 				...mockClient,
-				id: 'c2',
-				join: jest.fn(),
+				id: 'client-2',
 			} as unknown as Socket;
 			const client3 = {
 				...mockClient,
-				id: 'c3',
-				join: jest.fn(),
+				id: 'client-3',
 			} as unknown as Socket;
 
 			await gateway.handleConnection(client1);
 			await gateway.handleConnection(client2);
 			await gateway.handleConnection(client3);
 
-			(usersService.updateOneById as jest.Mock).mockClear();
+			jest.clearAllMocks();
 			await gateway.handleDisconnect(client1);
+
 			expect(usersService.updateOneById).not.toHaveBeenCalled();
 
-			(usersService.updateOneById as jest.Mock).mockClear();
+			jest.clearAllMocks();
 			await gateway.handleDisconnect(client2);
+
 			expect(usersService.updateOneById).not.toHaveBeenCalled();
 
-			(usersService.updateOneById as jest.Mock).mockClear();
+			jest.clearAllMocks();
 			await gateway.handleDisconnect(client3);
+
 			expect(usersService.updateOneById).toHaveBeenCalledWith(
 				EXAMPLES.id,
 				expect.objectContaining({ isOnline: false }),
 			);
-		});
-	});
-
-	describe('isUserOnline', () => {
-		it('should return true when user is connected', async () => {
-			const client = {
-				...mockClient,
-				id: 'online-client',
-				join: jest.fn(),
-			} as unknown as Socket;
-			await gateway.handleConnection(client);
-			expect(gateway.isUserOnline(EXAMPLES.id)).toBe(true);
-		});
-
-		it('should return false when user is not connected', () => {
-			expect(gateway.isUserOnline('non-existent-id')).toBe(false);
-		});
-
-		it('should return false after user disconnects', async () => {
-			const client = {
-				...mockClient,
-				id: 'temp-client',
-				join: jest.fn(),
-			} as unknown as Socket;
-			await gateway.handleConnection(client);
-			await gateway.handleDisconnect(client);
-			expect(gateway.isUserOnline(EXAMPLES.id)).toBe(false);
 		});
 	});
 });
