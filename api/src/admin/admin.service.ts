@@ -28,6 +28,51 @@ export class AdminService {
 		};
 	}
 
+	private buildSearchCondition(
+		field: string,
+		search: string,
+	): Prisma.UserWhereInput {
+		if (field === 'elo') {
+			const num = Number(search);
+			return isNaN(num) ? {} : { elo: { equals: num } };
+		}
+		if (field === 'username') {
+			return {
+				username: { contains: search, mode: 'insensitive' as const },
+			};
+		}
+		if (field === 'email') {
+			return {
+				email: { contains: search, mode: 'insensitive' as const },
+			};
+		}
+		if (field === 'role') {
+			const upper = search.toUpperCase();
+			if ('USER'.startsWith(upper)) return { role: 'USER' as const };
+			if ('ADMIN'.startsWith(upper)) return { role: 'ADMIN' as const };
+			return { id: 'no-match' };
+		}
+		return {
+			OR: [
+				{
+					username: {
+						contains: search,
+						mode: 'insensitive' as const,
+					},
+				},
+				{
+					email: {
+						contains: search,
+						mode: 'insensitive' as const,
+					},
+				},
+				...(isNaN(Number(search))
+					? []
+					: [{ elo: { equals: Number(search) } }]),
+			] as Prisma.UserWhereInput[],
+		};
+	}
+
 	/**
 	 * Get a paginated and searchable list of users for the admin panel.
 	 *
@@ -50,24 +95,7 @@ export class AdminService {
 			[sortBy]: sortOrder,
 		} as Prisma.UserOrderByWithRelationInput;
 
-		const where = search
-			? {
-					OR: [
-						{
-							username: {
-								contains: search,
-								mode: 'insensitive' as const,
-							},
-						},
-						{
-							email: {
-								contains: search,
-								mode: 'insensitive' as const,
-							},
-						},
-					],
-				}
-			: {};
+		const where = search ? this.buildSearchCondition(sortBy, search) : {};
 
 		// Run both queries in parallel with `Promise.all()` for better performance
 		const [users, total] = await Promise.all([

@@ -38,6 +38,9 @@ export const AdminUsers: React.FC = () => {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [sortBy, setSortBy] = useState<AdminUserSortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [appliedSortBy, setAppliedSortBy] =
+    useState<AdminUserSortField>("createdAt");
+  const [appliedSortOrder, setAppliedSortOrder] = useState<SortOrder>("desc");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
@@ -46,7 +49,7 @@ export const AdminUsers: React.FC = () => {
 
   useEffect(() => {
     void loadUsers();
-  }, [pagination.page, appliedSearch, sortBy, sortOrder]);
+  }, [pagination.page, appliedSearch, appliedSortBy, appliedSortOrder]);
 
   const loadUsers = async () => {
     setIsLoading(true);
@@ -55,8 +58,8 @@ export const AdminUsers: React.FC = () => {
       const data = await adminService.getUsers(
         pagination.page,
         appliedSearch,
-        sortBy,
-        sortOrder,
+        appliedSortBy,
+        appliedSortOrder,
       );
       setUsers(data.users);
       setPagination(data.pagination);
@@ -84,6 +87,8 @@ export const AdminUsers: React.FC = () => {
 
     setPagination((current) => ({ ...current, page: 1 }));
     setAppliedSearch(normalizedSearch);
+    setAppliedSortBy(sortBy);
+    setAppliedSortOrder(sortOrder);
   };
 
   const handleEdit = (user: AdminUser) => {
@@ -161,10 +166,7 @@ export const AdminUsers: React.FC = () => {
           />
           <select
             value={sortBy}
-            onChange={(e) => {
-              setPagination((current) => ({ ...current, page: 1 }));
-              setSortBy(e.target.value as AdminUserSortField);
-            }}
+            onChange={(e) => setSortBy(e.target.value as AdminUserSortField)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {sortOptions.map((option) => (
@@ -175,10 +177,7 @@ export const AdminUsers: React.FC = () => {
           </select>
           <select
             value={sortOrder}
-            onChange={(e) => {
-              setPagination((current) => ({ ...current, page: 1 }));
-              setSortOrder(e.target.value as SortOrder);
-            }}
+            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {orderOptions.map((option) => (
