@@ -2,10 +2,29 @@ import React, { useEffect, useState } from "react";
 import { adminService } from "@/services/adminService";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
+import {
+  PageErrorState,
+  PageLoader,
+  PaginationControls,
+} from "@/components/ui/PageState";
 import { pushToast } from "@/components/ui/ToastProvider";
 import { useAuthStore } from "@/features/auth/authStore";
 import { AdminUser, AdminUserSortField, SortOrder } from "@/types/admin";
 import { getApiErrorMessage } from "@/utils/apiError";
+
+const sortOptions: Array<{ value: AdminUserSortField; label: string }> = [
+  { value: "createdAt", label: "Mas recientes" },
+  { value: "username", label: "Usuario" },
+  { value: "email", label: "Email" },
+  { value: "elo", label: "ELO" },
+  { value: "role", label: "Rol" },
+];
+
+const orderOptions: Array<{ value: SortOrder; label: string }> = [
+  { value: "desc", label: "Descendente" },
+  { value: "asc", label: "Ascendente" },
+];
 
 export const AdminUsers: React.FC = () => {
   const { user: currentUser } = useAuthStore();
@@ -115,30 +134,16 @@ export const AdminUsers: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">Cargando usuarios...</div>
-      </div>
-    );
+    return <PageLoader message="Cargando usuarios..." />;
   }
 
   if (errorMessage) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-          <div className="text-xl font-semibold text-red-700">
-            Error cargando usuarios
-          </div>
-          <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
-          <Button
-            className="mt-4"
-            variant="danger"
-            onClick={() => void loadUsers()}
-          >
-            Reintentar
-          </Button>
-        </div>
-      </div>
+      <PageErrorState
+        title="Error cargando usuarios"
+        message={errorMessage}
+        onRetry={() => void loadUsers()}
+      />
     );
   }
 
@@ -164,19 +169,22 @@ export const AdminUsers: React.FC = () => {
             onChange={(e) => setSortBy(e.target.value as AdminUserSortField)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
-            <option value="createdAt">Mas recientes</option>
-            <option value="username">Usuario</option>
-            <option value="email">Email</option>
-            <option value="elo">ELO</option>
-            <option value="role">Rol</option>
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOrder)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
-            <option value="desc">Descendente</option>
-            <option value="asc">Ascendente</option>
+            {orderOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
           <Button onClick={handleSearch}>Buscar</Button>
         </div>
@@ -294,49 +302,32 @@ export const AdminUsers: React.FC = () => {
         </div>
 
         {/* Paginación */}
-        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Mostrando {users.length} de {pagination.total} usuarios
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              disabled={pagination.page === 1}
-              onClick={() =>
-                setPagination((current) => ({
-                  ...current,
-                  page: current.page - 1,
-                }))
-              }
-            >
-              Anterior
-            </Button>
-            <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
-              Página {pagination.page} de {pagination.totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              disabled={pagination.page === pagination.totalPages}
-              onClick={() =>
-                setPagination((current) => ({
-                  ...current,
-                  page: current.page + 1,
-                }))
-              }
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
+        <PaginationControls
+          summary={`Mostrando ${users.length} de ${pagination.total} usuarios`}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPrevious={() =>
+            setPagination((current) => ({
+              ...current,
+              page: current.page - 1,
+            }))
+          }
+          onNext={() =>
+            setPagination((current) => ({
+              ...current,
+              page: current.page + 1,
+            }))
+          }
+        />
       </div>
 
-      {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-              Editar Usuario: {editingUser.username}
-            </h2>
-
+      <Modal
+        isOpen={Boolean(editingUser)}
+        onClose={() => setEditingUser(null)}
+        title={`Editar Usuario: ${editingUser?.username || ""}`}
+      >
+        {editingUser ? (
+          <>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
@@ -381,9 +372,9 @@ export const AdminUsers: React.FC = () => {
                 Cancelar
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        ) : null}
+      </Modal>
     </div>
   );
 };

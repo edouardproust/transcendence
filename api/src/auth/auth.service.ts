@@ -40,12 +40,15 @@ export class AuthService {
 	async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
 		const userWithoutPassword =
 			await this.usersService.createOne(createUserDto);
-		await this.usersService.updateOneById(userWithoutPassword.id, {
+		const registeredUser = await this.usersService.updateOneById(
+			userWithoutPassword.id,
+			{
 			lastSeen: new Date(),
 			isOnline: true,
-		});
+			},
+		);
 		return {
-			user: userWithoutPassword,
+			user: registeredUser,
 			token: this.generateToken({
 				sub: userWithoutPassword.id,
 				role: userWithoutPassword.role,
@@ -76,15 +79,14 @@ export class AuthService {
 		if (!(await bcrypt.compare(loginDto.password, user.password)))
 			throw new UnauthorizedException(errorMsg);
 
-		const mappedUser = await this.usersService.findOneById(user.id);
-		if (!mappedUser) throw new UnauthorizedException(errorMsg);
-		await this.usersService.updateOneById(user.id, {
+		const activeUser = await this.usersService.updateOneById(user.id, {
 			lastSeen: new Date(),
 			isOnline: true,
 		});
+		if (!activeUser) throw new UnauthorizedException(errorMsg);
 
 		return {
-			user: mappedUser,
+			user: activeUser,
 			token: this.generateToken({ sub: user.id, role: user.role }),
 		};
 	}

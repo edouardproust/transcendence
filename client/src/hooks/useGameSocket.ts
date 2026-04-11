@@ -5,6 +5,7 @@ import { pushToast } from "@/components/ui/ToastProvider";
 import { useAuthStore } from "@/features/auth/authStore";
 import { useGameStore } from "@/features/game/gameStore";
 import { gameService } from "@/services/gameService";
+import { normalizeGameStatus } from "@/services/mappers";
 
 type GameSocketErrorPayload = string | { message?: string };
 type ChatMessagePayload = {
@@ -22,16 +23,6 @@ interface UseGameSocketOptions {
   onDrawDeclined?: () => void;
   onChatMessage?: (data: ChatMessagePayload) => void;
 }
-
-const normalizeGameStatus = (status: string | null | undefined) => {
-  const normalized = String(status || "").toLowerCase();
-
-  if (normalized === "ongoing" || normalized === "active") return "active";
-  if (normalized === "finished") return "finished";
-  if (normalized === "cancelled" || normalized === "aborted")
-    return "cancelled";
-  return "waiting";
-};
 
 const normalizeGameUpdatePayload = (data: any) => {
   const fen =

@@ -11,18 +11,54 @@ import { GameStatus, GameMode } from '../prisma/generated/enums';
 import { EXAMPLES } from '../common/constants';
 import { gameFixture, ongoingGameFixture } from './game.service.mock';
 import { describe } from 'node:test';
+import { FriendsService } from '../friends/friends.service';
+import { UsersService } from '../users/users.service';
+import { PresenceGateway } from '../presence/presence.gateway';
 
 describe('GameService', () => {
 	let service: GameService;
 	let prismaService: PrismaService;
+	let friendsService: FriendsService;
+	let usersService: UsersService;
+	let presenceGateway: PresenceGateway;
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [GameService, PrismaServiceMock],
+			providers: [
+				GameService,
+				PrismaServiceMock,
+				{
+					provide: FriendsService,
+					useValue: {
+						areFriends: jest.fn().mockResolvedValue(true),
+					},
+				},
+				{
+					provide: UsersService,
+					useValue: {
+						findOneById: jest.fn().mockResolvedValue({
+							id: EXAMPLES.id,
+							username: EXAMPLES.username,
+							avatarUrl: EXAMPLES.avatarUrl,
+							elo: EXAMPLES.elo,
+						}),
+					},
+				},
+				{
+					provide: PresenceGateway,
+					useValue: {
+						isUserOnline: jest.fn().mockReturnValue(true),
+						emitGameInvite: jest.fn(),
+					},
+				},
+			],
 		}).compile();
 
 		service = module.get<GameService>(GameService);
 		prismaService = module.get<PrismaService>(PrismaService);
+		friendsService = module.get<FriendsService>(FriendsService);
+		usersService = module.get<UsersService>(UsersService);
+		presenceGateway = module.get<PresenceGateway>(PresenceGateway);
 
 		jest.clearAllMocks();
 	});
@@ -85,6 +121,143 @@ describe('GameService', () => {
 		});
 	});
 
+	describe('createInvitedGame', () => {
+		it('should reject if user invites themselves', async () => {
+			await expect(
+				service.createInvitedGame(
+					{
+						friendId: EXAMPLES.id,
+						timeControl: EXAMPLES.timeControl,
+					},
+					EXAMPLES.id,
+				),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it('should create an online game and emit the invite', async () => {
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([
+				gameFixture,
+			] as any);
+
+			jest.spyOn(prismaService.game, 'delete').mockResolvedValue(
+				gameFixture as any,
+			);
+
+			const result = await service.createInvitedGame(
+				{
+					friendId: EXAMPLES.id2,
+					timeControl: EXAMPLES.timeControl,
+				},
+				EXAMPLES.id,
+			);
+
+			expect(friendsService.areFriends).toHaveBeenCalledWith(
+				EXAMPLES.id,
+				EXAMPLES.id2,
+			);
+			expect(usersService.findOneById).toHaveBeenCalledWith(EXAMPLES.id);
+			expect(presenceGateway.emitGameInvite).toHaveBeenCalledWith(
+				EXAMPLES.id2,
+				expect.objectContaining({
+					gameId: gameFixture.id,
+					gameUrl: `/game/${gameFixture.id}`,
+					timeControl: EXAMPLES.timeControl,
+					inviter: expect.objectContaining({
+						id: EXAMPLES.id,
+						username: EXAMPLES.username,
+					}),
+				}),
+			);
+			expect(result.id).toBe(gameFixture.id);
+		});
+
+		it('should reject if inviter does not exist', async () => {
+			jest.spyOn(usersService, 'findOneById').mockResolvedValue(null);
+
+			await expect(
+				service.createInvitedGame(
+					{
+						friendId: EXAMPLES.id2,
+						timeControl: EXAMPLES.timeControl,
+					},
+					EXAMPLES.id,
+				),
+			).rejects.toThrow(NotFoundException);
+		});
+
+		it('should reject if the invited game could not be created', async () => {
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([] as any);
+
+			await expect(
+				service.createInvitedGame(
+					{
+						friendId: EXAMPLES.id2,
+						timeControl: EXAMPLES.timeControl,
+					},
+					EXAMPLES.id,
+				),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it('should delete the created game if emitting the invite fails', async () => {
+			const socketError = new Error('socket failure');
+
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([
+				gameFixture,
+			] as any);
+			jest.spyOn(prismaService.game, 'delete').mockResolvedValue(
+				gameFixture as any,
+			);
+			jest.spyOn(presenceGateway, 'emitGameInvite').mockImplementation(
+				() => {
+					throw socketError;
+				},
+			);
+
+			await expect(
+				service.createInvitedGame(
+					{
+						friendId: EXAMPLES.id2,
+						timeControl: EXAMPLES.timeControl,
+					},
+					EXAMPLES.id,
+				),
+			).rejects.toThrow(socketError);
+
+			expect(prismaService.game.delete).toHaveBeenCalledWith({
+				where: { id: gameFixture.id },
+			});
+		});
+
+		it('should reject if target user is not a friend', async () => {
+			jest.spyOn(friendsService, 'areFriends').mockResolvedValue(false);
+
+			await expect(
+				service.createInvitedGame(
+					{
+						friendId: EXAMPLES.id2,
+						timeControl: EXAMPLES.timeControl,
+					},
+					EXAMPLES.id,
+				),
+			).rejects.toThrow(ForbiddenException);
+		});
+
+		it('should reject if target user is offline', async () => {
+			jest.spyOn(presenceGateway, 'isUserOnline').mockReturnValue(false);
+
+			await expect(
+				service.createInvitedGame(
+					{
+						friendId: EXAMPLES.id2,
+						timeControl: EXAMPLES.timeControl,
+					},
+					EXAMPLES.id,
+				),
+			).rejects.toThrow(BadRequestException);
+		});
+	});
+
 	describe('getGame', () => {
 		it('should return a game', async () => {
 			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
@@ -113,28 +286,13 @@ describe('GameService', () => {
 
 	describe('getActiveGames', () => {
 		it('should return waiting online games', async () => {
-			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
-				{
-					...gameFixture,
-					white: {
-						username: EXAMPLES.username,
-						elo: EXAMPLES.elo,
-					},
-				},
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([
+				gameFixture,
 			] as any);
 
 			const result = await service.getActiveGames();
 
-			expect(prismaService.game.findMany).toHaveBeenCalledWith(
-				expect.objectContaining({
-					where: {
-						status: GameStatus.WAITING,
-						mode: GameMode.ONLINE,
-						blackId: null,
-					},
-					take: 20,
-				}),
-			);
+			expect(prismaService.$queryRaw).toHaveBeenCalled();
 			expect(result).toHaveLength(1);
 			expect(result[0].status).toBe(GameStatus.WAITING);
 			expect(result[0].creatorUsername).toBe(EXAMPLES.username);
@@ -222,9 +380,17 @@ describe('GameService', () => {
 		});
 
 		it('should allow a second player to join as black and start the game', async () => {
+			const waitingGame = {
+				...gameFixture,
+				blackId: null,
+			};
+
 			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
-				gameFixture as any,
+				waitingGame as any,
 			);
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([
+				{ invitedUserId: null },
+			] as any);
 
 			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
 				id: 'invalid-user-id',
@@ -243,6 +409,45 @@ describe('GameService', () => {
 
 			expect(result.blackId).toBe('invalid-user-id');
 			expect(result.status).toBe(GameStatus.ONGOING);
+		});
+
+		it('should reject when the game was invited for another user', async () => {
+			const waitingGame = {
+				...gameFixture,
+				blackId: null,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				waitingGame as any,
+			);
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([
+				{ invitedUserId: EXAMPLES.id2 },
+			] as any);
+
+			await expect(
+				service.startGame(EXAMPLES.gameId, 'invalid-user-id'),
+			).rejects.toThrow(ForbiddenException);
+		});
+
+		it('should reject if the joining second player does not exist', async () => {
+			const waitingGame = {
+				...gameFixture,
+				blackId: null,
+			};
+
+			jest.spyOn(prismaService.game, 'findUnique').mockResolvedValue(
+				waitingGame as any,
+			);
+			jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([
+				{ invitedUserId: null },
+			] as any);
+			jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(
+				null,
+			);
+
+			await expect(
+				service.startGame(EXAMPLES.gameId, 'invalid-user-id'),
+			).rejects.toThrow(NotFoundException);
 		});
 
 		it('should throw ForbiddenException if game is full and user is not a player', async () => {

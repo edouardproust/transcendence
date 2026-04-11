@@ -3,6 +3,18 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Board3DTheme, Move } from '@/types/game';
 import { Button } from '@/components/ui/Button';
+import {
+  BOARD_3D_PALETTES,
+  BOARD_3D_SQUARES,
+  ParsedPiece,
+  PromotionChoice,
+  isOwnPiece,
+  parseFenPieces,
+  pieceTypeFromSymbol,
+  promotionOptions,
+  requiresPromotion,
+  squareToWorld,
+} from './boardUtils';
 
 interface Board3DProps {
   fen: string;
@@ -15,126 +27,6 @@ interface Board3DProps {
   onMove: (move: Move) => boolean;
   getLegalTargets: (square: string) => string[];
 }
-
-interface ParsedPiece {
-  square: string;
-  piece: string;
-}
-
-type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
-
-interface Board3DPalette {
-  sceneBg: string;
-  frameOuter: string;
-  frameInner: string;
-  lightSquare: string;
-  darkSquare: string;
-  selectedSquare: string;
-  legalTargetSquare: string;
-  lastMoveFromSquare: string;
-  lastMoveToSquare: string;
-  checkSquare: string;
-  floor: string;
-}
-
-const files = 'abcdefgh';
-const board3DPalettes: Record<Board3DTheme, Board3DPalette> = {
-  wood: {
-    sceneBg: '#f4f1ea',
-    frameOuter: '#6b4423',
-    frameInner: '#d3a873',
-    lightSquare: '#f3e1c8',
-    darkSquare: '#8b5e34',
-    selectedSquare: '#f59e0b',
-    legalTargetSquare: '#7dd3fc',
-    lastMoveFromSquare: '#fbbf24',
-    lastMoveToSquare: '#22c55e',
-    checkSquare: '#ef4444',
-    floor: '#8d7b69',
-  },
-  obsidian: {
-    sceneBg: '#e5e7eb',
-    frameOuter: '#3b414d',
-    frameInner: '#8b95a6',
-    lightSquare: '#dbe3ef',
-    darkSquare: '#374151',
-    selectedSquare: '#fbbf24',
-    legalTargetSquare: '#86efac',
-    lastMoveFromSquare: '#f59e0b',
-    lastMoveToSquare: '#16a34a',
-    checkSquare: '#ef4444',
-    floor: '#9ca3af',
-  },
-};
-
-type PromotionChoice = 'q' | 'r' | 'b' | 'n';
-
-const promotionOptions: Array<{ value: PromotionChoice; label: string }> = [
-  { value: 'q', label: 'Reina' },
-  { value: 'r', label: 'Torre' },
-  { value: 'b', label: 'Alfil' },
-  { value: 'n', label: 'Caballo' },
-];
-
-const parseFenPieces = (fen: string): ParsedPiece[] => {
-  const [placement] = fen.split(' ');
-  if (!placement) return [];
-
-  const rows = placement.split('/');
-  const pieces: ParsedPiece[] = [];
-
-  rows.forEach((row, rowIndex) => {
-    let fileIndex = 0;
-    for (const char of row) {
-      const digit = Number(char);
-      if (!Number.isNaN(digit)) {
-        fileIndex += digit;
-        continue;
-      }
-
-      const file = files[fileIndex];
-      const rank = 8 - rowIndex;
-      if (file) {
-        pieces.push({ square: `${file}${rank}`, piece: char });
-      }
-      fileIndex += 1;
-    }
-  });
-
-  return pieces;
-};
-
-const squareToWorld = (square: string): [number, number, number] => {
-  const fileIndex = square.charCodeAt(0) - 97;
-  const rank = Number(square[1]);
-  const x = fileIndex - 3.5;
-  const z = 4.5 - rank;
-  return [x, 0, z];
-};
-
-const pieceTypeFromSymbol = (piece: string): PieceType => {
-  switch (piece.toLowerCase()) {
-    case 'p':
-      return 'pawn';
-    case 'r':
-      return 'rook';
-    case 'n':
-      return 'knight';
-    case 'b':
-      return 'bishop';
-    case 'q':
-      return 'queen';
-    case 'k':
-    default:
-      return 'king';
-  }
-};
-
-const isOwnPiece = (pieceSymbol: string, playerColor: 'white' | 'black' | null) => {
-  if (!playerColor) return false;
-  const white = pieceSymbol === pieceSymbol.toUpperCase();
-  return (playerColor === 'white' && white) || (playerColor === 'black' && !white);
-};
 
 const pieceMaterialProps = (color: 'white' | 'black', selected: boolean) => {
   if (color === 'white') {
@@ -345,19 +237,7 @@ const Board3DScene: React.FC<{
   theme,
   onSquareClick,
 }) => {
-  const palette = board3DPalettes[theme];
-  const squares = useMemo(() => {
-    const items: Array<{ square: string; pos: [number, number, number]; light: boolean }> = [];
-    for (let rank = 1; rank <= 8; rank += 1) {
-      for (let fileIndex = 0; fileIndex < 8; fileIndex += 1) {
-        const square = `${files[fileIndex]}${rank}`;
-        const pos = squareToWorld(square);
-        const light = (fileIndex + rank) % 2 === 0;
-        items.push({ square, pos, light });
-      }
-    }
-    return items;
-  }, []);
+  const palette = BOARD_3D_PALETTES[theme];
 
   return (
     <group rotation-y={boardOrientation === 'black' ? Math.PI : 0}>
@@ -370,7 +250,7 @@ const Board3DScene: React.FC<{
         <meshStandardMaterial color={palette.frameInner} metalness={0.22} roughness={0.55} />
       </mesh>
 
-      {squares.map((item) => {
+      {BOARD_3D_SQUARES.map((item) => {
         const isSelected = selectedSquare === item.square;
         const isTarget = legalTargets.includes(item.square);
         const isLastMoveFrom = lastMoveFrom === item.square;
@@ -436,7 +316,7 @@ export const Board3D: React.FC<Board3DProps> = ({
   onMove,
   getLegalTargets,
 }) => {
-  const palette = board3DPalettes[theme];
+  const palette = BOARD_3D_PALETTES[theme];
   const pieces = useMemo(() => parseFenPieces(fen), [fen]);
   const pieceMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -454,6 +334,10 @@ export const Board3D: React.FC<Board3DProps> = ({
   const clearSelection = () => {
     setSelectedSquare(null);
     setLegalTargets([]);
+  };
+  const selectSquare = (square: string) => {
+    setSelectedSquare(square);
+    setLegalTargets(getLegalTargets(square));
   };
 
   React.useEffect(() => {
@@ -489,8 +373,7 @@ export const Board3D: React.FC<Board3DProps> = ({
 
     if (!selectedSquare) {
       if (clickedPiece && isOwnPiece(clickedPiece, playerColor)) {
-        setSelectedSquare(square);
-        setLegalTargets(getLegalTargets(square));
+        selectSquare(square);
       }
       return;
     }
@@ -501,18 +384,14 @@ export const Board3D: React.FC<Board3DProps> = ({
     }
 
     if (clickedPiece && isOwnPiece(clickedPiece, playerColor)) {
-      setSelectedSquare(square);
-      setLegalTargets(getLegalTargets(square));
+      selectSquare(square);
       return;
     }
 
     if (legalTargets.includes(square)) {
       const selectedPiece = pieceMap.get(selectedSquare);
-      const isPawn = selectedPiece?.toLowerCase() === 'p';
-      const targetRank = square[1];
-      const requiresPromotion = isPawn && (targetRank === '1' || targetRank === '8');
 
-      if (requiresPromotion) {
+      if (requiresPromotion(selectedPiece, square)) {
         setPendingPromotion({ from: selectedSquare, to: square });
         return;
       }

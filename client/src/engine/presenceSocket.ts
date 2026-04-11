@@ -6,11 +6,11 @@ const PRESENCE_NAMESPACE = '/presence';
 let presenceSocketInstance: Socket | null = null;
 
 export const connectPresenceSocket = (token: string): Socket => {
-  if (presenceSocketInstance?.connected) return presenceSocketInstance;
-
   if (presenceSocketInstance) {
-    presenceSocketInstance.removeAllListeners();
-    presenceSocketInstance.disconnect();
+    if (!presenceSocketInstance.connected) {
+      presenceSocketInstance.connect();
+    }
+    return presenceSocketInstance;
   }
 
   presenceSocketInstance = io(`${SOCKET_URL}${PRESENCE_NAMESPACE}`, {

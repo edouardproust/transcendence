@@ -28,13 +28,13 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="bg-gray-800 dark:bg-gray-950 text-white p-4 border-b border-gray-700 dark:border-gray-800">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-gray-800 dark:bg-gray-950 flex-wrap text-white p-4 border-b border-gray-700 dark:border-gray-800">
+      <div className="container mx-auto flex flex-wrap justify-between items-center">
         <Link to="/" className="text-2xl font-bold hover:text-gray-300 transition">
           ♔ Chess 42
         </Link>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Link
             to="/privacy-policy"
             className="text-sm text-gray-200 hover:text-white transition underline underline-offset-4"

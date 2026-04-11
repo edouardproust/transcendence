@@ -49,6 +49,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private readonly usersService: UsersService,
 	) {}
 
+	public emitInviteDeclined(gameId: string) {
+		const room = `game:${gameId}`;
+		this.server.to(room).emit('gameUpdate', {
+			status: GameStatus.ABORTED,
+		});
+		this.server.to(room).emit('gameCancelled');
+	}
+
 	public startGameTimer(gameId: string, timeControl: string) {
 		const parsed = parseTimeControl(timeControl);
 		if (!parsed) return;

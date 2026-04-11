@@ -4,6 +4,7 @@ import { authService } from '@/services/authService';
 import { useAuthStore } from './authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export const LoginPage: React.FC = () => {
       
       navigate('/lobby');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      setError(getApiErrorMessage(err, 'Error al iniciar sesión'));
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);

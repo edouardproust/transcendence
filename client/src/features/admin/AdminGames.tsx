@@ -4,10 +4,36 @@ import { AdminGame } from '@/types/admin';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
-import { Spinner } from '@/components/ui/Spinner';
 import { pushToast } from '@/components/ui/ToastProvider';
 import { AdminGameSortField, SortOrder } from '@/types/admin';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { PageErrorState, PageLoader, PaginationControls } from '@/components/ui/PageState';
+import {
+  getAdminGameModeLabel,
+  getAdminGameStatusLabel,
+  getAdminGameStatusTone,
+} from './adminUtils';
+
+const statusOptions = [
+  { value: '', label: 'Todos los estados' },
+  { value: 'waiting', label: 'Abiertas / pendientes' },
+  { value: 'active', label: 'Jugando' },
+  { value: 'finished', label: 'Finalizadas' },
+  { value: 'cancelled', label: 'Canceladas' },
+];
+
+const sortOptions: Array<{ value: AdminGameSortField; label: string }> = [
+  { value: 'createdAt', label: 'Fecha de creacion' },
+  { value: 'updatedAt', label: 'Ultima actualizacion' },
+  { value: 'status', label: 'Estado' },
+  { value: 'mode', label: 'Modo' },
+  { value: 'timeControl', label: 'Tiempo' },
+];
+
+const orderOptions: Array<{ value: SortOrder; label: string }> = [
+  { value: 'desc', label: 'Descendente' },
+  { value: 'asc', label: 'Ascendente' },
+];
 
 export const AdminGames: React.FC = () => {
   const [games, setGames] = useState<AdminGame[]>([]);
@@ -56,55 +82,24 @@ export const AdminGames: React.FC = () => {
   };
 
   const getStatusBadge = (status: string, mode: string) => {
-    const labels = {
-      active: 'Jugando',
-      finished: 'Finalizada',
-      cancelled: 'Cancelada',
-    };
-
-    const tones = {
-      waiting: 'warning',
-      active: 'success',
-      finished: 'info',
-      cancelled: 'danger',
-    };
-
-    const label =
-      status === 'waiting' && mode === 'ai'
-        ? 'Pendiente inicio'
-        : status === 'waiting'
-          ? 'Abierta'
-          : labels[status as keyof typeof labels];
-
     return (
-      <Badge tone={tones[status as keyof typeof tones] as 'warning' | 'success' | 'info' | 'danger'}>
-        {label}
+      <Badge tone={getAdminGameStatusTone(status)}>
+        {getAdminGameStatusLabel(status, mode)}
       </Badge>
     );
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="flex items-center gap-2 text-xl">
-          <Spinner />
-          Cargando partidas...
-        </div>
-      </div>
-    );
+    return <PageLoader message="Cargando partidas..." showSpinner />;
   }
 
   if (errorMessage) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-          <div className="text-xl font-semibold text-red-700">Error cargando partidas</div>
-          <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
-          <Button className="mt-4" variant="danger" onClick={() => void loadGames()}>
-            Reintentar
-          </Button>
-        </div>
-      </div>
+      <PageErrorState
+        title="Error cargando partidas"
+        message={errorMessage}
+        onRetry={() => void loadGames()}
+      />
     );
   }
 
@@ -130,11 +125,11 @@ export const AdminGames: React.FC = () => {
                 }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               >
-                <option value="">Todos los estados</option>
-                <option value="waiting">Abiertas / pendientes</option>
-                <option value="active">Jugando</option>
-                <option value="finished">Finalizadas</option>
-                <option value="cancelled">Canceladas</option>
+                {statusOptions.map((option) => (
+                  <option key={option.value || 'all'} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -149,11 +144,11 @@ export const AdminGames: React.FC = () => {
                 }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               >
-                <option value="createdAt">Fecha de creacion</option>
-                <option value="updatedAt">Ultima actualizacion</option>
-                <option value="status">Estado</option>
-                <option value="mode">Modo</option>
-                <option value="timeControl">Tiempo</option>
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -168,8 +163,11 @@ export const AdminGames: React.FC = () => {
                 }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               >
-                <option value="desc">Descendente</option>
-                <option value="asc">Ascendente</option>
+                {orderOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -219,7 +217,7 @@ export const AdminGames: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
-                    {game.mode === 'online' ? '👥 Online' : '🤖 IA'}
+                    {getAdminGameModeLabel(game.mode)}
                   </td>
                   <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
                     {game.time_control}
@@ -242,34 +240,17 @@ export const AdminGames: React.FC = () => {
           </table>
         </div>
 
-        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Mostrando {games.length} de {pagination.total} partidas
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              disabled={pagination.page === 1}
-              onClick={() =>
-                setPagination((current) => ({ ...current, page: current.page - 1 }))
-              }
-            >
-              Anterior
-            </Button>
-            <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
-              Página {pagination.page} de {pagination.totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              disabled={pagination.page === pagination.totalPages}
-              onClick={() =>
-                setPagination((current) => ({ ...current, page: current.page + 1 }))
-              }
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
+        <PaginationControls
+          summary={`Mostrando ${games.length} de ${pagination.total} partidas`}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPrevious={() =>
+            setPagination((current) => ({ ...current, page: current.page - 1 }))
+          }
+          onNext={() =>
+            setPagination((current) => ({ ...current, page: current.page + 1 }))
+          }
+        />
       </div>
     </div>
   );

@@ -32,5 +32,6 @@ export const PrismaServiceMock = {
 			deleteMany: jest.fn(),
 		},
 		$transaction: jest.fn(),
+		$queryRaw: jest.fn(),
 	},
 };

@@ -3,6 +3,7 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { GameController } from '../src/game/game.controller';
 import { GameService } from '../src/game/game.service';
+import { GameGateway } from '../src/game/game.gateway';
 import { GameServiceMock, gameFixture } from '../src/game/game.service.mock';
 import { JwtAuthGuard } from '../src/auth/guard/jwt-auth.guard';
 import { EXAMPLES } from '../src/common/constants';
@@ -20,10 +21,20 @@ describe('Game (e2e)', () => {
 	let app: INestApplication;
 	let service: GameService;
 
+	const gameGatewayMock = {
+		emitInviteDeclined: jest.fn(),
+	};
+
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [GameController],
-			providers: [GameServiceMock],
+			providers: [
+				GameServiceMock,
+				{
+					provide: GameGateway,
+					useValue: gameGatewayMock,
+				},
+			],
 		})
 			.overrideGuard(JwtAuthGuard)
 			.useValue(mockJwtGuard)
@@ -40,7 +51,9 @@ describe('Game (e2e)', () => {
 	});
 
 	afterEach(async () => {
-		await app.close();
+		if (app) {
+			await app.close();
+		}
 	});
 
 	describe('POST /games', () => {

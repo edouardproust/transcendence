@@ -5,10 +5,23 @@ import {
 	OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { getErrorMessage } from '../common/utils/error.utils';
+
+export interface GameInvitePayload {
+	gameId: string;
+	gameUrl: string;
+	timeControl: string;
+	createdAt: string;
+	inviter: {
+		id: string;
+		username: string;
+		avatarUrl: string | null;
+		elo: number;
+	};
+}
 
 @WebSocketGateway({
 	cors: {
@@ -33,6 +46,20 @@ export class PresenceGateway
 		private readonly usersService: UsersService,
 		private readonly jwtService: JwtService,
 	) {}
+
+	public isUserOnline(userId: string) {
+		return this.userSocketCount.has(userId);
+	}
+
+	public emitGameInvite(targetUserId: string, payload: GameInvitePayload) {
+		if (!this.isUserOnline(targetUserId)) {
+			throw new BadRequestException(
+				'Tu amigo debe estar en linea para recibir la invitacion',
+			);
+		}
+
+		this.server.to(`user:${targetUserId}`).emit('game_invite', payload);
+	}
 
 	private extractUserFromSocket(client: Socket): {
 		sub: string;
@@ -60,6 +87,7 @@ export class PresenceGateway
 	async handleConnection(client: Socket) {
 		try {
 			const user = this.extractUserFromSocket(client);
+			client.data.user = user;
 
 			const count = (this.userSocketCount.get(user.sub) || 0) + 1;
 			this.userSocketCount.set(user.sub, count);

@@ -22,7 +22,7 @@ export class AdminService {
 			timeControl: game.timeControl,
 			createdAt: game.createdAt,
 			updatedAt: game.updatedAt,
-			whiteUsername: game.white?.username ?? null,
+			whiteUsername: game.white?.username ?? 'Desconocido',
 			blackUsername: game.black?.username ?? null,
 			winnerUsername: game.winner?.username ?? null,
 		};
@@ -36,19 +36,21 @@ export class AdminService {
 			const num = Number(search);
 			return isNaN(num) ? {} : { elo: { equals: num } };
 		}
-		if (field === 'username')
+		if (field === 'username') {
 			return {
 				username: { contains: search, mode: 'insensitive' as const },
 			};
-		if (field === 'email')
+		}
+		if (field === 'email') {
 			return {
 				email: { contains: search, mode: 'insensitive' as const },
 			};
+		}
 		if (field === 'role') {
 			const upper = search.toUpperCase();
 			if ('USER'.startsWith(upper)) return { role: 'USER' as const };
 			if ('ADMIN'.startsWith(upper)) return { role: 'ADMIN' as const };
-			return { id: 'no-match' }; // force no results
+			return { id: 'no-match' };
 		}
 		return {
 			OR: [
@@ -58,7 +60,12 @@ export class AdminService {
 						mode: 'insensitive' as const,
 					},
 				},
-				{ email: { contains: search, mode: 'insensitive' as const } },
+				{
+					email: {
+						contains: search,
+						mode: 'insensitive' as const,
+					},
+				},
 				...(isNaN(Number(search))
 					? []
 					: [{ elo: { equals: Number(search) } }]),
