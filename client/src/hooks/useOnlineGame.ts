@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { gameService } from '@/services/gameService';
 import { pushToast } from '@/components/ui/ToastProvider';
 import { getApiErrorMessage } from '@/utils/apiError';

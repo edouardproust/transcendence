@@ -1,5 +1,6 @@
 import { api } from './api';
 import { Game, CreateGameRequest, PlayerColor } from '@/types/game';
+import { normalizeGameMode, normalizeGameStatus } from './mappers';
 
 const DEFAULT_INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 type ApiGameMode = 'ONLINE' | 'AI';
@@ -10,20 +11,8 @@ interface FinishGameRequest {
   pgn: string;
 }
 
-const normalizeGameMode = (mode: string | null | undefined): Game['mode'] =>
-  String(mode || '').toLowerCase() === 'ai' ? 'ai' : 'online';
-
 const serializeGameMode = (mode: CreateGameRequest['mode']): ApiGameMode =>
   mode === 'ai' ? 'AI' : 'ONLINE';
-
-const normalizeGameStatus = (status: string | null | undefined): Game['status'] => {
-  const normalized = String(status || '').toLowerCase();
-
-  if (normalized === 'ongoing') return 'active';
-  if (normalized === 'finished') return 'finished';
-  if (normalized === 'cancelled' || normalized === 'aborted') return 'cancelled';
-  return 'waiting';
-};
 
 // Helper para convertir snake_case a camelCase
 const mapGameFromAPI = (apiGame: any): Game => {

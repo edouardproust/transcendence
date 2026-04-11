@@ -1,6 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { adminService } from '@/services/adminService';
 import { AdminStats } from '@/types/admin';
+import { PageErrorState, PageLoader } from '@/components/ui/PageState';
+import { getPodiumLabel, getRecentActivityStatusText } from './adminUtils';
+
+const StatCard: React.FC<{
+  label: string;
+  value: number;
+  icon: string;
+  helperText: string;
+  helperClassName: string;
+}> = ({ label, value, icon, helperText, helperClassName }) => {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
+        </div>
+        <div className="text-4xl">{icon}</div>
+      </div>
+      <p className={`mt-2 text-xs ${helperClassName}`}>{helperText}</p>
+    </div>
+  );
+};
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -32,32 +55,42 @@ export const AdminDashboard: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">Cargando dashboard...</div>
-      </div>
-    );
+    return <PageLoader message="Cargando dashboard..." />;
   }
 
   if (!stats) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-          <div className="text-xl font-semibold text-red-700">Error cargando estadísticas</div>
-          <p className="mt-2 text-sm text-red-600">
-            {errorMessage || 'No se pudieron obtener los datos del panel.'}
-          </p>
-          <button
-            type="button"
-            onClick={() => void loadStats()}
-            className="mt-4 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
+      <PageErrorState
+        title="Error cargando estadísticas"
+        message={errorMessage || 'No se pudieron obtener los datos del panel.'}
+        onRetry={() => void loadStats()}
+      />
     );
   }
+
+  const statCards = [
+    {
+      label: 'Total Usuarios',
+      value: stats.stats.total_users,
+      icon: '👥',
+      helperText: `+${stats.stats.new_users_week} esta semana`,
+      helperClassName: 'text-green-600 dark:text-green-400',
+    },
+    {
+      label: 'Total Partidas',
+      value: stats.stats.total_games,
+      icon: '♟️',
+      helperText: `${stats.stats.active_games} activas ahora`,
+      helperClassName: 'text-blue-600 dark:text-blue-400',
+    },
+    {
+      label: 'Partidas 24h',
+      value: stats.stats.games_last_24h,
+      icon: '📊',
+      helperText: `${stats.stats.finished_games} finalizadas en total`,
+      helperClassName: 'text-gray-600 dark:text-gray-400',
+    },
+  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -71,55 +104,12 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Estadísticas Generales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Usuarios</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {stats.stats.total_users}
-              </p>
-            </div>
-            <div className="text-4xl">👥</div>
-          </div>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-            +{stats.stats.new_users_week} esta semana
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Partidas</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {stats.stats.total_games}
-              </p>
-            </div>
-            <div className="text-4xl">♟️</div>
-          </div>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-            {stats.stats.active_games} activas ahora
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Partidas 24h</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {stats.stats.games_last_24h}
-              </p>
-            </div>
-            <div className="text-4xl">📊</div>
-          </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-            {stats.stats.finished_games} finalizadas en total
-          </p>
-        </div>
+        {statCards.map((card) => (
+          <StatCard key={card.label} {...card} />
+        ))}
       </div>
 
-      {/* Top Jugadores */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8 border border-gray-200 dark:border-gray-700">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
           🏆 Top 10 Jugadores por ELO
@@ -146,12 +136,7 @@ export const AdminDashboard: React.FC = () => {
                     key={player.id}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <td className="py-3 px-4">
-                      {index === 0 && '🥇'}
-                      {index === 1 && '🥈'}
-                      {index === 2 && '🥉'}
-                      {index > 2 && index + 1}
-                    </td>
+                    <td className="py-3 px-4">{getPodiumLabel(index)}</td>
                     <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
                       {player.username}
                     </td>
@@ -174,7 +159,6 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Actividad Reciente */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
           📜 Actividad Reciente
@@ -201,13 +185,7 @@ export const AdminDashboard: React.FC = () => {
                     </span>
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {activity.mode === 'online' ? '👥 Online' : '🤖 IA'} •
-                    {activity.status === 'active' && ' 🟢 Jugando'}
-                    {activity.status === 'waiting' &&
-                      (activity.mode === 'ai' ? ' 🟡 Pendiente inicio' : ' 🟡 Abierta')}
-                    {activity.status === 'finished' &&
-                      ` ✓ Ganó: ${activity.winner_username || 'Tablas'}`}
-                    {activity.status === 'cancelled' && ' ❌ Cancelada'}
+                    {getRecentActivityStatusText(activity)}
                   </div>
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">

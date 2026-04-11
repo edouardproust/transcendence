@@ -1,38 +1,7 @@
 import { api } from './api';
 import { Friend } from '@/types/friends';
-import { User, UserProfile } from '@/types/user';
-
-const mapUserFromApi = (apiUser: any): User => ({
-  id: apiUser.id,
-  username: apiUser.username,
-  email: apiUser.email ?? '',
-  elo: apiUser.elo ?? 0,
-  role: apiUser.role === 'ADMIN' ? 'ADMIN' : 'USER',
-  avatar_url: apiUser.avatarUrl ?? apiUser.avatar_url ?? null,
-  is_online: apiUser.isOnline ?? apiUser.is_online ?? false,
-  last_seen: apiUser.lastSeen ?? apiUser.last_seen ?? null,
-  created_at: apiUser.createdAt ?? apiUser.created_at ?? '',
-});
-
-const mapUserProfileFromApi = (apiUser: any): UserProfile => ({
-  ...mapUserFromApi(apiUser),
-  email: apiUser.email,
-  totalGames: apiUser.totalGames ?? apiUser.total_games ?? 0,
-  wins: apiUser.wins ?? 0,
-  losses: apiUser.losses ?? 0,
-  draws: apiUser.draws ?? 0,
-});
-
-const mapFriendFromApi = (apiUser: any): Friend => ({
-  id: apiUser.id,
-  username: apiUser.username,
-  email: apiUser.email ?? undefined,
-  elo: apiUser.elo ?? 0,
-  avatar_url: apiUser.avatarUrl ?? apiUser.avatar_url ?? null,
-  is_online: apiUser.isOnline ?? apiUser.is_online ?? false,
-  last_seen: apiUser.lastSeen ?? apiUser.last_seen ?? null,
-  created_at: apiUser.createdAt ?? apiUser.created_at ?? '',
-});
+import { UserProfile } from '@/types/user';
+import { mapFriendFromApi, mapUserProfileFromApi } from './mappers';
 
 export const userService = {
   async getProfile(userId?: string): Promise<UserProfile> {

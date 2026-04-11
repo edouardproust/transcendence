@@ -6,14 +6,13 @@ import {
   GameMode,
   GameStatus,
   BoardViewMode,
-  Board2DTheme,
-  Board3DTheme,
 } from '@/types/game';
 import { ChessClient } from '@/engine/chessClient';
-
-const board2DThemes: Board2DTheme[] = ['classic', 'wood', 'ocean', 'slate'];
-const board3DThemes: Board3DTheme[] = ['wood', 'obsidian'];
-const boardViewModes: BoardViewMode[] = ['2d', '3d'];
+import {
+  BOARD_2D_THEME_ORDER,
+  BOARD_3D_THEME_ORDER,
+  BOARD_VIEW_MODES,
+} from './boardUtils';
 
 const STORAGE_KEYS = {
   boardView: 'game-preferences:boardView',
@@ -69,9 +68,9 @@ const createInitialState = (): GameState => ({
   isConnected: false,
   mode: 'online',
   playerColor: null,
-  boardView: readStoredPreference(STORAGE_KEYS.boardView, boardViewModes, '2d'),
-  board2DTheme: readStoredPreference(STORAGE_KEYS.board2DTheme, board2DThemes, 'classic'),
-  board3DTheme: readStoredPreference(STORAGE_KEYS.board3DTheme, board3DThemes, 'wood'),
+  boardView: readStoredPreference(STORAGE_KEYS.boardView, BOARD_VIEW_MODES, '2d'),
+  board2DTheme: readStoredPreference(STORAGE_KEYS.board2DTheme, BOARD_2D_THEME_ORDER, 'classic'),
+  board3DTheme: readStoredPreference(STORAGE_KEYS.board3DTheme, BOARD_3D_THEME_ORDER, 'wood'),
   timeLeft: {
     white: 600,
     black: 600,
@@ -189,18 +188,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   cycleBoard2DTheme: () => {
     const currentTheme = get().board2DTheme;
-    const currentIndex = board2DThemes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % board2DThemes.length;
-    persistPreference(STORAGE_KEYS.board2DTheme, board2DThemes[nextIndex]);
-    set({ board2DTheme: board2DThemes[nextIndex] });
+    const currentIndex = BOARD_2D_THEME_ORDER.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % BOARD_2D_THEME_ORDER.length;
+    persistPreference(STORAGE_KEYS.board2DTheme, BOARD_2D_THEME_ORDER[nextIndex]);
+    set({ board2DTheme: BOARD_2D_THEME_ORDER[nextIndex] });
   },
 
   cycleBoard3DTheme: () => {
     const currentTheme = get().board3DTheme;
-    const currentIndex = board3DThemes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % board3DThemes.length;
-    persistPreference(STORAGE_KEYS.board3DTheme, board3DThemes[nextIndex]);
-    set({ board3DTheme: board3DThemes[nextIndex] });
+    const currentIndex = BOARD_3D_THEME_ORDER.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % BOARD_3D_THEME_ORDER.length;
+    persistPreference(STORAGE_KEYS.board3DTheme, BOARD_3D_THEME_ORDER[nextIndex]);
+    set({ board3DTheme: BOARD_3D_THEME_ORDER[nextIndex] });
   },
 
   setConnected: (connected) => {
