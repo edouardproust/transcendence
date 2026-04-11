@@ -89,11 +89,11 @@ prompt_secure "SEED_ADMIN_PASSWORD" seed_admin_pswd
 
 jwt_secret=$(openssl rand -hex 64)
 
-printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\nJWT_SECRET="%s"\nCORS_ORIGIN="https://%s"\nAWS_ACCESS_KEY_ID="%s"\nAWS_SECRET_ACCESS_KEY="%s"\nAWS_REGION="%s"\nS3_BUCKET="%s"\nSEED_ADMIN_PASSWORD="%s"\n' \
-  "$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" "$jwt_secret" "$domain_name" \
-  "$aws_access_key_id" "$aws_secret_access_key" "$aws_region" "$s3_bucket" \
-  "$seed_admin_pswd" \
-  > "$env_file"
+printf 'POSTGRES_DB="%s"\nPOSTGRES_USER="%s"\nPOSTGRES_PASSWORD="%s"\nDOMAIN_NAME="%s"\nJWT_SECRET="%s"\nCORS_ORIGIN="https://%s"\nAWS_ACCESS_KEY_ID="%s"\nAWS_SECRET_ACCESS_KEY="%s"\nAWS_REGION="%s"\nS3_BUCKET="%s"\nSEED_ADMIN_PASSWORD="%s"\nVITE_SOCKET_URL="https://%s"\n' \
+"$postgres_db" "$postgres_user" "$postgres_pswd" "$domain_name" "$jwt_secret" "$domain_name" \
+"$aws_access_key_id" "$aws_secret_access_key" "$aws_region" "$s3_bucket" \
+"$seed_admin_pswd" "$domain_name" \
+> "$env_file"
 
 chmod 600 "$env_file"
 success "$env_file file created and secured (permissions: 600)"

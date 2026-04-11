@@ -189,8 +189,8 @@ export const AdminUsers: React.FC = () => {
           <Button onClick={handleSearch}>Buscar</Button>
         </div>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Busqueda con paginacion, filtros y ordenacion por usuario, email, ELO,
-          rol o fecha.
+          Busqueda con paginacion, filtros y ordenacion por usuario, email, ELO
+          o fecha.
         </p>
       </div>
 

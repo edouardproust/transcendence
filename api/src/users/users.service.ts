@@ -41,10 +41,7 @@ export class UsersService {
 			: null;
 	}
 
-	private loadFinishedGameState(game: {
-		currentFen: string;
-		pgn: string;
-	}) {
+	private loadFinishedGameState(game: { currentFen: string; pgn: string }) {
 		const chess = new Chess();
 
 		try {
@@ -83,7 +80,11 @@ export class UsersService {
 		}
 
 		const playerSide =
-			game.whiteId === userId ? 'w' : game.blackId === userId ? 'b' : null;
+			game.whiteId === userId
+				? 'w'
+				: game.blackId === userId
+					? 'b'
+					: null;
 		const resultToken = this.getPgnResultToken(game.pgn);
 
 		if (resultToken === '1/2-1/2') {
@@ -225,6 +226,33 @@ export class UsersService {
 	 * @return The deleted user, password omitted for security.
 	 */
 	async deleteOneById(id: string) {
+		// Handle ongoing/waiting games before deleting user
+		const activeGames = await this.prismaService.game.findMany({
+			where: {
+				OR: [{ whiteId: id }, { blackId: id }],
+				status: { in: [GameStatus.WAITING, GameStatus.ONGOING] },
+			},
+		});
+
+		for (const game of activeGames) {
+			if (game.status === GameStatus.WAITING) {
+				await this.prismaService.game.update({
+					where: { id: game.id },
+					data: { status: GameStatus.ABORTED },
+				});
+			} else if (game.status === GameStatus.ONGOING) {
+				const opponentId =
+					game.whiteId === id ? game.blackId : game.whiteId;
+				await this.prismaService.game.update({
+					where: { id: game.id },
+					data: {
+						status: GameStatus.FINISHED,
+						winnerId: opponentId ?? null,
+					},
+				});
+			}
+		}
+
 		const user = await this.prismaService.user
 			.delete({ where: { id }, omit: { password: true } })
 			.catch((error) => {

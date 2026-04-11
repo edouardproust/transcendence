@@ -146,6 +146,10 @@ describe('UsersService', () => {
 	});
 
 	describe('deleteOne', () => {
+		beforeEach(() => {
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([]);
+		});
+
 		it('should delete user by id with password omitted', async () => {
 			jest.spyOn(prismaService.user, 'delete').mockResolvedValue(
 				userInDb,
@@ -156,7 +160,6 @@ describe('UsersService', () => {
 				omit: { password: true },
 			});
 		});
-
 		it('should throw NotFoundException when user not found', async () => {
 			jest.spyOn(prismaService.user, 'delete').mockRejectedValue(
 				prismaNotFoundException,
@@ -165,7 +168,6 @@ describe('UsersService', () => {
 				NotFoundException,
 			);
 		});
-
 		it('should rethrow unexpected errors', async () => {
 			jest.spyOn(prismaService.user, 'delete').mockRejectedValue(
 				genericError,
@@ -173,6 +175,55 @@ describe('UsersService', () => {
 			await expect(service.deleteOneById('invalid-uuid')).rejects.toThrow(
 				genericErrorMsg,
 			);
+		});
+		it('should abort waiting games on user delete', async () => {
+			const waitingGame = {
+				id: 'game-1',
+				status: 'WAITING',
+				whiteId: userInDb.id,
+				blackId: null,
+			};
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
+				waitingGame,
+			] as any);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue(
+				{} as any,
+			);
+			jest.spyOn(prismaService.user, 'delete').mockResolvedValue(
+				userInDb,
+			);
+
+			await service.deleteOneById(userInDb.id);
+
+			expect(prismaService.game.update).toHaveBeenCalledWith({
+				where: { id: 'game-1' },
+				data: { status: 'ABORTED' },
+			});
+		});
+
+		it('should finish ongoing games and give win to opponent on user delete', async () => {
+			const ongoingGame = {
+				id: 'game-2',
+				status: 'ONGOING',
+				whiteId: userInDb.id,
+				blackId: 'opponent-id',
+			};
+			jest.spyOn(prismaService.game, 'findMany').mockResolvedValue([
+				ongoingGame,
+			] as any);
+			jest.spyOn(prismaService.game, 'update').mockResolvedValue(
+				{} as any,
+			);
+			jest.spyOn(prismaService.user, 'delete').mockResolvedValue(
+				userInDb,
+			);
+
+			await service.deleteOneById(userInDb.id);
+
+			expect(prismaService.game.update).toHaveBeenCalledWith({
+				where: { id: 'game-2' },
+				data: { status: 'FINISHED', winnerId: 'opponent-id' },
+			});
 		});
 	});
 
