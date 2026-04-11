@@ -1,170 +1,341 @@
-# Check.io
+*This project has been created as part of the 42 curriculum by ahetru, eproust, matde-la, sluterea.*
 
-This project has been created as part of the 42 curriculum ("Transcendence" project) by **ahetru**, **eproust**, **matde-la**, **sluterea**. ([View subject](/subject/en.subject.pdf)).
+# Chess 42
+
+An online chess platform built for the 42 `ft_transcendence` project. The application combines a React frontend, a NestJS backend, PostgreSQL persistence and WebSockets to deliver live multiplayer matches, an AI opponent, a friends system and an admin area. The project is designed to be run entirely with containers using a single command.
+
+([View subject](docs/en.subject.pdf))
 
 ## Description
 
-A real-time multiplayer chess game using WebSockets.
-// TODO: Project name, project goals and brief overview
+### Project name
+
+**Chess 42**
+
+### Goal
+
+Build a complete web application around chess that demonstrates team organization, full-stack development, real-time communication, database design and modular feature delivery within the `ft_transcendence` framework.
+
+### Brief overview
+
+Chess 42 lets registered users create accounts, manage their profile, add friends, see online presence, play live chess against other users, or train against Stockfish with configurable difficulty. The platform also includes an admin interface for user and game management, reusable UI components, notifications for CRUD actions and a documented backend API.
+
+### Key features
+
+- Secure signup and login with JWT-based authentication
+- User profiles with avatar, ELO, match statistics and history
+- Friends system with requests, accept/reject flow and online presence
+- Real-time online chess with legal move validation, timers, draw offers, resignation and in-game chat
+- AI chess mode powered by Stockfish with configurable level and color
+- 2D and 3D board views with persistent display preferences
+- Admin dashboard with search, sorting, pagination and protected actions
 
 ## Instructions
 
 ### Prerequisites
 
-// TODO: software, tools, versions, configuration like .env setup, etc.
+#### Production
 
-```bash
-sudo apt install ...
-```
+- Docker Engine with Docker Compose v2
+- `make`
+
+#### Development
+
+- Docker Engine with Docker Compose v2
+- `make`
+- An IDE with Dev Containers support is recommended, for example VS Code with the Dev Containers extension
+
+### Configuration
+
+- The project uses local `.env` files ignored by Git.
+- In the current workflow, `make` runs the setup scripts in `docker/` and generates the local configuration automatically (`docker/.env`, `client/.env`).
+- Most development dependencies are installed inside the containers, so there is no need to install Node.js packages on the host machine.
 
 ### How to use
 
+#### Production
+
+On the production server:
+
 ```bash
-# Clone repo
 git clone https://github.com/edouardproust/transcendence.git checkio
+cd checkio
+make PROD=1
+```
+
+This command prepares secrets, builds the production images and starts the stack.
+
+#### Development
+
+On a local machine:
+
+```bash
+git clone git@github.com:edouardproust/transcendence.git checkio
+cd checkio
 make
 ```
 
-In a browser go to `https://localhost`
+This command prepares the local environment, builds the development images and starts the services.
+
+Once `make` finishes, these URLs are available from the host machine:
+
+- App: `https://localhost:8443`
+- HTTP entrypoint: `http://localhost:8080`
+- API docs (Swagger): `http://localhost:3000`
+- Adminer: `http://localhost:8081`
+
+### Development workflow
+
+- Open either `client/` or `api/` in your IDE
+- Reopen the folder in the Dev Container when prompted
+- Work directly inside the running container
+- Use the browser on `https://localhost:8443` to test the frontend
+- Use Swagger or `curl` to test API endpoints
+
+Notes:
+
+- `node_modules` are installed inside the containers, so `api/node_modules` and `client/node_modules` stay empty on the host
+- Useful Docker and Compose commands are documented in [docs/DOCKER.md](/home/matde-la/Documents/tr/docs/DOCKER.md)
+- The team Git workflow is documented in [docs/GIT-WORKFLOW.md](/home/matde-la/Documents/tr/docs/GIT-WORKFLOW.md)
+
+## CI/CD
+
+The project uses GitHub Actions for continuous integration. On pushes and pull requests targeting `develop` or `main`, the pipeline runs:
+
+- Unit tests with Jest and coverage thresholds
+- End-to-end tests with PostgreSQL, MinIO and Prisma migrations
+
+To run the workflow locally:
+
+```bash
+act
+```
 
 ## Resources
 
-// TODO: List references related to the topic (documentation, articles, tutorials, etc.), as well as a description of how AI was used (tasks and parts of the project).
+### Technical references
+
+- 42 subject: [docs/en.subject.pdf](/home/matde-la/Documents/tr/docs/en.subject.pdf)
+- React documentation: https://react.dev/
+- NestJS documentation: https://docs.nestjs.com/
+- Prisma documentation: https://www.prisma.io/docs/
+- Socket.IO documentation: https://socket.io/docs/v4/
+- Tailwind CSS documentation: https://tailwindcss.com/docs
+- chess.js documentation: https://jhlywa.github.io/chess.js/
+- Three.js documentation: https://threejs.org/docs/
+- Stockfish: https://stockfishchess.org/
+- Project design system notes: [docs/design-system.md](/home/matde-la/Documents/tr/docs/design-system.md)
+
+### How AI was used
+
+AI tools were used as development assistants, not as an unchecked code generator. Typical use cases included:
+
+- brainstorming implementation approaches for isolated frontend and backend tasks
+- generating boilerplate or refactoring suggestions for components, services and DTOs
+- helping draft documentation and clarify technical explanations
+- proposing test cases and debugging hypotheses during development
+
+All generated suggestions were reviewed, adapted and validated manually by the team before being kept in the project.
 
 ## Team Information
 
-| Team member | Role                        | Responsabilities      |
-| ----------- | --------------------------- | --------------------- |
-| matde-la    | Product Owner & Developer   | Frontend developement |
-| ahetru      | Product Manager & Developer | Backend developement  |
-| eproust     | Technical Lead & developer  | Backend development   |
-| sluterea    | Developer                   | Frontend development  |
+| Team member | Assigned role(s) | Responsibilities |
+| ----------- | ----------------- | ---------------- |
+| matde-la | Product Owner, Developer | Defined product priorities, validated functional scope, contributed mainly to frontend features, UI integration and product consistency |
+| ahetru | Project Manager, Developer | Coordinated team follow-up, tracked progress and blockers, contributed mainly to backend features and API work |
+| eproust | Technical Lead, Developer | Drove architecture and technical decisions, reviewed critical backend structure, contributed mainly to backend and data design |
+| sluterea | Developer | Contributed mainly to frontend implementation, interface integration and user experience work |
 
 ## Project Management
 
-- Work organization:
-  - Weekly meetings on saturday morning
-- Tools used for project management:
-  - Jira, Google Drive
-- Communication channels used:
-  - Slack
+- Work organization: weekly sync meetings, feature breakdown into smaller tasks, work split between frontend, backend and integration tasks, and peer reviews on important changes
+- Tools used for project management: Jira, Google Drive, GitHub and the repository documentation
+- Communication channels used: Slack and regular in-person / remote team syncs
 
 ## Stack
 
-// TODO: justify choices
-
-Main language: Typescript
+Main language: TypeScript
 
 ### Frontend
 
-- Language: Typescript
-- Framework: ReactJS
-- Tools & libraries: Vite, ViteSSR, Tailwind CSS
+- Language: TypeScript
+- Framework: React with Vite
+- Styling: Tailwind CSS
+- State and routing: Zustand, React Router
+- Chess and rendering libraries: `react-chessboard`, `chess.js`, `three`, `@react-three/fiber`, `@react-three/drei`
 
-### Backend:
+Why this choice:
+
+- React offered a fast way to structure a modular interface around pages, hooks and reusable components
+- Vite kept the development loop simple and fast
+- Tailwind CSS helped us build a consistent UI system quickly while still keeping custom reusable components
+- `react-chessboard`, `chess.js` and Three.js reduced the low-level rendering cost while keeping control over chess-specific behavior
+
+### Backend
 
 - Framework: NestJS
-- Database: PostgresSQL, Redis
-- Tools: Prisma ORM
+- Language: TypeScript
+- Real-time layer: WebSockets with Socket.IO
+- API documentation: Swagger
+- Validation and security: `class-validator`, JWT, bcrypt
 
-### Deployment:
+Why this choice:
 
-// TODO
+- NestJS provides a clear modular architecture with controllers, services, guards and DTOs, which fits a team project well
+- TypeScript on both frontend and backend reduced context switching and improved shared domain understanding
+- Socket.IO made live game synchronization and presence features easier to implement and test
 
-### Other
+### Database
 
-// TODO: any other significant technologies or libraries (justify relevant choicea)
+- System: PostgreSQL
+- ORM: Prisma
 
-- **Docker**: Packaging the application and all its dependencies
-- **Git**: Versioning
-- **GitHub Actions**: CI/CD (build, tests, lint)
-- **Jest**, **esLint**, **prettier**: Unit testing
-- **Python**: Automation (seed DB, launch containers, monitoring & logs)
-- **Trello**, **Slack**: Team work
-- **VsCode**: IDE
-- **Copilot**: Coding automation and assistance
+Why this choice:
+
+- PostgreSQL is a reliable relational database for structured entities such as users, games and friendships
+- Prisma gave us typed queries, explicit relations, migrations and a schema that is easy to review as a team
+
+### Deployment
+
+- Containerization: Docker and Docker Compose
+- Reverse proxy / HTTPS entrypoint: Nginx
+- Object storage: MinIO
+
+Why this choice:
+
+- The subject requires a containerized deployment that runs with a single command
+- Docker Compose lets the full stack start consistently in development and production
+- Nginx centralizes HTTPS entry and routing
+- MinIO provides a simple local object storage solution for user avatars
+
+### Other significant tools
+
+- Jest: unit and end-to-end testing
+- ESLint and Prettier: linting and formatting
+- Adminer: database inspection in development
+- GitHub Actions: CI automation
+- Dev Containers: reproducible development environment inside containers
 
 ## Database Schema
 
-// TODO example:
+### Structure overview
 
-Users\
-├─ id (integer, PK)\
-└─ created_at (datetime)
+```text
+User
+├─ id: String (PK)
+├─ email: String (unique)
+├─ password: String
+├─ username: String (unique)
+├─ role: USER | ADMIN
+├─ elo: Int
+├─ avatarKey: String
+├─ isOnline: Boolean
+├─ lastSeen: DateTime?
+├─ createdAt: DateTime
+└─ updatedAt: DateTime
 
-Posts\
-├─ id (integer, PK)\
-└─ created_at (datetime)
+Game
+├─ id: String (PK)
+├─ status: WAITING | ONGOING | FINISHED | ABORTED
+├─ mode: ONLINE | AI
+├─ whiteId: String?
+├─ blackId: String?
+├─ invitedUserId: String?
+├─ winnerId: String?
+├─ drawOfferedBy: String?
+├─ currentFen: String
+├─ pgn: String
+├─ timeControl: String
+├─ whiteTimeLeft: Int?
+├─ blackTimeLeft: Int?
+├─ createdAt: DateTime
+└─ updatedAt: DateTime
+
+FriendRequest
+├─ id: String (PK)
+├─ senderId: String (FK -> User)
+├─ receiverId: String (FK -> User)
+└─ createdAt: DateTime
+
+Friendship
+├─ id: String (PK)
+├─ userId: String (FK -> User)
+├─ friendId: String (FK -> User)
+└─ createdAt: DateTime
+```
 
 ### Relations
 
-//TODO example:
+- `User -> Game`: a user can play many games as white, black, invited user or winner
+- `User -> FriendRequest`: a user can send and receive many friend requests
+- `User -> Friendship`: friendships are stored as explicit relations between two users
+- `Game -> User`: each game references the participating users and, when applicable, the winner
 
-- **Users → Posts** : a user can have several posts.
+### Tables, fields and data types
 
-### Table, fields and data types
-
-// TODO example:
-
-| Table | Field      | Type     | Description         |
-| ----- | ---------- | -------- | ------------------- |
-| Users | id         | integer  | Primary key         |
-| Users | created_at | datetime | Date of signup      |
-| Posts | id         | integer  | Primary key         |
-| Posts | created_at | datetime | Date of publication |
+| Table | Field | Type | Description |
+| ----- | ----- | ---- | ----------- |
+| `users` | `id` | `String` | Primary key (UUID) |
+| `users` | `email` | `String` | Unique user email |
+| `users` | `username` | `String` | Unique public username |
+| `users` | `role` | `Role` | User permission level |
+| `users` | `elo` | `Int` | Chess rating |
+| `users` | `avatarKey` | `String` | Avatar file path in storage |
+| `users` | `isOnline` | `Boolean` | Presence status |
+| `games` | `status` | `GameStatus` | Game lifecycle state |
+| `games` | `mode` | `GameMode` | Online or AI game |
+| `games` | `currentFen` | `String` | Current board position |
+| `games` | `pgn` | `String` | Recorded move history |
+| `games` | `timeControl` | `String` | Selected time format |
+| `friend_requests` | `senderId` | `String` | User who sent the request |
+| `friend_requests` | `receiverId` | `String` | User who received the request |
+| `friendships` | `userId` | `String` | Owner side of the friendship |
+| `friendships` | `friendId` | `String` | Friend side of the friendship |
 
 ## Features
 
-| Feature                                        | Description                                       | Contributors                                |
-| ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------- |
-| // TODO: Complete list of implemented features | Brief description of each feature’s functionality | Which team member(s) worked on each feature |
-|                                                |                                                   |                                             |
+| Feature | Description | Contributors |
+| ------- | ----------- | ------------ |
+| Authentication and account creation | Users can register, log in securely and access protected routes with JWT authentication | ahetru, eproust, matde-la |
+| Profile management | Users can edit their profile, upload an avatar, view ELO, match stats and recent games | ahetru, eproust, matde-la, sluterea |
+| Friends system and presence | Users can search for others, send requests, accept or reject them, remove friends and see online status | ahetru, eproust, matde-la, sluterea |
+| Multiplayer chess | Users can create and join online games with real-time synchronization, legal move validation and time controls | ahetru, eproust, matde-la, sluterea |
+| In-game social interactions | Online games include chat, draw offers and resignation flow | ahetru, eproust, matde-la, sluterea |
+| AI opponent | Users can play against Stockfish with configurable difficulty and side selection | matde-la, sluterea, eproust |
+| 2D and 3D game views | The game can be played in classic 2D or with a 3D board rendered in the browser | matde-la, sluterea |
+| Lobby and invitations | Users can browse available games, create matches and join the right game flow | matde-la, sluterea, ahetru, eproust |
+| Admin panel | Admins can inspect users and games, update selected data and perform protected management actions | ahetru, eproust, matde-la |
+| Notifications and reusable UI | The application uses shared components and toast notifications across main CRUD flows | matde-la, sluterea |
 
-## Modules:
+## Modules
 
-| Category        | Module                                                                     | Type  | Points | Goal | Implementation                                                                                                                                                                                           | Contributors                                           |
-| --------------- | -------------------------------------------------------------------------- | ----- | ------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Web             | Use a framework for both frontend and backend                              | Major | +2     |      | Frontend: ReactJS, Backend: NestJS                                                                                                                                                                       | matde-la, sluterea (ReactJS); ahetru, eproust (NestJS) |
-| Web             | Allow users to interact with other users (chqt, profile or firends system) | Major | + 2    |      |                                                                                                                                                                                                          |
-| Web             | A public API to interact with the database                                 | Major | +2     |      | Secured API key, rate limite, documentation, and at least 5 endpoints (GET, POST, PUT, DELETE)                                                                                                           |                                                        |
-| Web             | Use an ORM for the database                                                | Minor | +1     |      | Prisma ORM                                                                                                                                                                                               | ahetru, eproust                                        |
-| Gaming and UX   | Complete web-based game where users can play against each other            | Major | +2     |      | Real-time multiplayer game, live matches, game with clear rules and win/loss conditions                                                                                                                  |                                                        |
-| Gaming and UX   | Remote players in real-time                                                | Major | +2     |      | Handle network latency and disconnections gracefully, provide a smooth UX for remote gameplay, reconnection logic                                                                                        |                                                        |
-| User Management | Standard user management and authentication                                | Major | + 2    |      | Users can update their profile information, upload an avatar (and have a default avatar), add other users as friends and se their online status. Users have a profile page displaying their information. | all (backend and frontend)                             |
-| Web             | Implement real-time features using WebSockets or similar technology        | Major | + 2    |      |                                                                                                                                                                                                          |
-| Web             | Custom-made design system with reusable components                         | Minor | +1     |      | Minimum of 10 reusable components, including proper color palette, typography and icons                                                                                                                  | matde-la, sluterea                                     |
-| Web             | A complete notification system for CRUD actions                            | Minor | +1     |      | Notifications popups with React on entity creationm update and deletion                                                                                                                                  |                                                        |
+| Category | Module | Type | Points | Implementation | Contributors |
+| -------- | ------ | ---- | ------ | -------------- | ------------ |
+| Web | Use a framework for both frontend and backend | Major | +2 | React with Vite on the frontend and NestJS on the backend | matde-la, sluterea, ahetru, eproust |
+| Web | Implement real-time features using WebSockets or similar technology | Major | +2 | Socket.IO is used for online games, live updates, draw offers, game chat and presence | ahetru, eproust, matde-la |
+| Web | Allow users to interact with other users | Major | +2 | Profiles, friends system, online presence and in-game chat between players | ahetru, eproust, matde-la, sluterea |
+| Web | Use an ORM for the database | Minor | +1 | Prisma manages the PostgreSQL schema, relations, typed queries and migrations | ahetru, eproust |
+| Web | A complete notification system for CRUD actions | Minor | +1 | Shared toast notifications are used for profile, avatar, friends, game and admin actions | matde-la, sluterea |
+| Web | Custom-made design system with reusable components | Minor | +1 | Shared palette, typography and reusable UI components are documented in `docs/design-system.md` | matde-la, sluterea |
+| Web | Implement advanced search functionality with filters, sorting, and pagination | Minor | +1 | The admin area supports search, filtering, sorting and pagination for users and games | ahetru, eproust, matde-la |
+| User Management | Standard user management and authentication | Major | +2 | Registration, login, JWT auth, profile updates, avatar handling, presence and friend management | ahetru, eproust, matde-la, sluterea |
+| User Management | Advanced permissions system | Major | +2 | Admin roles, protected routes, admin guards and protected user/game management actions | ahetru, eproust, matde-la |
+| Artificial Intelligence | AI Opponent | Major | +2 | Stockfish-powered chess mode with configurable level and persistent preferences | matde-la, sluterea, eproust |
+| Gaming and UX | Complete web-based game where users can play against each other | Major | +2 | Real-time chess matches with legal moves, timer handling, end states, draw flow and exported notation | ahetru, eproust, matde-la, sluterea |
+| Gaming and UX | 3D graphics | Major | +2 | Optional 3D chess board built with Three.js, `@react-three/fiber` and `@react-three/drei` | matde-la, sluterea |
+| Gaming and UX | Game customization options | Minor | +1 | Users can switch between 2D and 3D boards, choose board themes and configure AI settings | matde-la, sluterea |
 
-// TODO Add a the base the project structure and finilize only if time left
-| Category | Module | Type | Points | Goal | Implementation | Contributors |
-|---|---|---|---|---|---|---|
-| Accessibility & i18n | Support for multiple languages | Minor | +1 | | Langage switch
-| Accessibility & i18n | Support for aditional browsers | Minor | +1 | | Full compatibility in 3 browsers (Google Chrome, Firefox, Safari), documentation on browser-specific limitations, consisten UI/UX across all supported browsers | |
-| User management | Game statistics and match history | Minor | +1 | | Track user game statistics (wins, losses, ranking, level, etc.), display match history (1v1 games, dates, results, opponents), show achievements and progression, leaderboard integration | all (backend and frontend) |
-| User management | Advanced permissions system | Major | +2 | | View, edit and delete users (CRUD), Roles management (admin, user, guest moderator, etc.) | Different views and actions based on user role |
-
-// TODO Bonus (if we have time left only)
-
-| Category         | Module                               | Type  | Points | Goal | Implementation                                                                                             | Contributors |
-| ---------------- | ------------------------------------ | ----- | ------ | ---- | ---------------------------------------------------------------------------------------------------------- | ------------ |
-| Data & Analytics | Data exports and imports             | Minor | +1     |      | Export data in multiple formats (JSON, CSV, XML,...), Import data with validation, bulk operations support |              |
-| user management  | Remote authentication with OAuth 2.0 | Minor | + 1    |      | Google, Github, 42 authentication system                                                                   |              |
-| DevOps           | Health check and status page system  | Minor | +1     |      | Page system with automated backups and disaster recovery procedures                                        |              |
-| Gaming and UX    | 3D graphics                          | Major | +2     |      | 3D chess board using three.js, advanced rendering technics, smooth performance and user interaction        |              |
-| Gaming and UX    | Game customization options           | Minor | +1     |      | Power-ups and special abilities of pawns                                                                   |              |
-
-**Total points**: // TODO
+**Total points**: 21
 
 ## Individual Contributions
 
-| Team member | Contribution                                            | Implementations                                                      | Challenges                                      |
-| ----------- | ------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------- |
-| // TODO     | Detailed breakdown of what each team member contributed | Specific features, modules, or components implemented by each person | Any challenges faced and how they were overcome |
-| ahetru      |                                                         |                                                                      |                                                 |
-| eproust     |                                                         |                                                                      |                                                 |
-| matde-la    |                                                         |                                                                      |                                                 |
-| sluterea    |                                                         |                                                                      |                                                 |
+| Team member | Contribution | Implementations | Challenges |
+| ----------- | ------------ | --------------- | ---------- |
+| ahetru | Backend feature development and project coordination | Authentication flows, user and friends endpoints, admin-related backend work, integration support between frontend and backend | Keeping the team aligned while maintaining feature delivery and consistent API behavior |
+| eproust | Technical architecture and backend foundations | NestJS module structure, Prisma data model, game service logic, backend code quality and technical reviews | Designing a clean architecture for real-time game logic and keeping modules maintainable |
+| matde-la | Product direction and main frontend integration | Product scope definition, main UI flows, lobby/profile/game integration, reusable UI system, admin frontend work | Balancing product priorities with implementation effort and keeping the experience coherent across screens |
+| sluterea | Frontend feature delivery and interface polish | Frontend components, page integration, gameplay UI work, styling and user experience improvements | Translating complex chess interactions into clear and usable interfaces |
 
-## Licence
+## License
 
-// TODO
+This repository is currently an academic project for 42 and is not distributed under a separate open-source license. The backend package is marked as `UNLICENSED`.

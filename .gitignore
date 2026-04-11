@@ -1,0 +1,28 @@
+# =========================
+# .GITIGNORE - ROOT ONLY
+# =========================
+
+# Secrets
+.env
+*.crt
+*.key
+*.pem
+
+# No logs in root
+log/
+logs/
+*.log
+
+# OS
+.DS_Store
+
+# No editor settings in root
+.vscode/*
+*.sw?
+
+# Prevent an unwanted npm install in root
+/package-lock.json
+/yarn.lock
+/pnpm-lock.yamlaws-iam.txt
+/pnpm-lock.yamlaws/
+aws-iam.txt

@@ -1,0 +1,93 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { LoginDto } from './dtos/login.dto';
+import * as bcrypt from 'bcrypt';
+import { UsersService } from '../users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { AuthResponseDto } from './dtos/auth-response.dto';
+import { CONSTRAINTS } from '../common/constants';
+
+@Injectable()
+export class AuthService {
+	constructor(
+		private readonly usersService: UsersService,
+		private readonly jwtService: JwtService,
+	) {}
+
+	/**
+	 * Generate a JWT token for the given user.
+	 *
+	 * The payload contains only 2 fields to keep the token minimal:
+	 * - `id` (user id): required by `OwnerOrAdminGuard` to compare with `params.id`
+	 * - `role` (user role): required by `AdminGuard` to check for admin access
+	 */
+	private generateToken(payload: JwtPayload): string {
+		return this.jwtService.sign({
+			sub: payload.sub,
+			role: payload.role,
+		});
+	}
+
+	/**
+	 * Create a new user in database, then log him in by generating a JWT token.
+	 * Sets the user as online and updates lastSeen on registration.
+	 *
+	 * @param createUserDto POST user data
+	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
+	 * @throws {ConflictException} If email or username already exists
+	 */
+	async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
+		const userWithoutPassword =
+			await this.usersService.createOne(createUserDto);
+		const registeredUser = await this.usersService.updateOneById(
+			userWithoutPassword.id,
+			{
+			lastSeen: new Date(),
+			isOnline: true,
+			},
+		);
+		return {
+			user: registeredUser,
+			token: this.generateToken({
+				sub: userWithoutPassword.id,
+				role: userWithoutPassword.role,
+			}),
+		};
+	}
+
+	/**
+	 * Login a user by generating a JWT token.
+	 *
+	 * @param loginDto Post data for login
+	 * @returns Object containing JWT `token` & `user` data (password omitted for security)
+	 * @throws UnauthorizedException if email or password is invalid
+	 */
+	async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+		const errorMsg = 'Invalid email, username or password'; // Vague to give no info to attackers
+		const isEmail = CONSTRAINTS.user.email.regex.test(
+			loginDto.emailOrUsername,
+		);
+
+		const user = isEmail
+			? await this.usersService.findOneByEmail(loginDto.emailOrUsername)
+			: await this.usersService.findOneByUsername(
+					loginDto.emailOrUsername,
+				);
+		if (!user) throw new UnauthorizedException(errorMsg);
+
+		if (!(await bcrypt.compare(loginDto.password, user.password)))
+			throw new UnauthorizedException(errorMsg);
+
+		const activeUser = await this.usersService.updateOneById(user.id, {
+			lastSeen: new Date(),
+			isOnline: true,
+		});
+		if (!activeUser) throw new UnauthorizedException(errorMsg);
+
+		return {
+			user: activeUser,
+			token: this.generateToken({ sub: user.id, role: user.role }),
+		};
+	}
+}
