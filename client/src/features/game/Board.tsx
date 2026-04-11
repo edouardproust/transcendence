@@ -2,38 +2,21 @@ import React from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useGameStore } from './gameStore';
 import { Move } from '@/types/game';
-import { Board3D } from './Board3D';
+import { Board3D } from './components/Board3D';
+import { WaitingBanner } from './components/WaitingBanner';
+import {
+  board2DThemes,
+  getPieceColor,
+  getCheckedKingSquare,
+  buildLastMoveStyles,
+  buildCheckStyles,
+  isMyTurn,
+  parsePromotionPiece,
+} from './utils';
 
 interface BoardProps {
   onMove: (move: Move) => boolean;
 }
-
-const board2DThemes = {
-  classic: {
-    light: '#f0d9b5',
-    dark: '#b58863',
-    border: '#5b3f2f',
-    shadow: '0 8px 18px rgba(0, 0, 0, 0.2)',
-  },
-  wood: {
-    light: '#f3e2c3',
-    dark: '#8d5f3a',
-    border: '#4d3018',
-    shadow: '0 12px 22px rgba(59, 35, 16, 0.35)',
-  },
-  ocean: {
-    light: '#d9f1ff',
-    dark: '#3b82a8',
-    border: '#174a63',
-    shadow: '0 10px 20px rgba(23, 74, 99, 0.32)',
-  },
-  slate: {
-    light: '#d8dde6',
-    dark: '#4b5563',
-    border: '#1f2937',
-    shadow: '0 10px 22px rgba(17, 24, 39, 0.33)',
-  },
-} as const;
 
 export const Board: React.FC<BoardProps> = ({ onMove }) => {
   const {
@@ -49,88 +32,27 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
     chess,
     lastMove,
   } = useGameStore();
-  const validPromotionPieces = new Set(['q', 'r', 'b', 'n']);
   const pendingPromotionRef = React.useRef<string | undefined>(undefined);
 
-  const getPieceColor = (piece: string): 'white' | 'black' => {
-    // react-chessboard can provide "wP"/"bP" or plain FEN-style symbols ("P"/"p")
-    if (piece.startsWith('w')) return 'white';
-    if (piece.startsWith('b')) return 'black';
-    const symbol = piece.length === 2 ? piece[1] : piece[0];
-    return symbol === symbol.toUpperCase() ? 'white' : 'black';
-  };
-
-  // Verificar si es el turno del jugador
-  const isMyTurn = () => {
-    if (mode === 'ai') {
-      if (!playerColor) return false;
-      return (turn === 'w' && playerColor === 'white') || (turn === 'b' && playerColor === 'black');
-    }
-    if (mode === 'online') {
-      if (!playerColor) return false;
-      return (turn === 'w' && playerColor === 'white') || (turn === 'b' && playerColor === 'black');
-    }
-    return false;
-  };
-
-  // Verificar si el juego está listo para jugar
-  const canPlay = status === 'active' && isMyTurn();
+  const canPlay = status === 'active' && isMyTurn(mode, playerColor, turn);
   const chessboardKey = `chessboard-${gameId ?? 'none'}-${playerColor ?? 'none'}-${status}-${canPlay ? 'play' : 'wait'}`;
   const active2DTheme = board2DThemes[board2DTheme];
-  const checkedKingSquare = React.useMemo(() => {
-    if (!chess?.inCheck()) return null;
-
-    const kingSymbol = turn === 'w' ? 'K' : 'k';
-    const files = 'abcdefgh';
-
-    for (let rank = 1; rank <= 8; rank += 1) {
-      for (const file of files) {
-        const square = `${file}${rank}`;
-        if (chess.getPiece(square) === kingSymbol) {
-          return square;
-        }
-      }
-    }
-
-    return null;
-  }, [chess, fen, turn]);
-  const lastMoveStyles = React.useMemo<Record<string, React.CSSProperties>>(() => {
-    if (!lastMove?.from || !lastMove?.to) return {};
-    return {
-      [lastMove.from]: {
-        backgroundColor: 'rgba(251, 191, 36, 0.45)',
-        boxShadow: 'inset 0 0 0 2px rgba(146, 64, 14, 0.45)',
-      },
-      [lastMove.to]: {
-        backgroundColor: 'rgba(34, 197, 94, 0.45)',
-        boxShadow: 'inset 0 0 0 2px rgba(21, 128, 61, 0.5)',
-      },
-    };
-  }, [lastMove]);
-  const checkStyles = React.useMemo<Record<string, React.CSSProperties>>(() => {
-    if (!checkedKingSquare) return {};
-
-    return {
-      [checkedKingSquare]: {
-        backgroundColor: 'rgba(239, 68, 68, 0.72)',
-        boxShadow: 'inset 0 0 0 3px rgba(127, 29, 29, 0.72)',
-      },
-    };
-  }, [checkedKingSquare]);
+  const checkedKingSquare = React.useMemo(
+    () => getCheckedKingSquare(chess, turn),
+    [chess, fen, turn],
+  );
+  const lastMoveStyles = React.useMemo(
+    () => buildLastMoveStyles(lastMove),
+    [lastMove],
+  );
+  const checkStyles = React.useMemo(
+    () => buildCheckStyles(checkedKingSquare),
+    [checkedKingSquare],
+  );
 
   const getLegalTargets = (square: string) => {
     if (!chess) return [];
     return chess.getLegalTargets(square);
-  };
-
-  const parsePromotionPiece = (selectedPiece?: string): string | undefined => {
-    if (!selectedPiece) return undefined;
-    const promotionSymbol =
-      selectedPiece.length === 2 && (selectedPiece[0] === 'w' || selectedPiece[0] === 'b')
-        ? selectedPiece[1]
-        : selectedPiece[0];
-    const normalized = promotionSymbol?.toLowerCase();
-    return normalized && validPromotionPieces.has(normalized) ? normalized : undefined;
   };
 
   const handlePromotionPieceSelect = (piece?: string): boolean => {
@@ -141,10 +63,10 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
   const handlePieceDrop = (
     sourceSquare: string,
     targetSquare: string,
-    piece?: string
+    piece?: string,
   ): boolean => {
     if (!canPlay) {
-      return false; // Bloquear el movimiento si no es tu turno
+      return false;
     }
 
     const legalTargets = getLegalTargets(sourceSquare);
@@ -182,21 +104,7 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
           : 'max-w-2xl'
       }`}
     >
-      {/* {!canPlay && status === 'active' && (
-        <div className="mb-3 p-3 bg-blue-100 dark:bg-blue-900 border border-blue-400 dark:border-blue-600 rounded text-center">
-          <p className="text-blue-800 dark:text-blue-200 font-medium">
-            {mode === 'online' ? '⏳ Esperando el turno del oponente...' : '⏳ La IA está pensando...'}
-          </p>
-        </div>
-      )} */}
-      
-      {status === 'waiting' && (
-        <div className="mb-3 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded text-center">
-          <p className="text-yellow-800 dark:text-yellow-200 font-medium">
-            ⏳ {mode !== 'ai' ? 'Esperando que se una un oponente...' : 'Elige el nivel de IA...'}
-          </p>
-        </div>
-      )}
+      {status === 'waiting' && <WaitingBanner />}
 
       {boardView === '3d' ? (
         <Board3D
@@ -235,7 +143,6 @@ export const Board: React.FC<BoardProps> = ({ onMove }) => {
             if (!isMyPiece) return false;
             return getLegalTargets(sourceSquare).length > 0;
           }}
-
           customSquareStyles={{ ...lastMoveStyles, ...checkStyles }}
         />
       )}
