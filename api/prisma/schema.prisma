@@ -34,6 +34,7 @@ model User {
 
     whiteGames Game[]   @relation("WhitePlayer")
     blackGames Game[]   @relation("BlackPlayer")
+    invitedGames Game[] @relation("InvitedUserGames")
     wonGames   Game[]   @relation("Winner")
     createdAt  DateTime @default(now())
 
@@ -68,6 +69,9 @@ model Game {
 
     white User? @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: SetNull)
     black User? @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: SetNull)
+
+	invitedUserId String?
+	invitedUser   User? @relation("InvitedUserGames", fields: [invitedUserId], references: [id], onDelete: SetNull)
 
     winnerId      String?
     winner        User?   @relation("Winner", fields: [winnerId], references: [id])

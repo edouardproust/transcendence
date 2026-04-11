@@ -25,13 +25,17 @@ import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
 import { StartGameDto } from './dto/start-game.dto';
 import { CreateInvitedGameDto } from './dto/create-invited-game.dto';
+import { GameGateway } from './game.gateway';
 
 @Controller('games')
 @UseGuards(JwtAuthGuard)
 @ApiTags('games')
 @ApiBearerAuth()
 export class GameController {
-	constructor(private readonly gameService: GameService) {}
+	constructor(
+		private readonly gameService: GameService,
+		private readonly gameGateway: GameGateway,
+	) {}
 
 	@Post()
 	@ApiOperation({ summary: 'Create a new game' })
@@ -106,6 +110,31 @@ export class GameController {
 		@CurrentUser() user: RequestUser,
 	): Promise<GameResponseDto> {
 		return this.gameService.createInvitedGame(dto, user.id);
+	}
+
+	@Post(':id/decline-invite')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Decline a pending game invitation' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Invitation declined and game cancelled',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invite can no longer be declined',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Current user is not the invited player',
+	})
+	async declineInvite(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		const updatedGame = await this.gameService.declineInvite(id, user.id);
+		this.gameGateway.emitInviteDeclined(id);
+		return updatedGame;
 	}
 
 	@Get(':id')

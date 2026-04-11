@@ -38,6 +38,7 @@ export const GameServiceMock = {
 	useValue: {
 		createGame: jest.fn(),
 		createInvitedGame: jest.fn(),
+		declineInvite: jest.fn(),
 		getGame: jest.fn(),
 		getActiveGames: jest.fn(),
 		getUserGames: jest.fn(),

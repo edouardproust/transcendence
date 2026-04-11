@@ -6,6 +6,7 @@ import { useAuthStore } from '@/features/auth/authStore';
 import { pushToast } from '@/components/ui/ToastProvider';
 import { GameInvitePayload } from '@/types/invite';
 import { GameInviteModal } from './GameInviteModal';
+import { gameService } from '@/services/gameService';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate(nextRoute);
   };
 
+  const handleDeclineInvite = async () => {
+    if (!pendingInvite) return;
+
+    try {
+      await gameService.declineInvite(pendingInvite.gameId);
+      pushToast('Invitacion rechazada', 'info');
+    } catch (error) {
+      console.error('Decline invite failed:', error);
+      pushToast('No se pudo rechazar la invitacion', 'error');
+    } finally {
+      setPendingInvite(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-800">
       <Navbar />
@@ -52,7 +67,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <GameInviteModal
         invite={pendingInvite}
         onAccept={handleAcceptInvite}
-        onClose={() => setPendingInvite(null)}
+        onClose={() => void handleDeclineInvite()}
       />
     </div>
   );

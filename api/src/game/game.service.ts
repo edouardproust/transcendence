@@ -4,6 +4,7 @@ import {
 	NotFoundException,
 	ForbiddenException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { Chess } from 'chess.js';
@@ -76,13 +77,67 @@ export class GameService {
 			throw new NotFoundException('User not found');
 		}
 
-		const game = await this.createGame(
-			{
-				mode: GameMode.ONLINE,
-				timeControl: dto.timeControl,
-			},
-			inviterId,
-		);
+		const gameId = randomUUID();
+		const now = new Date();
+
+		const [game] = await this.prisma.$queryRaw<
+			Array<{
+				id: string;
+				status: GameStatus;
+				mode: GameMode;
+				whiteId: string | null;
+				blackId: string | null;
+				winnerId: string | null;
+				drawOfferedBy: string | null;
+				currentFen: string;
+				pgn: string;
+				timeControl: string;
+				whiteTimeLeft: number | null;
+				blackTimeLeft: number | null;
+				createdAt: Date;
+				updatedAt: Date;
+			}>
+		>`
+			INSERT INTO "games" (
+				"id",
+				"whiteId",
+				"blackId",
+				"invitedUserId",
+				"status",
+				"mode",
+				"timeControl",
+				"updatedAt"
+			)
+			VALUES (
+				${gameId},
+				${inviterId},
+				NULL,
+				${dto.friendId},
+				${GameStatus.WAITING},
+				${GameMode.ONLINE},
+				${dto.timeControl},
+				${now}
+			)
+			RETURNING
+				"id",
+				"status",
+				"mode",
+				"whiteId",
+				"blackId",
+				"winnerId",
+				"drawOfferedBy",
+				"currentFen",
+				"pgn",
+				"timeControl",
+				"whiteTimeLeft",
+				"blackTimeLeft",
+				"createdAt",
+				"updatedAt"
+		`;
+
+		if (!game) {
+			throw new BadRequestException('No se pudo crear la invitacion');
+		}
 
 		try {
 			this.presenceGateway.emitGameInvite(dto.friendId, {
@@ -115,29 +170,53 @@ export class GameService {
 	 * @returns List of up to 20 waiting online games, ordered by most recent
 	 */
 	async getActiveGames() {
-		const games = await this.prisma.game.findMany({
-			where: {
-				status: GameStatus.WAITING,
-				mode: GameMode.ONLINE,
-				blackId: null,
-			},
-			include: {
-				white: {
-					select: {
-						username: true,
-						elo: true,
-					},
-				},
-			},
-			orderBy: { createdAt: 'desc' },
-			take: 20,
-		});
-
-		return games.map((game) => ({
-			...game,
-			creatorUsername: game.white?.username ?? null,
-			creatorElo: game.white?.elo ?? null,
-		}));
+		return this.prisma.$queryRaw<
+			Array<{
+				id: string;
+				status: GameStatus;
+				mode: GameMode;
+				whiteId: string | null;
+				blackId: string | null;
+				winnerId: string | null;
+				drawOfferedBy: string | null;
+				currentFen: string;
+				pgn: string;
+				timeControl: string;
+				whiteTimeLeft: number | null;
+				blackTimeLeft: number | null;
+				createdAt: Date;
+				updatedAt: Date;
+				creatorUsername: string | null;
+				creatorElo: number | null;
+			}>
+		>`
+			SELECT
+				g."id",
+				g."status",
+				g."mode",
+				g."whiteId",
+				g."blackId",
+				g."winnerId",
+				g."drawOfferedBy",
+				g."currentFen",
+				g."pgn",
+				g."timeControl",
+				g."whiteTimeLeft",
+				g."blackTimeLeft",
+				g."createdAt",
+				g."updatedAt",
+				u."username" AS "creatorUsername",
+				u."elo" AS "creatorElo"
+			FROM "games" g
+			LEFT JOIN "users" u ON u."id" = g."whiteId"
+			WHERE
+				g."status" = ${GameStatus.WAITING}
+				AND g."mode" = ${GameMode.ONLINE}
+				AND g."blackId" IS NULL
+				AND g."invitedUserId" IS NULL
+			ORDER BY g."createdAt" DESC
+			LIMIT 20
+		`;
 	}
 
 	/**
@@ -231,6 +310,21 @@ export class GameService {
 		}
 
 		if (!game.blackId && userId !== game.whiteId) {
+			const [inviteRow] = await this.prisma.$queryRaw<
+				Array<{ invitedUserId: string | null }>
+			>`
+				SELECT "invitedUserId"
+				FROM "games"
+				WHERE "id" = ${gameId}
+				LIMIT 1
+			`;
+
+			if (inviteRow?.invitedUserId && inviteRow.invitedUserId !== userId) {
+				throw new ForbiddenException(
+					'Esta partida fue creada para otro jugador invitado',
+				);
+			}
+
 			const userExists = await this.prisma.user.findUnique({
 				where: { id: userId },
 			});
@@ -371,6 +465,44 @@ export class GameService {
 		});
 
 		return { ...updatedGame, endReason: 'resignation' as const };
+	}
+
+	async declineInvite(gameId: string, userId: string) {
+		const [game] = await this.prisma.$queryRaw<
+			Array<{
+				id: string;
+				status: GameStatus;
+				invitedUserId: string | null;
+			}>
+		>`
+			SELECT "id", "status", "invitedUserId"
+			FROM "games"
+			WHERE "id" = ${gameId}
+			LIMIT 1
+		`;
+
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		if (game.status !== GameStatus.WAITING) {
+			throw new BadRequestException('Invite can no longer be declined');
+		}
+
+		if (game.invitedUserId !== userId) {
+			throw new ForbiddenException('You are not the invited user');
+		}
+
+		const updatedGame = await this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				status: GameStatus.ABORTED,
+				winnerId: null,
+				drawOfferedBy: null,
+			},
+		});
+
+		return { ...updatedGame, endReason: 'invite_declined' as const };
 	}
 
 	/**

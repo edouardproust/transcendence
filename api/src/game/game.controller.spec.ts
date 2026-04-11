@@ -5,6 +5,7 @@ import { GameServiceMock, gameFixture } from './game.service.mock';
 import { RequestUser } from '../auth/interfaces/request-user.interface';
 import { GameMode } from '../prisma/generated/enums';
 import { EXAMPLES } from '../common/constants';
+import { GameGateway } from './game.gateway';
 
 describe('GameController', () => {
 	let controller: GameController;
@@ -13,7 +14,15 @@ describe('GameController', () => {
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [GameController],
-			providers: [GameServiceMock],
+			providers: [
+				GameServiceMock,
+				{
+					provide: GameGateway,
+					useValue: {
+						emitInviteDeclined: jest.fn(),
+					},
+				},
+			],
 		}).compile();
 
 		controller = module.get<GameController>(GameController);
@@ -83,6 +92,26 @@ describe('GameController', () => {
 			jest.spyOn(gameService, 'getGame').mockResolvedValue(gameFixture);
 			await controller.getGame(EXAMPLES.gameId);
 			expect(gameService.getGame).toHaveBeenCalledWith(EXAMPLES.gameId);
+		});
+	});
+
+	describe('declineInvite', () => {
+		it('should call service.declineInvite and notify the gateway', async () => {
+			const user: RequestUser = { id: EXAMPLES.id2, role: EXAMPLES.role };
+			const gateway = (controller as any).gameGateway as GameGateway;
+			jest.spyOn(gameService, 'declineInvite').mockResolvedValue(
+				gameFixture,
+			);
+
+			await controller.declineInvite(EXAMPLES.gameId, user);
+
+			expect(gameService.declineInvite).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+				user.id,
+			);
+			expect(gateway.emitInviteDeclined).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+			);
 		});
 	});
 

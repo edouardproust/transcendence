@@ -61,6 +61,11 @@ export const gameService = {
     return mapGameFromAPI(response.data);
   },
 
+  async declineInvite(gameId: string): Promise<Game> {
+    const response = await api.post(`/games/${gameId}/decline-invite`);
+    return mapGameFromAPI(response.data);
+  },
+
   async getGame(gameId: string): Promise<Game> {
     const response = await api.get(`/games/${gameId}`);
     return mapGameFromAPI(response.data);
