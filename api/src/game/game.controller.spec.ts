@@ -115,6 +115,20 @@ describe('GameController', () => {
 		});
 	});
 
+	describe('cancelGame', () => {
+		it('should call service.cancelGame with id and userId', async () => {
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			jest.spyOn(gameService, 'cancelGame').mockResolvedValue(gameFixture);
+
+			await controller.cancelGame(EXAMPLES.gameId, user);
+
+			expect(gameService.cancelGame).toHaveBeenCalledWith(
+				EXAMPLES.gameId,
+				user.id,
+			);
+		});
+	});
+
 	describe('startGame', () => {
 		it('should call service.startGame with id and userId', async () => {
 			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };

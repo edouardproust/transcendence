@@ -22,7 +22,7 @@ export class AdminService {
 			timeControl: game.timeControl,
 			createdAt: game.createdAt,
 			updatedAt: game.updatedAt,
-			whiteUsername: game.white.username,
+			whiteUsername: game.white?.username ?? 'Desconocido',
 			blackUsername: game.black?.username ?? null,
 			winnerUsername: game.winner?.username ?? null,
 		};

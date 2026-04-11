@@ -138,8 +138,20 @@ export const AIGamePage: React.FC<AIGamePageProps> = ({ gameId }) => {
   };
 
   const handleLeave = () => {
-    reset();
-    navigate("/lobby");
+    void (async () => {
+      try {
+        if (status === "waiting" || status === "active") {
+          await gameService.cancelGame(gameId);
+        }
+      } catch (error) {
+        console.error("[AIGame] Error leaving game:", error);
+        pushToast(getApiErrorMessage(error, "No se pudo cerrar la partida"), "error");
+        return;
+      }
+
+      reset();
+      navigate("/lobby");
+    })();
   };
 
   const handleExportTxt = () => {

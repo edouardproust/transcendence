@@ -137,6 +137,33 @@ export class GameController {
 		return updatedGame;
 	}
 
+	@Post(':id/cancel')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Cancel or close a game through HTTP flow' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Game cancelled or finished',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Current user is not a player in this game',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Game cannot be cancelled',
+	})
+	async cancelGame(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.cancelGame(id, user.id);
+	}
+
 	@Get(':id')
 	@ApiOperation({ summary: 'Get game by id' })
 	@ApiResponse({
