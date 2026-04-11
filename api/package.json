@@ -98,7 +98,8 @@
 			"!**/*.dto.ts",
 			"!**/*.decorator.ts",
 			"!prisma/generated/**",
-			"!**/swagger.config.ts"
+			"!**/swagger.config.ts",
+			"!**/utils/**"
 		],
 		"coverageDirectory": "../coverage",
 		"testEnvironment": "node",
