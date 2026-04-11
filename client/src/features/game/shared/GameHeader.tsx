@@ -18,14 +18,14 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   actions 
 }) => {
   return (
-    <div className="mb-4 flex justify-between items-center">
+    <div className="mb-4 flex flex-wrap justify-between items-center">
       <div>
         <h1 className="text-3xl font-bold">{title}</h1>
         {subtitle && (
           <p className="text-sm text-gray-600">{subtitle}</p>
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {actions.map((action, index) => (
           <Button
             key={index}
