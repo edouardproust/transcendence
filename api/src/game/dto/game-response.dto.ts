@@ -1,0 +1,50 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { EXAMPLES } from '../../common/constants';
+import { GameMode, GameStatus } from '../../prisma/generated/enums';
+
+export class GameResponseDto {
+	@ApiProperty({ example: EXAMPLES.id })
+	id: string;
+
+	@ApiProperty({
+		example: GameStatus.WAITING,
+		enum: Object.values(GameStatus),
+	})
+	status: GameStatus;
+
+	@ApiProperty({ example: GameMode.ONLINE, enum: Object.values(GameMode) })
+	mode: GameMode;
+
+	@ApiPropertyOptional({ example: EXAMPLES.id, nullable: true })
+	whiteId: string | null;
+
+	@ApiPropertyOptional({ example: EXAMPLES.id2, nullable: true })
+	blackId: string | null;
+
+	@ApiPropertyOptional({ example: EXAMPLES.id2, nullable: true })
+	winnerId: string | null;
+
+	@ApiPropertyOptional({
+		example: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+		nullable: true,
+	})
+	currentFen: string | null;
+
+	@ApiPropertyOptional({ example: '1. e4 e5', nullable: true })
+	pgn: string | null;
+
+	@ApiProperty({ example: EXAMPLES.timeControl })
+	timeControl: string;
+
+	@ApiPropertyOptional({ example: EXAMPLES.username, nullable: true })
+	creatorUsername?: string | null;
+
+	@ApiPropertyOptional({ example: EXAMPLES.elo, nullable: true })
+	creatorElo?: number | null;
+
+	@ApiProperty({ example: EXAMPLES.date })
+	createdAt: Date;
+
+	@ApiProperty({ example: EXAMPLES.date })
+	updatedAt: Date;
+}

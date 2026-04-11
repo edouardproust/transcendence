@@ -1,4 +1,6 @@
-# Docker Cheatsheet
+# Docker commands
+
+These commands must be used on the host machine (not in the containers).
 
 ## Images
 

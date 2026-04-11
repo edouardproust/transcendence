@@ -1,0 +1,343 @@
+baf4ac3 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | fix(test): fixed unit tests for game service and presence gateway
+e9b0ea1 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: presence gateway tests - remove afterEach restoreAllMocks
+87ba70b | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: presence gateway tests coverage
+211100b | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: unit tests presence gateway and auth service
+0eb90b6 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: presence gateway tests coverage
+59c90f0 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: unit tests presence gateway and auth service
+ca73ca7 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: unit tests backedn
+b102f65 | MatiasDelaC | matde-la@car14s3.42barcelona.com | 2026-04-11 | add README
+dbfdd10 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | Merge branch 'develop' into feature/refactor-front
+3e42928 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | merge develop filter
+c55cf40 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | fix IA game finish
+a63bf6d | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: prod deployment setup & admin improvements (#38)
+a87b967 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | full movile responsive
+7b7316f | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: unit tests coverage
+077dd3a | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: handle games on user delete, improve admin search filters
+7c03f58 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | fix cancel invite
+1ff27f1 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | fix windows invite friend
+8e89a8c | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | fx registro client
+aeb2716 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: add websocket proxy to nginx prod conf
+b036621 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: seed games log commented
+eaa5cf3 | Edouard Proust | contact@edouardproust.dev | 2026-04-11 | fix: docker setup for prod VITE issue
+3d405cd | Sato | s.lutereau@hotmail.com | 2026-04-11 | refactor v2, components, hooks, utils
+dcec2c4 | Sato | 116687199+Lute86@users.noreply.github.com | 2026-04-11 | fix: ai game message, route redirect when wrong url, changed lobby game join (#36)
+4578fe2 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | add send invitation friend
+6381d6a | MatiasDelaC | matias.dlc@icloud.com | 2026-04-11 | refactor(front): simplify admin, profile and board modules
+ab9fa72 | Sato | s.lutereau@hotmail.com | 2026-04-11 | frontend refactoring
+dca44c7 | Sato | s.lutereau@hotmail.com | 2026-04-11 | fix: ai game message, route redirect when wrong url, changed lobby game join
+bb99f70 | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-04-10 | Feature/elo system v2 (#35)
+19d76ee | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(test): add findFirst to prisma mock service
+0f77d54 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | feat(game): implement elo system
+237f219 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | docs: extract evaluation defense updates (#34)
+da66fd8 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | docs: extract evaluation defense updates
+a4ed37e | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | feat: prisma seeds by env with prod admin setup (#33)
+6775dfd | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | feat: prisma seeds by env with prod admin setup
+b4a1dc0 | MatiasDelaC | matde-la@car12s5.42barcelona.com | 2026-04-10 | re re fix
+f0f21dd | MatiasDelaC | matde-la@car12s5.42barcelona.com | 2026-04-10 | re-fix
+06ffb36 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | fix: game exit/resign, AI thinking refactor & check highlight (#30)
+f1d1c87 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(game tests): add finFirst to prisma mock service
+bbb6ded | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | feat(game): add elo system to game service
+780002a | satodv | satodev@proton.me | 2026-04-10 | Rename isYhinking prop to isThinking
+66f108b | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | Enhance GameLayout with AI thinking indicators
+f655f61 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | Remove AI thinking indicator from AIGamePage
+4fa1084 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | fix game exit/resign bugs
+ce391c3 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | WIP on last-fix-bugs: f839da6 fix: game finished exit redirection
+d5827dc | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | index on last-fix-bugs: f839da6 fix: game finished exit redirection
+f839da6 | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | fix: game finished exit redirection
+968dcb2 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | Merge branch 'feature/time-control-backend' into last-fix-bugs
+e9c9497 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(client): navigate to lobby when exiting ongoing game
+bf3f4f9 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | last fix
+58c54d0 | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-04-10 | Feature/time control backend (#29)
+d57c667 | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | fix: tests game gateway
+54bf665 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | test(gateway): add comprehensive specs for all handlers and timer functions
+db95c25 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(git): remove git diff
+f78215d | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | test(gateway): add timer function tests for coverage
+7c2dae5 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | refactor(game): remove unecessary comment
+5b06653 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(tests): update e2e test to expect timeLeft in gameUpdate
+bb0973c | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(tests): add decrementTime to GameServiceMock for e2e tests
+fe600f9 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(tests): update game gateway tests for timeLeft fields
+4cff546 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(api): add null check for decrementTime return value
+c8ff9d6 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(api): only start timer after first move
+1dfdb01 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(api): start timer for all time controls and convert minutes to seconds
+9d319ca | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | feat(client): use server timeLeft instead of local timer
+687aba7 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(api): include timeLeft in all gameUpdate emissions
+21e060a | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | feat(api): add timer logic to GameGateway
+aaa5939 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | feat(api): initialize timeLeft on game start and update on move
+db9ec78 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | feat(api): add timeLeft fields to Game model and parseTimeControl util
+4912ca2 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(client): use server status in playerJoined handler
+3111814 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix: remove unused ping/pong websocket handlers
+a49353c | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(client): add missing socket event types
+66980c1 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(game): make websocket CORS configurable via env
+c508a07 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | Fix/front new info and cancel game (#28)
+a0a6867 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | fix available games
+851ef1b | MatiasDelaC | matias.dlc@icloud.com | 2026-04-10 | fix game online
+d27725f | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-04-10 | Fix/small fixes (#27)
+c168596 | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | fix: WS_CORS_ORIGIN in presence as well
+5c1a0b9 | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | fix: merge conflict + WS_CORS_ORIGIN into CORS_ORIGIN
+64e679d | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | feat: add sorting, toast notifications and evaluation improvements (#26)
+e58fbab | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | fix: games e2e test
+bdc7535 | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | fix(admin): replace hardcoded pagination defaults with DEFAULTS constants
+2734d32 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(client): use server status in playerJoined handler
+d2cb37e | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix: remove unused ping/pong websocket handlers
+159da88 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(client): add missing socket event types
+0558f48 | ahetru | axel.a.hetru@gmail.com | 2026-04-10 | fix(game): make websocket CORS configurable via env
+64f04c4 | Edouard Proust | contact@edouardproust.dev | 2026-04-10 | chore: resolve merge conflicts with develop
+65255d3 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-09 | fix
+8762659 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-09 | Front fixv2 (#25)
+89f0cef | MatiasDelaC | matias.dlc@icloud.com | 2026-04-08 | fix bugs
+4e15c45 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-08 | Add 24-point evaluation improvements
+6f027b4 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-08 | fix
+8242090 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-08 | fix errors and bugs
+12c44af | MatiasDelaC | matias.dlc@icloud.com | 2026-04-08 | fix error
+281cadf | Axel Hetru | ahetru@car9s1.42barcelona.com | 2026-04-08 | add errores.md
+5d76db5 | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-04-08 | feat(presence): add PresenceGateway for global user status (#24)
+4b8b91b | ahetru | axel.a.hetru@gmail.com | 2026-04-08 | feat(presence): add PresenceGateway for global user status
+9ea3790 | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-04-07 | Feature/game service upgrade (#22)
+5794eb3 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | refactor(onlinegamepage): remove console.log(user) and unecessary comments in OnlineGamePage.tsx
+bd01ec3 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | feat(websocket): add disconnect/reconnect handling + fix draw event naming
+d904300 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | fix(game): remove hardcoded reason in resign
+978d46e | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | fix(game): makeMove acceptDraw resignGame return endReason; remove finishGame from handleMakeMove to let service handle logic
+32de3ba | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | fix(game dto): add @IsNotEmpty decorator to MakeMoveDto; update e2e test to match upgraged move object
+ea9f18f | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | fix(game): resolve illegal move bug by syncing move handling with server
+337e3ff | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | update gateway e2e test to import UsersService
+0abeb91 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | feat(game): add cancelGame to game service; add unit test for cancelGame
+9aa50c4 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | fix(game): send gameEnd event in handleMakeMove and handleResign
+1eedd6e | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | test(game): add UserService in GameGateway test module
+b8e0497 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | feat(game): add real-time chat in online game
+4811c4d | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | back: handle offerDraw acceptDraw declineDraw resign to gateway; front: add handlePlayerResigned in UseEffect
+b0c2f56 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | test: add tests for resignGame offerDraw acceptDraw declineDraw
+c66df24 | ahetru | axel.a.hetru@gmail.com | 2026-04-07 | feat(game.service): add offerDraw acceptDraw declineDraw in game service; add drawOfferedBy in Game model
+a826a63 | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-04-06 | fix(websocket): fix WebSocket connection and game flow (#21)
+cd37501 | ahetru | axel.a.hetru@gmail.com | 2026-04-03 | feat(game): improve game start flow and websocket handling refactor startGame logic to support dynamic black player assignment add proper player validation and ForbiddenException when game is full update unit tests to reflect new join/start behavior fix GameGateway tests by mocking Socket.IO server.in().fetchSockets() improve websocket client connection handling (VITE_SOCKET_URL) update docker env setup to include VITE_SOCKET_URL adjust docker-compose configuration for client environment variables
+9e09a75 | ahetru | axel.a.hetru@gmail.com | 2026-04-02 | fix(game.service): assign blackId and start game on second player join
+bbb7858 | ahetru | axel.a.hetru@gmail.com | 2026-04-02 | fix(game.gateway): start game at join and update game status
+c0a1365 | ahetru | axel.a.hetru@gmail.com | 2026-04-02 | chore(nginx): update nginx dev conf to support websocket connection; update docker/.env to assign VITE_SOCKET_URL; allow origin in gateway
+1f39624 | MatiasDelaC | matias.dlc@icloud.com | 2026-04-01 | Feature/front sockets (#20)
+ad1899f | MatiasDelaC | matias.dlc@icloud.com | 2026-03-31 | fix bugs
+b06edaa | Sato | s.lutereau@hotmail.com | 2026-03-30 | feature: sockets + online game + 3d board
+3e8b54b | Edouard Proust | contact@edouardproust.dev | 2026-03-30 | feat(friends): add friends CRUD with unit tests + small fixes (#18)
+fd21451 | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-03-30 | feat(websocket): introduce GameGateway and real-time gameplay flow (#19)
+2813bdf | MatiasDelaC | matias.dlc@icloud.com | 2026-03-29 | Feature/admin+friends (#17)
+c731eb8 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-28 | fix client game mode AI
+0e20c56 | ahetru | axel.a.hetru@gmail.com | 2026-03-28 | test(game.gateway): add e2e test and spec tests to gateway refactor(users): delete games table before users
+d18ee9f | ahetru | axel.a.hetru@gmail.com | 2026-03-28 | feat(game): add basic  websocket gateway
+191fe8e | ahetru | axel.a.hetru@gmail.com | 2026-03-26 | feat(game): add basic websocket gateway; att temporary test-websocket file
+a2b9d8f | MatiasDelaC | matias.dlc@icloud.com | 2026-03-27 | Port admin and friends client features
+eba8270 | Edouard Proust | contact@edouardproust.dev | 2026-03-27 | feat(admin): full admin module + game module update (#16)
+acbd2c5 | Edouard Proust | contact@edouardproust.dev | 2026-03-26 | fix: deleUser on self admin + added unit tests + swagger for CreateGameDto + seeds for games
+03f38d4 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fix act ports conflicts for minio
+459948a | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed ci/cd ports conflicts when using act for testing locally + added readme paragraph
+47a37bf | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed e2e tests for games
+d0cce3e | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed unit tests for admin crud after adding games logic
+02bb69d | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed unit tests for grame crud
+e94db36 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | typed responses returned by game endpoints
+43da01c | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | added jsdoc to game
+59113ce | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | updated game values in admin crud responses + added Swaager on game
+e04d87e | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | fix: conflicts after rebase
+dd7b2d3 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | chore: regenerate init migration
+32368f6 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | add constants to dtos
+6e347c2 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add unit test for branch coverage on admin.service.ts
+ab6f364 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add test in admin.service.spec.ts
+e084684 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | update tests for admin crud
+36c9bff | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add admin stats and delete + search games with placeholder until games crud is made
+52af3a7 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add dto and service for admin/search and make placeholder routes for admin/games*
+f603bf4 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | generate nestjs admin module base
+cae4818 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add: users/profile endpoints except PATH users/avatar
+f11f58e | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | updated ci for avatar
+c72ed61 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | done avatar upload
+3df276b | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | added users avatars upload + minio docker container
+32ae0a8 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | updated prisma enum Role with uppercase values
+2f32566 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | chore: add TODO for game relations in User schema
+099b586 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add: users/profile endpoints except PATH users/avatar
+3c4698a | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-26 | Feature/front aigame (#15)
+142c9b5 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-25 | fix(client): restore AI game creation by handling stale auth sessions
+d7a5c44 | Sato | s.lutereau@hotmail.com | 2026-03-24 | Feature: AI game. Added logic, gme not showing
+e727163 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-24 | Front/admin avatar (#14)
+3710038 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-23 | admin+avatar
+0a79784 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-23 | Merge develop into front/admin-avatar preserving client
+148284a | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fix after rebase
+06af480 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | friends dependencies small cleanup
+7d41b96 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed: friends unit tests
+da57b41 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | add comments on service + make unit tests
+73ad917 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | use common/constants for friends dtos + start friends service
+e4ab599 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | make friends crud structure + controller + dtos + service with placeholder returns
+7de985d | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | add constants to dtos
+b87f0d4 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | update tests for admin crud
+8094492 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | updated prisma enum Role with uppercase values
+d0d835f | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add: users/profile endpoints except PATH users/avatar
+177f904 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed ci/cd ports conflicts when using act for testing locally + added readme paragraph
+fa716fb | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed e2e tests for games
+f676406 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed unit tests for admin crud after adding games logic
+c881495 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | fixed unit tests for grame crud
+3cbe32b | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | typed responses returned by game endpoints
+7dedd8c | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | added jsdoc to game
+1e07dd7 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | updated game values in admin crud responses + added Swaager on game
+04f06c5 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | fix: conflicts after rebase
+dcc3291 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | chore: regenerate init migration
+224b6b6 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | add constants to dtos
+715f1dd | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add unit test for branch coverage on admin.service.ts
+7201984 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add test in admin.service.spec.ts
+02aadde | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | update tests for admin crud
+d45cc10 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add admin stats and delete + search games with placeholder until games crud is made
+9981612 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add dto and service for admin/search and make placeholder routes for admin/games*
+e07d2a4 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | generate nestjs admin module base
+4fc39e3 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add: users/profile endpoints except PATH users/avatar
+3254dd4 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | done avatar upload
+fbe2179 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | added users avatars upload + minio docker container
+6ded493 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | updated prisma enum Role with uppercase values
+908d704 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | made src/common with constants
+6810788 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add missing unit tests for users and auth
+c342abf | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | chore: add TODO for game relations in User schema
+3be2256 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | fix: users updateOneById dto type
+579e4ae | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | updat users search service with prisma type + js doc
+a63c8cc | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | updat users search service with prisma type + js doc
+5d31578 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add: users/profile endpoints except PATH users/avatar
+b459ee4 | Edouard Proust | contact@edouardproust.dev | 2026-03-23 | feat(users): users & profile endpoints + avatar upload (S3/MinIO) (#12)
+f03e372 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | fix: github worflow ci
+5fcc11e | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | updated ci for avatar
+686ad32 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | unit tests for avatar methods
+830784d | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | done avatar upload
+2917ba2 | Edouard Proust | contact@edouardproust.dev | 2026-03-22 | added users avatars upload + minio docker container
+2015835 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | fix: e2e tests after recent change
+504a6da | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | updated prisma enum Role with uppercase values
+2341d9f | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | update seed + fixture
+1d82768 | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | update seed + fixture
+fb291ef | Edouard Proust | contact@edouardproust.dev | 2026-03-18 | made src/common with constants
+d4fe8a9 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add test for jwt.strategy.spec.ts
+1208ea9 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add missing unit tests for users and auth
+629adc8 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | chore: add TODO for game relations in User schema
+a8429a9 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | fix: users updateOneById dto type
+28763bb | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | updat users search service with prisma type + js doc
+75d4366 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | updat users search service with prisma type + js doc
+45fadc3 | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | fix: swagger for users
+f59fe8a | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | fix: unit tests after users update
+f02a32b | Edouard Proust | contact@edouardproust.dev | 2026-03-17 | add: users/profile endpoints except PATH users/avatar
+a2bf23a | Axel Hetru | 151643827+ahetru@users.noreply.github.com | 2026-03-21 | feat(game): refactor game module to match frontend API contract (#10)
+e7f9bba | ahetru | axel.a.hetru@gmail.com | 2026-03-21 | Merge feature/game-crud-backend into develop: Add game CRUD operations
+58b32bf | ahetru | axel.a.hetru@gmail.com | 2026-03-21 | Merge remote-tracking branch 'origin/develop' into feature/game-crud-backend
+ac367e3 | ahetru | axel.a.hetru@gmail.com | 2026-03-21 | fix(game): fix compilation errors; pass all IDs to string in tests
+41e99ed | MatiasDelaC | matias.dlc@icloud.com | 2026-03-20 | Feature/frontend auth profile (#11)
+0b71d0e | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-20 | Remove service availability message from Makefile
+52a6351 | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-20 | Remove host URLs from API documentation
+1a048c3 | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-20 | Update CORS origin handling based on environment
+d340edb | MatiasDelaC | matias.dlc@icloud.com | 2026-03-20 | Merge branch 'develop' into feature/frontend-auth-profile
+720654d | MatiasDelaC | matias.dlc@icloud.com | 2026-03-19 | admin + avatar
+a1c4ea4 | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-19 | Rename parameter 'emailOrUsername' to 'email'
+0c02d1d | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-19 | Refactor login and register to use emailOrUsername
+6e0f969 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-19 | delete port 3000y example .env
+7b3e684 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-19 | admin
+4daffde | ahetru | axel.a.hetru@gmail.com | 2026-03-19 | refactor(game): fix ts compilation error in game service; move game id type from int to string
+736930e | MatiasDelaC | matias.dlc@icloud.com | 2026-03-18 | remove local vite proxy and env-based dev flow
+7422626 | ahetru | axel.a.hetru@gmail.com | 2026-03-18 | refactor(game): remove prisma game object serializer; update unit test and e2e test accordingly
+da29eec | ahetru | axel.a.hetru@gmail.com | 2026-03-18 | feat(game): refactor game module to match frontend contract
+cc11ec9 | Sato | s.lutereau@hotmail.com | 2026-03-17 | fix profile page. id not working
+ce399ea | Sato | s.lutereau@hotmail.com | 2026-03-17 | changed email for usernameOrEmail to comply with api
+8eb14ea | MatiasDelaC | matias.dlc@icloud.com | 2026-03-17 | fix(frontend): align client API ports with docker dev setup
+fd826c8 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-17 | fix(frontend): align client API ports with docker dev setup
+faf0675 | MatiasDelaC | matias.dlc@icloud.com | 2026-03-16 | adding user and login
+4591e6f | Sato | 116687199+Lute86@users.noreply.github.com | 2026-03-16 | First upload: base frontend. Landing, register, login and policy pages (#8)
+f55c2f2 | Sato | s.lutereau@hotmail.com | 2026-03-16 | First upload: base frontend. Landing, register, login and policy pages
+abcbe58 | Edouard Proust | contact@edouardproust.dev | 2026-03-16 | update: adapt users CRUD to frontend needs (#7)
+d551cdc | ahetru | axel.a.hetru@gmail.com | 2026-03-16 | refactor(game): refactor game service/ unit tests and e2e tests to match refactored Game model
+474f950 | ahetru | axel.a.hetru@gmail.com | 2026-03-16 | refactor(game): update Game model
+f74d5a4 | Edouard Proust | contact@edouardproust.dev | 2026-03-15 | update: adapt users CRUD to frontend needs
+3c1bbbc | ahetru | axel.a.hetru@gmail.com | 2026-03-13 | feat(game): add makeMove function and its unit tests + e2e tests;
+a7dbe6b | ahetru | axel.a.hetru@gmail.com | 2026-03-13 | add defaults to FEN and PGN
+35c8ee0 | ahetru | axel.a.hetru@gmail.com | 2026-03-13 | test(game): add and update tests
+eea4a47 | Edouard Proust | contact@edouardproust.dev | 2026-03-10 | feat: authentication & test suite (#5)
+22f318a | Edouard Proust | contact@edouardproust.dev | 2026-03-10 | fix: github PR comment + docker script improvement for .env
+2b27791 | ahetru | axel.a.hetru@gmail.com | 2026-03-10 | feat(game): add currentFEN and movesPGN to prisma Game model;
+4035e7e | ahetru | axel.a.hetru@gmail.com | 2026-03-10 | feat(game): add findGame func
+d0c3e4a | ahetru | axel.a.hetru@gmail.com | 2026-03-09 | feat(game): setup game module with JWT guard and e2e tests
+6490f4b | ahetru | axel.a.hetru@gmail.com | 2026-03-09 | fix(prisma): add migration for Game.updatedAt
+c54ef59 | ahetru | axel.a.hetru@gmail.com | 2026-03-09 | fix(prisma): add migration for Game.updatedAt
+783fc0c | ahetru | axel.a.hetru@gmail.com | 2026-03-09 | fix(game): createGame is async func; fix updatedAt in schema.prisma; improved unit test for controller and service
+fa6d2cc | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | test(game): add basic unit tests for controller and service
+fbde601 | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | test(game): add basic unit tests for controller and service
+6bb7ed9 | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | prisma migration of Game model; type correction in GameService; id check for players in GameService
+a7dce3a | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | feat(game): add Game model with white and black players relations; add Game tables for black and white in user model
+8e828d6 | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | fix(game): player id in CreateGameDto is number
+4e5b20b | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | feat(game): implement create game endpoint
+6b64c78 | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | feat(game): add CreateGameDto
+245b997 | ahetru | axel.a.hetru@gmail.com | 2026-03-08 | feat(game): create base game module
+aafe2e1 | Edouard Proust | contact@edouardproust.dev | 2026-03-07 | fix: docker entrypoint.sh not copied
+3104944 | Edouard Proust | contact@edouardproust.dev | 2026-03-07 | fix: clean files from tests
+3fcd6fe | Edouard Proust | contact@edouardproust.dev | 2026-03-07 | removed game folder
+51ef462 | Edouard Proust | contact@edouardproust.dev | 2026-03-05 | fix: remove logout route from tests
+0a4c780 | Edouard Proust | contact@edouardproust.dev | 2026-03-05 | feature: update swagger data for auth & users
+c1ad45e | Edouard Proust | contact@edouardproust.dev | 2026-03-05 | Revert "fix: double ci checks on PR for main and develop"
+8336bc7 | Edouard Proust | contact@edouardproust.dev | 2026-03-05 | fix: double ci checks on PR for main and develop
+ff7dfed | Edouard Proust | contact@edouardproust.dev | 2026-03-05 | fix: ci.yml quotes on potgres options
+b360f5f | Edouard Proust | contact@edouardproust.dev | 2026-03-05 | fix: CI workflow for e2e tests
+2071923 | Edouard Proust | contact@edouardproust.dev | 2026-03-04 | test: make e2e for users
+531c078 | Edouard Proust | contact@edouardproust.dev | 2026-03-04 | fix: removed dotenv import after removed dependancy
+5c4abf2 | Edouard Proust | contact@edouardproust.dev | 2026-03-04 | test: add test db in dev
+c800fb2 | Edouard Proust | contact@edouardproust.dev | 2026-03-04 | fix: app.2e2 test
+6d19059 | Edouard Proust | contact@edouardproust.dev | 2026-03-03 | feat: users module tests
+ce8006c | Edouard Proust | contact@edouardproust.dev | 2026-03-02 | fix: github worflow comments indentation
+d3d2964 | Edouard Proust | contact@edouardproust.dev | 2026-03-02 | github: api workflow fix2
+f50a038 | Edouard Proust | contact@edouardproust.dev | 2026-03-02 | github: api workflow fix
+0693ac8 | Edouard Proust | contact@edouardproust.dev | 2026-03-02 | github: updated workflow for ci
+d8134f9 | Edouard Proust | contact@edouardproust.dev | 2026-03-01 | feat: add 5 test users to fixture
+1108ca0 | Edouard Proust | contact@edouardproust.dev | 2026-03-01 | create seed.ts
+f5a3653 | Edouard Proust | contact@edouardproust.dev | 2026-03-01 | create auth endpoints
+a1e1b3a | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | update tests
+64b2102 | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | feat: created e2e test file for users module
+2e2bb5d | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | prevented absolute exports in nodejs
+bdfb545 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | finished base crud + installed PartialType lib in node
+8c62a55 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | base crud users
+ea1c8e4 | Edouard Proust | contact@edouardproust.dev | 2026-03-07 | fix: dev root user (#6)
+d154262 | Edouard Proust | eproust@car14s5.42barcelona.com | 2026-03-07 | fix: run client as root
+859e682 | Edouard Proust | eproust@car14s5.42barcelona.com | 2026-03-07 | fix: dev root user
+330e036 | MatiasDelaC | matias.dlc@icloud.com | 2026-02-25 | add folders client/src
+5e78a1d | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | Merge pull request #4 from edouardproust/fix/docker-prod
+1e816b5 | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | fix: api gitignore on prisma generated
+f4736a1 | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | setup e2e tests for api
+e2622e2 | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | fix Jest paths & cleaned app module
+8c05876 | Edouard Proust | contact@edouardproust.dev | 2026-02-23 | update git-workflowmd
+192a9a7 | Edouard Proust | contact@edouardproust.dev | 2026-02-22 | fix(docker): move prisma generate command in api Dockerfile
+520bf49 | Edouard Proust | contact@edouardproust.dev | 2026-02-22 | fix(docker): add prisma generate before nest build
+f4b7432 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | updated nginx entrypoint + added constraint to docker-compose.prod.yml for nginx + force to recreate .env when make PROD=1
+02ca573 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | fix
+e424852 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | finished base crud + installed PartialType lib in node
+528d4c0 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | base crud users
+8567282 | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | fixed gitignores
+b7086ce | Edouard Proust | contact@edouardproust.dev | 2026-02-21 | added prettier vscode setup in devcontainers
+09e37fb | Edouard Proust | contact@edouardproust.dev | 2026-02-20 | removed client container on prod + various fixes
+8f4cf4d | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | reset main
+803bf00 | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | added .githb/workflows for Github Actions (CI/CD)
+541d6b0 | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | readme update
+70d9195 | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | readme update
+7a96620 | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | readme update
+ee252ee | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | run devcontaienr as node
+32e8fa4 | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | added node user support in api/Dockerfile
+91dd713 | Edouard Proust | contact@edouardproust.dev | 2026-02-19 | deleter user module
+c1088bc | Edouard Proust | contact@edouardproust.dev | 2026-02-16 | update devcontainers extensions list
+a82de0a | Edouard Proust | contact@edouardproust.dev | 2026-02-16 | secret leak flase positive fix in docker/setup.prod.sh
+2283fca | Edouard Proust | contact@edouardproust.dev | 2026-02-16 | almost finished prod docker setup
+4688921 | Edouard Proust | contact@edouardproust.dev | 2026-02-16 | updates onAPI's  docker-compose.yml & Dockerfiles & .devcontainer.json
+891cfdc | Edouard Proust | contact@edouardproust.dev | 2026-02-16 | docker seperated folder in root
+cceca17 | Edouard Proust | contact@edouardproust.dev | 2026-02-14 | api removed su-exec
+35f0139 | Edouard Proust | contact@edouardproust.dev | 2026-02-14 | cleaned prisma migrations and entrypoint
+89322cb | Edouard Proust | contact@edouardproust.dev | 2026-02-14 | update
+98f9178 | Edouard Proust | contact@edouardproust.dev | 2026-02-11 | deleted not working prod docker files
+5631b52 | Edouard Proust | contact@edouardproust.dev | 2026-02-11 | docker setup to prevent installing node on the host machine
+0726c9f | Edouard Proust | contact@edouardproust.dev | 2026-02-10 | docs added
+1781da9 | Edouard Proust | contact@edouardproust.dev | 2026-02-10 | setup script
+d6a9dcf | Edouard Proust | contact@edouardproust.dev | 2026-02-09 | add prisma dependencies
+5b097fa | Edouard Proust | contact@edouardproust.dev | 2026-02-09 | added docker-compose.prod.yaml (to be updated later
+72f330f | Edouard Proust | contact@edouardproust.dev | 2026-02-09 | update frontpage
+7c345a7 | Edouard Proust | contact@edouardproust.dev | 2026-02-09 | fix hot reload frontend
+4a4c16b | Edouard Proust | contact@edouardproust.dev | 2026-02-08 | docker network ok between client and api
+2a3ac53 | Edouard Proust | contact@edouardproust.dev | 2026-02-07 | nginx ssl setup started
+01b9651 | Edouard Proust | contact@edouardproust.dev | 2026-02-07 | docker updte
+2e67fc3 | Edouard Proust | contact@edouardproust.dev | 2026-02-06 | docker setup update
+70f6786 | Edouard Proust | contact@edouardproust.dev | 2026-02-05 | started docker config
+7a80df1 | Edouard Proust | contact@edouardproust.dev | 2026-02-05 | feat: initial project setup with NestJS, React/Vite, and Docker structure
+60f2fcf | Edouard Proust | contact@edouardproust.dev | 2026-02-04 | added cheatsheet-frontend
+da833db | Edouard Proust | contact@edouardproust.dev | 2026-02-03 | readme
+6c3b0b0 | Edouard Proust | contact@edouardproust.dev | 2026-02-03 | readme
+ec80b94 | Edouard Proust | contact@edouardproust.dev | 2026-02-03 | modules brainstorming
+ebf1748 | Edouard Proust | contact@edouardproust.dev | 2026-02-02 | backend cheatsheet
+6f92129 | Edouard Proust | contact@edouardproust.dev | 2026-01-20 | readme
+6877ea6 | Edouard Proust | contact@edouardproust.dev | 2026-01-15 | readme

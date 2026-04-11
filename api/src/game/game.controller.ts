@@ -1,0 +1,279 @@
+import {
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	ParseUUIDPipe,
+	Post,
+	UseGuards,
+} from '@nestjs/common';
+import { GameService } from './game.service';
+import { CreateGameDto } from './dto/create-game.dto';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags,
+} from '@nestjs/swagger';
+import { RequestUser } from '../auth/interfaces/request-user.interface';
+import { GameResponseDto } from './dto/game-response.dto';
+import { FinishGameDto } from './dto/finish-game.dto';
+import { MakeMoveDto } from './dto/make-move.dto';
+import { StartGameDto } from './dto/start-game.dto';
+import { CreateInvitedGameDto } from './dto/create-invited-game.dto';
+import { GameGateway } from './game.gateway';
+
+@Controller('games')
+@UseGuards(JwtAuthGuard)
+@ApiTags('games')
+@ApiBearerAuth()
+export class GameController {
+	constructor(
+		private readonly gameService: GameService,
+		private readonly gameGateway: GameGateway,
+	) {}
+
+	@Post()
+	@ApiOperation({ summary: 'Create a new game' })
+	@ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Game created',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async createGame(
+		@Body() dto: CreateGameDto,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.createGame(dto, user.id);
+	}
+
+	@Get('active')
+	@ApiOperation({ summary: 'Get active games available to join' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Returns active games',
+		type: [GameResponseDto],
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async getActiveGames(): Promise<GameResponseDto[]> {
+		return this.gameService.getActiveGames();
+	}
+
+	@Get('user')
+	@ApiOperation({ summary: 'Get games for current user' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Returns user games',
+		type: [GameResponseDto],
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	async getUserGames(
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto[]> {
+		return this.gameService.getUserGames(user.id);
+	}
+
+	@Post('invite')
+	@ApiOperation({
+		summary: 'Create an online game and invite a friend in real time',
+	})
+	@ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Invited game created',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description:
+			'Invalid input or the invited friend is not currently online',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'The target user is not in the current user friends list',
+	})
+	async createInvitedGame(
+		@Body() dto: CreateInvitedGameDto,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.createInvitedGame(dto, user.id);
+	}
+
+	@Post(':id/decline-invite')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Decline a pending game invitation' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Invitation declined and game cancelled',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invite can no longer be declined',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Current user is not the invited player',
+	})
+	async declineInvite(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		const updatedGame = await this.gameService.declineInvite(id, user.id);
+		this.gameGateway.emitInviteDeclined(id);
+		return updatedGame;
+	}
+
+	@Post(':id/cancel')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Cancel or close a game through HTTP flow' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Game cancelled or finished',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Current user is not a player in this game',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Game cannot be cancelled',
+	})
+	async cancelGame(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.cancelGame(id, user.id);
+	}
+
+	@Get(':id')
+	@ApiOperation({ summary: 'Get game by id' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Returns game',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	async getGame(
+		@Param('id', ParseUUIDPipe) id: string,
+	): Promise<GameResponseDto> {
+		return this.gameService.getGame(id);
+	}
+
+	@Post(':id/start')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Start a game' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Game started',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Not a player in this game',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Game cannot be started',
+	})
+	async startGame(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() dto: StartGameDto,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.startGame(id, user.id, dto);
+	}
+
+	@Post(':id/finish')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Finish a game' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Game finished',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Game is not ongoing',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Not a player in this game',
+	})
+	async finishGame(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() dto: FinishGameDto,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.finishGame(id, dto, user.id);
+	}
+
+	@Post(':id/move')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Make a move in a game' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Move applied',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Invalid token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Game not found',
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Invalid or illegal move',
+	})
+	async makeMove(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() dto: MakeMoveDto,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.makeMove(id, dto, user.id);
+	}
+}

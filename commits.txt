@@ -1,0 +1,416 @@
+* baf4ac3 (HEAD -> feature/refactor-front, origin/feature/refactor-front) fix(test): fixed unit tests for game service and presence gateway
+* e9b0ea1 fix: presence gateway tests - remove afterEach restoreAllMocks
+* 87ba70b fix: presence gateway tests coverage
+* 211100b fix: unit tests presence gateway and auth service
+* 0eb90b6 fix: presence gateway tests coverage
+* 59c90f0 fix: unit tests presence gateway and auth service
+* ca73ca7 fix: unit tests backedn
+* b102f65 add README
+*   dbfdd10 Merge branch 'develop' into feature/refactor-front
+|\  
+* | 3e42928 merge develop filter
+* | c55cf40 (fix/filter-users) fix IA game finish
+* | a87b967 full movile responsive
+* | 7c03f58 fix cancel invite
+* | 1ff27f1 fix windows invite friend
+* | 4578fe2 add send invitation friend
+* | 6381d6a refactor(front): simplify admin, profile and board modules
+| | * a63bf6d (origin/develop, develop) fix: prod deployment setup & admin improvements (#38)
+| |/  
+| | * 7b7316f (origin/fix/admin-games-glitch-onUserDelete) fix: unit tests coverage
+| | * 077dd3a fix: handle games on user delete, improve admin search filters
+| | * aeb2716 (origin/fix/prod-aws) fix: add websocket proxy to nginx prod conf
+| | * b036621 fix: seed games log commented
+| | * eaa5cf3 fix: docker setup for prod VITE issue
+| |/  
+| * dcec2c4 fix: ai game message, route redirect when wrong url, changed lobby game join (#36)
+| | * 8e89a8c (feature/refactor-front-v2) fx registro client
+| | * 3d405cd (origin/feature/refactor-front-v2) refactor v2, components, hooks, utils
+| |/  
+|/|   
+* | ab9fa72 frontend refactoring
+* | dca44c7 (origin/fix/minor-ui-fixes) fix: ai game message, route redirect when wrong url, changed lobby game join
+|/  
+* bb99f70 Feature/elo system v2 (#35)
+| * 19d76ee (origin/feature/elo-system-v2, feature/elo-system-v2) fix(test): add findFirst to prisma mock service
+| * 0f77d54 feat(game): implement elo system
+|/  
+* 237f219 docs: extract evaluation defense updates (#34)
+* a4ed37e feat: prisma seeds by env with prod admin setup (#33)
+| * da66fd8 (origin/docs-evaluation, docs-evaluation) docs: extract evaluation defense updates
+|/  
+| * 6775dfd (origin/feature/prisma-seed) feat: prisma seeds by env with prod admin setup
+|/  
+* 06ffb36 fix: game exit/resign, AI thinking refactor & check highlight (#30)
+| * b4a1dc0 (origin/last-fix-bugs, last-fix-bugs) re re fix
+| * f0f21dd re-fix
+| * 780002a Rename isYhinking prop to isThinking
+| * 66f108b Enhance GameLayout with AI thinking indicators
+| * f655f61 Remove AI thinking indicator from AIGamePage
+| | * f1d1c87 (origin/feature/elo-system) fix(game tests): add finFirst to prisma mock service
+| | * bbb6ded feat(game): add elo system to game service
+| |/  
+| * 4fa1084 fix game exit/resign bugs
+| | * ce391c3 (refs/stash) WIP on last-fix-bugs: f839da6 fix: game finished exit redirection
+| |/| 
+| | * d5827dc index on last-fix-bugs: f839da6 fix: game finished exit redirection
+| |/  
+| * f839da6 fix: game finished exit redirection
+| *   968dcb2 Merge branch 'feature/time-control-backend' into last-fix-bugs
+| |\  
+| | * d57c667 (origin/feature/time-control-backend) fix: tests game gateway
+| | * 54bf665 test(gateway): add comprehensive specs for all handlers and timer functions
+| | * db95c25 fix(git): remove git diff
+| | * f78215d test(gateway): add timer function tests for coverage
+| | * 7c2dae5 refactor(game): remove unecessary comment
+| | * 5b06653 fix(tests): update e2e test to expect timeLeft in gameUpdate
+| | * bb0973c fix(tests): add decrementTime to GameServiceMock for e2e tests
+| | * fe600f9 fix(tests): update game gateway tests for timeLeft fields
+| | * 4cff546 fix(api): add null check for decrementTime return value
+| | * c8ff9d6 fix(api): only start timer after first move
+| | * 1dfdb01 fix(api): start timer for all time controls and convert minutes to seconds
+| | * 9d319ca feat(client): use server timeLeft instead of local timer
+| | * 687aba7 fix(api): include timeLeft in all gameUpdate emissions
+| | * 21e060a feat(api): add timer logic to GameGateway
+| | * aaa5939 feat(api): initialize timeLeft on game start and update on move
+| | * db9ec78 feat(api): add timeLeft fields to Game model and parseTimeControl util
+| | * 4912ca2 fix(client): use server status in playerJoined handler
+| | * 3111814 fix: remove unused ping/pong websocket handlers
+| | * a49353c fix(client): add missing socket event types
+| | * 66980c1 fix(game): make websocket CORS configurable via env
+| * | e9c9497 fix(client): navigate to lobby when exiting ongoing game
+| * | bf3f4f9 last fix
+|/ /  
+* / 58c54d0 Feature/time control backend (#29)
+|/  
+* c508a07 Fix/front new info and cancel game (#28)
+| * a0a6867 (origin/fix/front-new, fix/front-new) fix available games
+| * 851ef1b fix game online
+|/  
+* d27725f Fix/small fixes (#27)
+| * c168596 (origin/fix/small-fixes) fix: WS_CORS_ORIGIN in presence as well
+| *   5c1a0b9 fix: merge conflict + WS_CORS_ORIGIN into CORS_ORIGIN
+| |\  
+| |/  
+|/|   
+* | 64e679d feat: add sorting, toast notifications and evaluation improvements (#26)
+| * 2734d32 fix(client): use server status in playerJoined handler
+| * d2cb37e fix: remove unused ping/pong websocket handlers
+| * 159da88 fix(client): add missing socket event types
+| * 0558f48 fix(game): make websocket CORS configurable via env
+|/  
+| * e58fbab (origin/24-points) fix: games e2e test
+| * bdc7535 fix(admin): replace hardcoded pagination defaults with DEFAULTS constants
+| *   64f04c4 chore: resolve merge conflicts with develop
+| |\  
+| |/  
+|/|   
+* | 8762659 Front fixv2 (#25)
+| * 65255d3 (24-points) fix
+| * 4e15c45 Add 24-point evaluation improvements
+| | * 89f0cef (origin/front-fixv2, front-fixv2) fix bugs
+| |/  
+| * 6f027b4 fix
+| * 8242090 fix errors and bugs
+| * 12c44af fix error
+|/  
+* 5d76db5 feat(presence): add PresenceGateway for global user status (#24)
+| * 281cadf (origin/errors) add errores.md
+| * 8f4cf4d (origin/main, origin/HEAD, main) reset main
+| | * 4b8b91b (origin/feature/presence-websocket) feat(presence): add PresenceGateway for global user status
+| |/  
+|/|   
+* | 9ea3790 (front-fix) Feature/game service upgrade (#22)
+| | * 5794eb3 (origin/feature/game-service-upgrade) refactor(onlinegamepage): remove console.log(user) and unecessary comments in OnlineGamePage.tsx
+| | * bd01ec3 feat(websocket): add disconnect/reconnect handling + fix draw event naming
+| | * d904300 fix(game): remove hardcoded reason in resign
+| | * 978d46e fix(game): makeMove acceptDraw resignGame return endReason; remove finishGame from handleMakeMove to let service handle logic
+| | * 32de3ba fix(game dto): add @IsNotEmpty decorator to MakeMoveDto; update e2e test to match upgraged move object
+| | * ea9f18f fix(game): resolve illegal move bug by syncing move handling with server
+| | * 337e3ff update gateway e2e test to import UsersService
+| | * 0abeb91 feat(game): add cancelGame to game service; add unit test for cancelGame
+| | * 9aa50c4 fix(game): send gameEnd event in handleMakeMove and handleResign
+| | * 1eedd6e test(game): add UserService in GameGateway test module
+| | * b8e0497 feat(game): add real-time chat in online game
+| | * 4811c4d back: handle offerDraw acceptDraw declineDraw resign to gateway; front: add handlePlayerResigned in UseEffect
+| | * b0c2f56 test: add tests for resignGame offerDraw acceptDraw declineDraw
+| | * c66df24 feat(game.service): add offerDraw acceptDraw declineDraw in game service; add drawOfferedBy in Game model
+| |/  
+|/|   
+* | a826a63 fix(websocket): fix WebSocket connection and game flow (#21)
+| | * cd37501 (origin/feature/connect-websocket-front) feat(game): improve game start flow and websocket handling refactor startGame logic to support dynamic black player assignment add proper player validation and ForbiddenException when game is full update unit tests to reflect new join/start behavior fix GameGateway tests by mocking Socket.IO server.in().fetchSockets() improve websocket client connection handling (VITE_SOCKET_URL) update docker env setup to include VITE_SOCKET_URL adjust docker-compose configuration for client environment variables
+| | * 9e09a75 fix(game.service): assign blackId and start game on second player join
+| | * bbb7858 fix(game.gateway): start game at join and update game status
+| | * c0a1365 chore(nginx): update nginx dev conf to support websocket connection; update docker/.env to assign VITE_SOCKET_URL; allow origin in gateway
+| |/  
+|/|   
+* | 1f39624 Feature/front sockets (#20)
+| | * ad1899f (origin/feature/front-sockets, feature/front-sockets) fix bugs
+| | * b06edaa feature: sockets + online game + 3d board
+| |/  
+|/|   
+* | 3e8b54b feat(friends): add friends CRUD with unit tests + small fixes (#18)
+* | fd21451 feat(websocket): introduce GameGateway and real-time gameplay flow (#19)
+* | 2813bdf Feature/admin+friends (#17)
+| | * c731eb8 (origin/feature/admin+friends, feature/admin+friends) fix client game mode AI
+| | * a2b9d8f Port admin and friends client features
+| |/  
+|/|   
+| | * 0e20c56 (origin/feature/websocket) test(game.gateway): add e2e test and spec tests to gateway refactor(users): delete games table before users
+| | * d18ee9f feat(game): add basic  websocket gateway
+| | * 191fe8e feat(game): add basic websocket gateway; att temporary test-websocket file
+| |/  
+|/|   
+* | eba8270 feat(admin): full admin module + game module update (#16)
+| | * acbd2c5 (origin/feature/admin-crud-backend) fix: deleUser on self admin + added unit tests + swagger for CreateGameDto + seeds for games
+| | * 03f38d4 fix act ports conflicts for minio
+| | * 459948a fixed ci/cd ports conflicts when using act for testing locally + added readme paragraph
+| | * 47a37bf fixed e2e tests for games
+| | * d0cce3e fixed unit tests for admin crud after adding games logic
+| | * 02bb69d fixed unit tests for grame crud
+| | * e94db36 typed responses returned by game endpoints
+| | * 43da01c added jsdoc to game
+| | * 59113ce updated game values in admin crud responses + added Swaager on game
+| | * e04d87e fix: conflicts after rebase
+| | * dd7b2d3 chore: regenerate init migration
+| | * 32368f6 add constants to dtos
+| | * 6e347c2 add unit test for branch coverage on admin.service.ts
+| | * ab6f364 add test in admin.service.spec.ts
+| | * e084684 update tests for admin crud
+| | * 36c9bff add admin stats and delete + search games with placeholder until games crud is made
+| | * 52af3a7 add dto and service for admin/search and make placeholder routes for admin/games*
+| | * f603bf4 generate nestjs admin module base
+| | * cae4818 add: users/profile endpoints except PATH users/avatar
+| | * f11f58e updated ci for avatar
+| | * c72ed61 done avatar upload
+| | * 3df276b added users avatars upload + minio docker container
+| | * 32ae0a8 updated prisma enum Role with uppercase values
+| | * 2f32566 chore: add TODO for game relations in User schema
+| | * 099b586 add: users/profile endpoints except PATH users/avatar
+| |/  
+|/|   
+* | 3c4698a Feature/front aigame (#15)
+| | * 142c9b5 (origin/feature/front-aigame, feature/front-aigame) fix(client): restore AI game creation by handling stale auth sessions
+| | * d7a5c44 Feature: AI game. Added logic, gme not showing
+| |/  
+|/|   
+* | e727163 Front/admin avatar (#14)
+| | * 3710038 (origin/front/admin-avatar, front/admin-avatar) admin+avatar
+| | *   0a79784 Merge develop into front/admin-avatar preserving client
+| | |\  
+| |_|/  
+|/| |   
+| | * 720654d (backup/front-admin-avatar-before-merge) admin + avatar
+| | * a1c4ea4 (origin/front/admin) Rename parameter 'emailOrUsername' to 'email'
+| | * 0c02d1d Refactor login and register to use emailOrUsername
+| | * 6e0f969 delete port 3000y example .env
+| | * 7b3e684 admin
+| | | * 148284a (origin/feature/friend-crud-backend) fix after rebase
+| | | * 06af480 friends dependencies small cleanup
+| | | * 7d41b96 fixed: friends unit tests
+| | | * da57b41 add comments on service + make unit tests
+| | | * 73ad917 use common/constants for friends dtos + start friends service
+| | | * e4ab599 make friends crud structure + controller + dtos + service with placeholder returns
+| | | * 7de985d add constants to dtos
+| | | * b87f0d4 update tests for admin crud
+| | | * 8094492 updated prisma enum Role with uppercase values
+| | | * d0d835f add: users/profile endpoints except PATH users/avatar
+| | | * 177f904 fixed ci/cd ports conflicts when using act for testing locally + added readme paragraph
+| | | * fa716fb fixed e2e tests for games
+| | | * f676406 fixed unit tests for admin crud after adding games logic
+| | | * c881495 fixed unit tests for grame crud
+| | | * 3cbe32b typed responses returned by game endpoints
+| | | * 7dedd8c added jsdoc to game
+| | | * 1e07dd7 updated game values in admin crud responses + added Swaager on game
+| | | * 04f06c5 fix: conflicts after rebase
+| | | * dcc3291 chore: regenerate init migration
+| | | * 224b6b6 add constants to dtos
+| | | * 715f1dd add unit test for branch coverage on admin.service.ts
+| | | * 7201984 add test in admin.service.spec.ts
+| | | * 02aadde update tests for admin crud
+| | | * d45cc10 add admin stats and delete + search games with placeholder until games crud is made
+| | | * 9981612 add dto and service for admin/search and make placeholder routes for admin/games*
+| | | * e07d2a4 generate nestjs admin module base
+| | | * 4fc39e3 add: users/profile endpoints except PATH users/avatar
+| | | * 3254dd4 done avatar upload
+| | | * fbe2179 added users avatars upload + minio docker container
+| | | * 6ded493 updated prisma enum Role with uppercase values
+| | | * 908d704 made src/common with constants
+| | | * 6810788 add missing unit tests for users and auth
+| | | * c342abf chore: add TODO for game relations in User schema
+| | | * 3be2256 fix: users updateOneById dto type
+| | | * 579e4ae updat users search service with prisma type + js doc
+| | | * a63c8cc updat users search service with prisma type + js doc
+| | | * 5d31578 add: users/profile endpoints except PATH users/avatar
+| |_|/  
+|/| |   
+* | | b459ee4 feat(users): users & profile endpoints + avatar upload (S3/MinIO) (#12)
+| | | * f03e372 (origin/feature/users-profile-backend) fix: github worflow ci
+| | | * 5fcc11e updated ci for avatar
+| | | * 686ad32 unit tests for avatar methods
+| | | * 830784d done avatar upload
+| | | * 2917ba2 added users avatars upload + minio docker container
+| | | * 2015835 fix: e2e tests after recent change
+| | | * 504a6da updated prisma enum Role with uppercase values
+| | | * 2341d9f update seed + fixture
+| | | * 1d82768 update seed + fixture
+| | | * fb291ef made src/common with constants
+| | | * d4fe8a9 add test for jwt.strategy.spec.ts
+| | | * 1208ea9 add missing unit tests for users and auth
+| | | * 629adc8 chore: add TODO for game relations in User schema
+| | | * a8429a9 fix: users updateOneById dto type
+| | | * 28763bb updat users search service with prisma type + js doc
+| | | * 75d4366 updat users search service with prisma type + js doc
+| | | * 45fadc3 fix: swagger for users
+| | | * f59fe8a fix: unit tests after users update
+| | | * f02a32b add: users/profile endpoints except PATH users/avatar
+| |_|/  
+|/| |   
+* | | a2bf23a feat(game): refactor game module to match frontend API contract (#10)
+| | | * e7f9bba (origin/feature/game-crud-backend) Merge feature/game-crud-backend into develop: Add game CRUD operations
+| | | *   58b32bf Merge remote-tracking branch 'origin/develop' into feature/game-crud-backend
+| | | |\  
+| |_|_|/  
+|/| | |   
+* | | | 41e99ed Feature/frontend auth profile (#11)
+| | | * ac367e3 fix(game): fix compilation errors; pass all IDs to string in tests
+| | | * 4daffde refactor(game): fix ts compilation error in game service; move game id type from int to string
+| | | * 7422626 refactor(game): remove prisma game object serializer; update unit test and e2e test accordingly
+| | | * da29eec feat(game): refactor game module to match frontend contract
+| | | * d551cdc refactor(game): refactor game service/ unit tests and e2e tests to match refactored Game model
+| | | * 474f950 refactor(game): update Game model
+| | | * 3c1bbbc feat(game): add makeMove function and its unit tests + e2e tests;
+| | | * a7dbe6b add defaults to FEN and PGN
+| | | * 35c8ee0 test(game): add and update tests
+| | | * 2b27791 feat(game): add currentFEN and movesPGN to prisma Game model;
+| | | * 4035e7e feat(game): add findGame func
+| | | * d0c3e4a feat(game): setup game module with JWT guard and e2e tests
+| | | * 6490f4b fix(prisma): add migration for Game.updatedAt
+| | | * c54ef59 fix(prisma): add migration for Game.updatedAt
+| | | * 783fc0c fix(game): createGame is async func; fix updatedAt in schema.prisma; improved unit test for controller and service
+| | | * fa6d2cc test(game): add basic unit tests for controller and service
+| | | * fbde601 test(game): add basic unit tests for controller and service
+| | | * 6bb7ed9 prisma migration of Game model; type correction in GameService; id check for players in GameService
+| | | * a7dce3a feat(game): add Game model with white and black players relations; add Game tables for black and white in user model
+| | | * 8e828d6 fix(game): player id in CreateGameDto is number
+| | | * 4e5b20b feat(game): implement create game endpoint
+| | | * 6b64c78 feat(game): add CreateGameDto
+| | | * 245b997 feat(game): create base game module
+| | | | * 0b71d0e (origin/feature/frontend-auth-profile) Remove service availability message from Makefile
+| | | | * 52a6351 Remove host URLs from API documentation
+| | | | * 1a048c3 Update CORS origin handling based on environment
+| | | | * d340edb Merge branch 'develop' into feature/frontend-auth-profile
+| | | |/| 
+| | |/|/  
+| |_|/|   
+|/| | |   
+* | | | 4591e6f First upload: base frontend. Landing, register, login and policy pages (#8)
+| | * | 736930e (feature/frontend-auth-profile) remove local vite proxy and env-based dev flow
+| | * | cc11ec9 fix profile page. id not working
+| | * | ce399ea changed email for usernameOrEmail to comply with api
+| | * | 8eb14ea fix(frontend): align client API ports with docker dev setup
+| | * | fd826c8 fix(frontend): align client API ports with docker dev setup
+| | * | faf0675 adding user and login
+| |/ /  
+|/| |   
+| | | * f55c2f2 (origin/front/primero) First upload: base frontend. Landing, register, login and policy pages
+| |_|/  
+|/| |   
+* | | abcbe58 (prueba) update: adapt users CRUD to frontend needs (#7)
+| | | * f74d5a4 (origin/api/update/users-crud) update: adapt users CRUD to frontend needs
+| |_|/  
+|/| |   
+* | | eea4a47 feat: authentication & test suite (#5)
+| | | * 22f318a (origin/feature/users-crud-backend) fix: github PR comment + docker script improvement for .env
+| | |/  
+| | * aafe2e1 fix: docker entrypoint.sh not copied
+| | * 3104944 fix: clean files from tests
+| | * 3fcd6fe removed game folder
+| | * 51ef462 fix: remove logout route from tests
+| | * 0a4c780 feature: update swagger data for auth & users
+| | * c1ad45e Revert "fix: double ci checks on PR for main and develop"
+| | * 8336bc7 fix: double ci checks on PR for main and develop
+| | * ff7dfed fix: ci.yml quotes on potgres options
+| | * b360f5f fix: CI workflow for e2e tests
+| | * 2071923 test: make e2e for users
+| | * 531c078 fix: removed dotenv import after removed dependancy
+| | * 5c4abf2 test: add test db in dev
+| | * c800fb2 fix: app.2e2 test
+| | * 6d19059 feat: users module tests
+| | * ce8006c fix: github worflow comments indentation
+| | * d3d2964 github: api workflow fix2
+| | * f50a038 github: api workflow fix
+| | * 0693ac8 github: updated workflow for ci
+| | * d8134f9 feat: add 5 test users to fixture
+| | * 1108ca0 create seed.ts
+| | * f5a3653 create auth endpoints
+| | * a1e1b3a update tests
+| | * 64b2102 feat: created e2e test file for users module
+| | * 2e2bb5d prevented absolute exports in nodejs
+| | * bdfb545 finished base crud + installed PartialType lib in node
+| | * 8c62a55 base crud users
+| |/  
+|/|   
+* | ea1c8e4 fix: dev root user (#6)
+| | * d154262 (origin/fix/docker-api) fix: run client as root
+| | * 859e682 fix: dev root user
+| |/  
+|/|   
+| | * 330e036 (origin/fix/frontend, fix/frontend) add folders client/src
+| |/  
+|/|   
+* |   5e78a1d Merge pull request #4 from edouardproust/fix/docker-prod
+|\ \  
+| * | 1e816b5 fix: api gitignore on prisma generated
+| * | f4736a1 setup e2e tests for api
+| * | e2622e2 fix Jest paths & cleaned app module
+| * | 8c05876 update git-workflowmd
+| * | 192a9a7 fix(docker): move prisma generate command in api Dockerfile
+| * | 520bf49 fix(docker): add prisma generate before nest build
+| * | f4b7432 (origin/fix/docker-prod, fix/docker-prod) updated nginx entrypoint + added constraint to docker-compose.prod.yml for nginx + force to recreate .env when make PROD=1
+|/ /  
+| | * 02ca573 (origin/fix/docker-nginx-prod) fix
+| | * e424852 (feature/users-crud-backend) finished base crud + installed PartialType lib in node
+| | * 528d4c0 base crud users
+| |/  
+|/|   
+* | 8567282 fixed gitignores
+* | b7086ce added prettier vscode setup in devcontainers
+* | 09e37fb removed client container on prod + various fixes
+* | 803bf00 added .githb/workflows for Github Actions (CI/CD)
+* | 541d6b0 readme update
+* | 70d9195 readme update
+* | 7a96620 readme update
+* | ee252ee run devcontaienr as node
+* | 32e8fa4 added node user support in api/Dockerfile
+* | 91dd713 deleter user module
+* | c1088bc update devcontainers extensions list
+* | a82de0a secret leak flase positive fix in docker/setup.prod.sh
+* | 2283fca almost finished prod docker setup
+* | 4688921 updates onAPI's  docker-compose.yml & Dockerfiles & .devcontainer.json
+* | 891cfdc docker seperated folder in root
+* | cceca17 api removed su-exec
+* | 35f0139 cleaned prisma migrations and entrypoint
+* | 89322cb update
+|/  
+* 98f9178 deleted not working prod docker files
+* 5631b52 docker setup to prevent installing node on the host machine
+* 0726c9f docs added
+* 1781da9 setup script
+* d6a9dcf add prisma dependencies
+* 5b097fa added docker-compose.prod.yaml (to be updated later
+* 72f330f update frontpage
+* 7c345a7 fix hot reload frontend
+* 4a4c16b docker network ok between client and api
+* 2a3ac53 nginx ssl setup started
+* 01b9651 docker updte
+* 2e67fc3 docker setup update
+* 70f6786 started docker config
+* 7a80df1 feat: initial project setup with NestJS, React/Vite, and Docker structure
+* 60f2fcf added cheatsheet-frontend
+* da833db readme
+* 6c3b0b0 readme
+* ec80b94 modules brainstorming
+* ebf1748 backend cheatsheet
+* 6f92129 readme
+* 6877ea6 readme
