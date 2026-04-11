@@ -13,6 +13,7 @@ describe('PresenceGateway', () => {
 
 	const mockClient = {
 		id: 'client-123',
+		data: {},
 		join: jest.fn(),
 		disconnect: jest.fn(),
 		handshake: {
@@ -26,6 +27,10 @@ describe('PresenceGateway', () => {
 			emit: jest.fn(),
 			to: jest.fn().mockReturnThis(),
 		};
+
+		mockClient.data = {};
+		mockClient.join.mockClear();
+		mockClient.disconnect.mockClear();
 
 		jest.spyOn(console, 'log').mockImplementation(() => undefined);
 		jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -106,6 +111,7 @@ describe('PresenceGateway', () => {
 			const clientWithoutToken = {
 				...mockClient,
 				id: 'no-token-client',
+				data: {},
 				disconnect: jest.fn(),
 				handshake: { auth: {}, headers: {} },
 			} as unknown as Socket;
@@ -119,6 +125,7 @@ describe('PresenceGateway', () => {
 			const clientWithBadToken = {
 				...mockClient,
 				id: 'bad-token-client',
+				data: {},
 				disconnect: jest.fn(),
 			} as unknown as Socket;
 
@@ -137,11 +144,13 @@ describe('PresenceGateway', () => {
 			const client1 = {
 				...mockClient,
 				id: 'client-1',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 			const client2 = {
 				...mockClient,
 				id: 'client-2',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 
@@ -158,6 +167,7 @@ describe('PresenceGateway', () => {
 			const client = {
 				...mockClient,
 				id: 'solo-client',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 
@@ -179,6 +189,7 @@ describe('PresenceGateway', () => {
 			const client = {
 				...mockClient,
 				id: 'offline-client',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 
@@ -200,11 +211,13 @@ describe('PresenceGateway', () => {
 			const client1 = {
 				...mockClient,
 				id: 'tab-1',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 			const client2 = {
 				...mockClient,
 				id: 'tab-2',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 
@@ -231,16 +244,19 @@ describe('PresenceGateway', () => {
 			const client1 = {
 				...mockClient,
 				id: 'c1',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 			const client2 = {
 				...mockClient,
 				id: 'c2',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 			const client3 = {
 				...mockClient,
 				id: 'c3',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 
@@ -270,6 +286,7 @@ describe('PresenceGateway', () => {
 			const client = {
 				...mockClient,
 				id: 'online-client',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 			await gateway.handleConnection(client);
@@ -284,6 +301,7 @@ describe('PresenceGateway', () => {
 			const client = {
 				...mockClient,
 				id: 'temp-client',
+				data: {},
 				join: jest.fn(),
 			} as unknown as Socket;
 			await gateway.handleConnection(client);
