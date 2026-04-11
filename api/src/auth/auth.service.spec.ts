@@ -44,6 +44,7 @@ describe('AuthService', () => {
 			password: 'password123',
 			username: 'testuser',
 		};
+
 		it('should call usersService.createOne and jwtService.sign', async () => {
 			jest.spyOn(usersService, 'createOne').mockResolvedValue(userInDb);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
@@ -78,7 +79,9 @@ describe('AuthService', () => {
 			jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(
 				userWithPassword,
 			);
-			jest.spyOn(usersService, 'findOneById').mockResolvedValue(userInDb);
+			jest.spyOn(usersService, 'updateOneById').mockResolvedValue(
+				userInDb,
+			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			const result = await service.login({
@@ -89,17 +92,16 @@ describe('AuthService', () => {
 			expect(usersService.findOneByEmail).toHaveBeenCalledWith(
 				userWithPassword.email,
 			);
-			expect(result).toEqual({
-				user: userInDb,
-				token,
-			});
+			expect(result).toEqual({ user: userInDb, token });
 		});
 
 		it('should return user without password and access token when username is valid', async () => {
 			jest.spyOn(usersService, 'findOneByUsername').mockResolvedValue(
 				userWithPassword,
 			);
-			jest.spyOn(usersService, 'findOneById').mockResolvedValue(userInDb);
+			jest.spyOn(usersService, 'updateOneById').mockResolvedValue(
+				userInDb,
+			);
 			jest.spyOn(jwtService, 'sign').mockReturnValue('token');
 
 			const result = await service.login({
@@ -110,10 +112,7 @@ describe('AuthService', () => {
 			expect(usersService.findOneByUsername).toHaveBeenCalledWith(
 				userWithPassword.username,
 			);
-			expect(result).toEqual({
-				user: userInDb,
-				token,
-			});
+			expect(result).toEqual({ user: userInDb, token });
 		});
 
 		it('should throw UnauthorizedException when user not found', async () => {
