@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { Card, CardBody, CardHeader } from '@/components/ui/Card';
-import { useAuthStore } from '@/features/auth/authStore';
-import { useLobbyGames } from '@/hooks/useLobbyGames';
-import { useCreateGame } from '@/hooks/useCreateGame';
-import { GameList } from './Components/GameList';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { useAuthStore } from "@/features/auth/authStore";
+import { useLobbyGames } from "@/hooks/useLobbyGames";
+import { useCreateGame } from "@/hooks/useCreateGame";
+import { GameList } from "./Components/GameList";
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,36 +22,41 @@ export const LobbyPage: React.FC = () => {
 
   const gameModeCards = [
     {
-      key: 'online',
-      icon: '🎮',
-      title: 'Multijugador Online',
-      description: 'Crea una sala pública y espera a que otro jugador se una.',
-      helper: 'Ideal para partidas rápidas con emparejamiento manual desde el lobby.',
-      buttonLabel: isLoading ? 'Creando...' : 'Crear Partida Online',
+      key: "online",
+      icon: "🎮",
+      title: "Multijugador Online",
+      description: "Crea una sala pública y espera a que otro jugador se una.",
+      helper:
+        "Ideal para partidas rápidas con emparejamiento manual desde el lobby.",
+      buttonLabel: isLoading ? "Creando..." : "Crear Partida Online",
       onClick: createOnline,
     },
     {
-      key: 'ai',
-      icon: '🤖',
-      title: 'Vs Computadora (IA)',
-      description: 'Practica contra Stockfish con dificultad, color y tablero personalizables.',
-      helper: 'Tus preferencias se conservan entre partidas para empezar más rápido.',
-      buttonLabel: isLoading ? 'Creando...' : 'Jugar vs IA',
+      key: "ai",
+      icon: "🤖",
+      title: "Vs Computadora (IA)",
+      description:
+        "Practica contra Stockfish con dificultad, color y tablero personalizables.",
+      helper:
+        "Tus preferencias se conservan entre partidas para empezar más rápido.",
+      buttonLabel: isLoading ? "Creando..." : "Jugar vs IA",
       onClick: createAI,
     },
   ];
 
   const quickTips = [
-    '1. Crea una partida online.',
-    '2. Espera a que aparezca otro jugador.',
-    '3. Cuando se una, la partida comienza automáticamente.',
+    "1. Crea una partida online.",
+    "2. Espera a que aparezca otro jugador.",
+    "3. Cuando se una, la partida comienza automáticamente.",
   ];
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Lobby</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+            Lobby
+          </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Elige cómo quieres jugar o únete a una partida disponible.
           </p>
@@ -97,7 +102,11 @@ export const LobbyPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <Button onClick={mode.onClick} disabled={isLoading} className="mt-4 w-full">
+                <Button
+                  onClick={mode.onClick}
+                  disabled={isLoading}
+                  className="mt-4 w-full"
+                >
                   {mode.buttonLabel}
                 </Button>
               </div>
@@ -117,11 +126,15 @@ export const LobbyPage: React.FC = () => {
         </Card>
       </div>
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Nueva Partida">
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Nueva Partida"
+      >
         <div className="space-y-4">
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            Selecciona el modo de juego. Cada opción mantiene el mismo flujo actual, pero con una
-            presentación más clara.
+            Selecciona el modo de juego. Cada opción mantiene el mismo flujo
+            actual, pero con una presentación más clara.
           </p>
 
           <div className="grid gap-3">
@@ -148,7 +161,11 @@ export const LobbyPage: React.FC = () => {
             ))}
           </div>
 
-          <Button variant="secondary" onClick={() => setShowModal(false)} className="w-full">
+          <Button
+            variant="secondary"
+            onClick={() => setShowModal(false)}
+            className="w-full"
+          >
             Cancelar
           </Button>
         </div>
