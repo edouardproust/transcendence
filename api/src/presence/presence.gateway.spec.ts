@@ -57,10 +57,6 @@ describe('PresenceGateway', () => {
 		gateway.server = mockServer as unknown as Server;
 	});
 
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
 	it('should be defined', () => {
 		expect(gateway).toBeDefined();
 	});
