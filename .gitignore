@@ -23,4 +23,5 @@ logs/
 # Prevent an unwanted npm install in root
 /package-lock.json
 /yarn.lock
-/pnpm-lock.yaml
+/pnpm-lock.yamlaws/
+aws-iam.txt

@@ -15,6 +15,8 @@ WORKDIR /app
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ .
+ARG VITE_SOCKET_URL
+ENV VITE_SOCKET_URL=$VITE_SOCKET_URL
 RUN npm run build
 
 # PROD
