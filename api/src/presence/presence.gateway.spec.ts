@@ -26,6 +26,7 @@ describe('PresenceGateway', () => {
 	} as unknown as Socket;
 
 	beforeEach(async () => {
+		jest.clearAllMocks();
 		jest.spyOn(console, 'log').mockImplementation(() => undefined);
 		jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
@@ -53,10 +54,7 @@ describe('PresenceGateway', () => {
 		gateway = module.get<PresenceGateway>(PresenceGateway);
 		usersService = module.get<UsersService>(UsersService);
 		jwtService = module.get<JwtService>(JwtService);
-
 		gateway.server = mockServer as unknown as Server;
-
-		jest.clearAllMocks();
 	});
 
 	afterEach(() => {
