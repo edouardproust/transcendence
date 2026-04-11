@@ -12,13 +12,22 @@ import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
 import { getInitialTimeLeft } from './utils/time-control.utils';
 import { updateElo, GameOutcome } from './utils/elo.utils';
+import { CreateInvitedGameDto } from './dto/create-invited-game.dto';
+import { FriendsService } from '../friends/friends.service';
+import { UsersService } from '../users/users.service';
+import { PresenceGateway } from '../presence/presence.gateway';
 
 /**
  * Service handling chess game lifecycle and move validation.
  */
 @Injectable()
 export class GameService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService,
+		private readonly friendsService: FriendsService,
+		private readonly usersService: UsersService,
+		private readonly presenceGateway: PresenceGateway,
+	) {}
 
 	/**
 	 * Create a new game (online or AI).
@@ -37,6 +46,65 @@ export class GameService {
 				timeControl: dto.timeControl,
 			},
 		});
+
+		return game;
+	}
+
+	async createInvitedGame(dto: CreateInvitedGameDto, inviterId: string) {
+		if (dto.friendId === inviterId) {
+			throw new BadRequestException('No puedes invitarte a ti mismo');
+		}
+
+		const areFriends = await this.friendsService.areFriends(
+			inviterId,
+			dto.friendId,
+		);
+		if (!areFriends) {
+			throw new ForbiddenException(
+				'Solo puedes invitar a usuarios que ya son tus amigos',
+			);
+		}
+
+		if (!this.presenceGateway.isUserOnline(dto.friendId)) {
+			throw new BadRequestException(
+				'Tu amigo debe estar en linea para recibir la invitacion',
+			);
+		}
+
+		const inviter = await this.usersService.findOneById(inviterId);
+		if (!inviter) {
+			throw new NotFoundException('User not found');
+		}
+
+		const game = await this.createGame(
+			{
+				mode: GameMode.ONLINE,
+				timeControl: dto.timeControl,
+			},
+			inviterId,
+		);
+
+		try {
+			this.presenceGateway.emitGameInvite(dto.friendId, {
+				gameId: game.id,
+				gameUrl: `/game/${game.id}`,
+				timeControl: game.timeControl,
+				createdAt: game.createdAt.toISOString(),
+				inviter: {
+					id: inviter.id,
+					username: inviter.username,
+					avatarUrl: inviter.avatarUrl ?? null,
+					elo: inviter.elo,
+				},
+			});
+		} catch (error) {
+			await this.prisma.game
+				.delete({
+					where: { id: game.id },
+				})
+				.catch(() => undefined);
+			throw error;
+		}
 
 		return game;
 	}

@@ -40,6 +40,7 @@ export const ProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [invitingFriendId, setInvitingFriendId] = useState<string | null>(null);
   const [editErrors, setEditErrors] = useState<{
     username?: string;
     email?: string;
@@ -279,6 +280,34 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleInviteFriend = async (friendId: string) => {
+    const friend = friends.find((currentFriend) => currentFriend.id === friendId);
+
+    if (!friend) {
+      pushToast("No se pudo encontrar a ese amigo", "error");
+      return;
+    }
+
+    if (!friend.is_online) {
+      pushToast("Ese amigo debe estar en linea para recibir la invitacion", "error");
+      return;
+    }
+
+    try {
+      setInvitingFriendId(friendId);
+      const invitedGame = await gameService.createInvitedGame({
+        friendId,
+        timeControl: "10+0",
+      });
+      pushToast(`Invitacion enviada a ${friend.username}`, "success");
+      navigate(`/game/${invitedGame.id}`);
+    } catch (error: any) {
+      pushToast(getApiErrorMessage(error, "No se pudo enviar la invitacion"), "error");
+    } finally {
+      setInvitingFriendId(null);
+    }
+  };
+
   if (isLoading) {
     return <PageLoader message="Cargando perfil..." />;
   }
@@ -345,7 +374,9 @@ export const ProfilePage: React.FC = () => {
       {isOwnProfile ? (
         <ProfileFriendsSection
           friends={friends}
+          invitingFriendId={invitingFriendId}
           onViewProfile={(friendId) => navigate(`/profile/${friendId}`)}
+          onInviteToGame={(friendId) => void handleInviteFriend(friendId)}
           onRemoveFriend={(friendId) => void handleRemoveFriend(friendId)}
         />
       ) : null}

@@ -27,7 +27,7 @@ async function main() {
 
 		const admin = await seedAdmin(prisma);
 		const users = await seedUsers(prisma);
-		//const games = await seedGames(prisma, admin, users);
+		const games = await seedGames(prisma, admin, users);
 
 		console.log(
 			`\nDone. ${1 + users.length} users, ${games.length} games created.`,

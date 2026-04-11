@@ -11,6 +11,11 @@ interface FinishGameRequest {
   pgn: string;
 }
 
+interface CreateInvitedGameRequest {
+  friendId: string;
+  timeControl: string;
+}
+
 const serializeGameMode = (mode: CreateGameRequest['mode']): ApiGameMode =>
   mode === 'ai' ? 'AI' : 'ONLINE';
 
@@ -48,6 +53,11 @@ export const gameService = {
       ...data,
       mode: serializeGameMode(data.mode),
     });
+    return mapGameFromAPI(response.data);
+  },
+
+  async createInvitedGame(data: CreateInvitedGameRequest): Promise<Game> {
+    const response = await api.post('/games/invite', data);
     return mapGameFromAPI(response.data);
   },
 

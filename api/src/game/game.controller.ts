@@ -24,6 +24,7 @@ import { GameResponseDto } from './dto/game-response.dto';
 import { FinishGameDto } from './dto/finish-game.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
 import { StartGameDto } from './dto/start-game.dto';
+import { CreateInvitedGameDto } from './dto/create-invited-game.dto';
 
 @Controller('games')
 @UseGuards(JwtAuthGuard)
@@ -80,6 +81,31 @@ export class GameController {
 		@CurrentUser() user: RequestUser,
 	): Promise<GameResponseDto[]> {
 		return this.gameService.getUserGames(user.id);
+	}
+
+	@Post('invite')
+	@ApiOperation({
+		summary: 'Create an online game and invite a friend in real time',
+	})
+	@ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Invited game created',
+		type: GameResponseDto,
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description:
+			'Invalid input or the invited friend is not currently online',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'The target user is not in the current user friends list',
+	})
+	async createInvitedGame(
+		@Body() dto: CreateInvitedGameDto,
+		@CurrentUser() user: RequestUser,
+	): Promise<GameResponseDto> {
+		return this.gameService.createInvitedGame(dto, user.id);
 	}
 
 	@Get(':id')

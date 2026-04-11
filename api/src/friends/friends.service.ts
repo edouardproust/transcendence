@@ -178,6 +178,20 @@ export class FriendsService {
 		);
 	}
 
+	async areFriends(userId: string, friendId: string): Promise<boolean> {
+		const friendship = await this.prismaService.friendship.findFirst({
+			where: {
+				OR: [
+					{ userId, friendId },
+					{ userId: friendId, friendId: userId },
+				],
+			},
+			select: { id: true },
+		});
+
+		return Boolean(friendship);
+	}
+
 	/**
 	 * Removes a friendship between two users.
 	 * Queries both directions since the friendship entry may have been created

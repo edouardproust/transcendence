@@ -302,13 +302,17 @@ export const ProfileRequestsSection: React.FC<ProfileRequestsSectionProps> = ({
 
 interface ProfileFriendsSectionProps {
   friends: Friend[];
+  invitingFriendId: string | null;
   onViewProfile: (friendId: string) => void;
+  onInviteToGame: (friendId: string) => void;
   onRemoveFriend: (friendId: string) => void;
 }
 
 export const ProfileFriendsSection: React.FC<ProfileFriendsSectionProps> = ({
   friends,
+  invitingFriendId,
   onViewProfile,
+  onInviteToGame,
   onRemoveFriend,
 }) => {
   return (
@@ -321,18 +325,30 @@ export const ProfileFriendsSection: React.FC<ProfileFriendsSectionProps> = ({
           {friends.map((friend) => (
             <div
               key={friend.id}
-              className="flex items-center justify-between rounded border p-3 hover:bg-gray-50"
+              className="flex flex-col gap-3 rounded border p-4 hover:bg-gray-50 xl:flex-row xl:items-center xl:justify-between"
             >
               <div className="flex flex-1 items-center gap-3">
                 <Avatar src={friend.avatar_url} alt={friend.username} size="sm" />
                 <div>
-                  <div className="font-medium">{friend.username}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="font-medium">{friend.username}</div>
+                    <Badge tone={friend.is_online ? 'success' : 'neutral'}>
+                      {friend.is_online ? 'En linea' : 'Desconectado'}
+                    </Badge>
+                  </div>
                   <div className="text-sm text-gray-600">
-                    ELO: {friend.elo} • {friend.is_online ? 'En linea' : 'Desconectado'}
+                    ELO: {friend.elo}
+                    {friend.is_online ? ' • Listo para una partida rapida' : ' • Disponible al conectarse'}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 xl:justify-end">
+                <Button
+                  onClick={() => onInviteToGame(friend.id)}
+                  disabled={!friend.is_online || Boolean(invitingFriendId)}
+                >
+                  {invitingFriendId === friend.id ? 'Enviando...' : 'Invitar a jugar'}
+                </Button>
                 <Button variant="secondary" onClick={() => onViewProfile(friend.id)}>
                   Ver Perfil
                 </Button>

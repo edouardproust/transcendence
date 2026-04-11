@@ -10,6 +10,7 @@ import {
   validatePassword,
   validateUsername,
 } from './authConstraints';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ export const RegisterPage: React.FC = () => {
       
       navigate('/lobby');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrarse');
+      setError(getApiErrorMessage(err, 'Error al registrarse'));
       console.error('Register error:', err);
     } finally {
       setIsLoading(false);

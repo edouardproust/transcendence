@@ -60,6 +60,24 @@ describe('GameController', () => {
 		});
 	});
 
+	describe('createInvitedGame', () => {
+		it('should call service.createInvitedGame with dto and userId', async () => {
+			const user: RequestUser = { id: EXAMPLES.id, role: EXAMPLES.role };
+			const dto = {
+				friendId: EXAMPLES.id2,
+				timeControl: EXAMPLES.timeControl,
+			};
+			jest.spyOn(gameService, 'createInvitedGame').mockResolvedValue(
+				gameFixture,
+			);
+			await controller.createInvitedGame(dto, user);
+			expect(gameService.createInvitedGame).toHaveBeenCalledWith(
+				dto,
+				user.id,
+			);
+		});
+	});
+
 	describe('getGame', () => {
 		it('should call service.getGame with id', async () => {
 			jest.spyOn(gameService, 'getGame').mockResolvedValue(gameFixture);
